@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Smart Waste | Louisiana Tech</title>
+<link rel="icon" type="image/png" href="fabicon.png">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<section id="loginPage" class="auth">
+  <div class="auth-glass">
+    <div class="logo">♻</div>
+    <h1>Smart Waste</h1>
+    <p>Louisiana Tech University</p>
+
+    <div class="field">
+      <input id="username" required>
+      <label>Username</label>
+    </div>
+
+    <div class="field">
+      <input id="password" type="password" required>
+      <label>Password</label>
+    </div>
+
+    <button class="primary full" onclick="login()">Sign In</button>
+  </div>
+</section>
+
+<!-- DASHBOARD -->
+<section id="dashboard" class="hidden">
+
+<header class="topbar">
+  <h2>Smart Waste Dashboard</h2>
+
+  <!-- CONTEXT ROW -->
+  <div class="dashboard-subrow">
+    <span class="context">
+      Louisiana Tech University • Campus Operations
+    </span>
+
+    <span id="lastUpdate" class="live-status">
+      🟢 Live
+    </span>
+  </div>
+</header>
+
+<!-- METRICS -->
+<section class="metrics">
+  <div class="metric"><span>Total</span><h3 id="total">0</h3></div>
+  <div class="metric danger"><span>Full</span><h3 id="full">0</h3></div>
+  <div class="metric warning"><span>Half</span><h3 id="half">0</h3></div>
+  <div class="metric success"><span>Empty</span><h3 id="empty">0</h3></div>
+</section>
+
+<!-- CONTENT -->
+<section class="content">
+  <div class="card">
+    <h3>Campus Map</h3>
+    <div id="ltMap"></div>
+  </div>
+
+  <div class="card">
+    <button class="primary" onclick="openAddBin()">➕ Add Bin</button>
+
+    <h3>Bin Status</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Location</th>
+          <th>Fill</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</section>
+
+<footer>© 2025 Louisiana Tech University</footer>
+</section>
+
+<!-- OVERLAYS + MODALS -->
+<div id="overlay" class="overlay hidden" onclick="closeModal()"></div>
+
+<div id="binModal" class="bin-modal hidden">
+  <button class="close-btn" onclick="closeModal()">✕</button>
+
+  <h2 id="modalId"></h2>
+  <p id="modalLoc"></p>
+
+  <p class="modal-loc">Last seen: <span id="modalLastSeen">—</span></p>
+  <p class="modal-loc">Height: <span id="modalHeight">—</span> cm</p>
+  <p class="modal-loc">Weight: <span id="modalWeight">—</span> kg</p>
+
+  <!-- ✅ Progress bar ABOVE buttons -->
+  <div class="modal-bar">
+    <div id="modalFill" class="modal-fill"></div>
+  </div>
+
+  <p id="modalStatus"></p>
+
+  <!-- ✅ Buttons SIDE BY SIDE -->
+  <div class="modal-actions">
+    <button class="primary" onclick="openProDirections()"> Direction</button>
+    <button class="danger-btn" onclick="openDeleteBin()">🗑 Delete</button>
+  </div>
+</div>
+
+
+<div id="addOverlay" class="overlay hidden"></div>
+
+<div id="addBinModal" class="bin-modal hidden">
+  <button class="close-btn" onclick="closeAddBin()">✕</button>
+
+  <div id="pinStep">
+    <h2>Verify PIN</h2>
+    <input id="pinInput" class="modal-input" type="password" placeholder="Enter PIN">
+    <button class="primary full" onclick="verifyPin()">Continue</button>
+  </div>
+
+  <div id="formStep" class="hidden">
+    <h2>Add New Bin</h2>
+
+    <button class="ghost full" onclick="startPickLocation()">📍 Pick Location From Map</button>
+
+    <div class="modal-grid">
+      <input id="newId" placeholder="Bin ID">
+      <input id="newLoc" placeholder="Location">
+      <input id="newLat" placeholder="Latitude">
+      <input id="newLng" placeholder="Longitude">
+    </div>
+
+    <button class="primary full" onclick="confirmAddBin()">Add Bin</button>
+  </div>
+</div>
+
+
+
+<!-- map picker model -->
+<div id="mapPickOverlay" class="overlay hidden" onclick="closeMapPicker()"></div>
+
+<div id="mapPickModal" class="bin-modal map-pick hidden">
+  <button class="close-btn" onclick="closeMapPicker()">✕</button>
+
+  <h2>Pick Bin Location</h2>
+  <p class="modal-loc">Click on the map to choose a location (drag the pin to adjust).</p>
+
+  <div id="pickMap" class="pick-map"></div>
+
+  <div class="map-pick-actions">
+    <button class="ghost full" onclick="closeMapPicker()">Cancel</button>
+    <button class="primary full" onclick="confirmPickedLocation()">Use This Location</button>
+  </div>
+</div>
+
+<div id="deleteOverlay" class="overlay hidden"></div>
+
+<div id="deleteBinModal" class="bin-modal hidden">
+  <button class="close-btn" onclick="closeDeleteBin()">✕</button>
+  <h2>Confirm Delete</h2>
+  <p class="modal-warning">This action cannot be undone.</p>
+  <input id="deletePinInput" class="modal-input" type="password" placeholder="Enter PIN">
+  <button class="danger-btn full" onclick="confirmDeleteBin()">Delete Permanently</button>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast hidden">
+  <span id="toastText"></span>
+  <button id="undoBtn" class="toast-btn">Undo</button>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+
+<script src="script.js"></script>
+
+
+<!-- FULL BIN ALERT -->
+<div id="fullBinAlert" class="alert-card hidden">
+  <div class="alert-header">
+    <span class="alert-icon">⚠</span>
+    <span class="alert-title">Full Bin Alert</span>
+    <button class="alert-close" onclick="closeFullAlert()">✕</button>
+  </div>
+
+  <p class="alert-subtitle">
+    The following bins require immediate attention:
+  </p>
+
+  <ul id="fullBinList" class="alert-list"></ul>
+
+  <button class="alert-action" onclick="acknowledgeAlert()">
+    Acknowledge
+  </button>
+</div>
+
+
+
+<audio id="alertSound" src="alert.mp3" preload="auto"></audio>
+
+</body>
+</html>

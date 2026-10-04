@@ -1,0 +1,508 @@
+*{
+    padding: 0;
+    margin: 0;
+    border: border-box;
+    font-family: sans-serif;
+}
+.adress-bar{
+    height: 40px;
+    width: 100%;
+    background-color: rgba(216, 212, 212, 0.979);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    border-top: 0.3rem
+}
+.socialmedia{
+    display: flex;
+    gap: 1rem;
+}
+.socialmedia i:hover{
+    color: #f00;
+    cursor: pointer;
+}
+.location{
+    display: flex;
+    gap:1rem;
+}
+.location a{
+    text-decoration: none;
+    color: #333333;
+    font-size: 1rem;
+}
+.location a:hover{
+    color: #f00;
+}
+span{
+    padding: 0 10px;
+}
+.login:hover{
+    background-color: green;
+    color: #fff;
+
+}
+.login a:hover{
+    color: #fff;
+}
+.logo{
+    height: 120px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.logo .lg{
+    height: 100px;
+    width: 800px;
+    background-image: url("samblogo.jpg");
+    background-size: cover;
+}
+.navbar-container{
+    height: 50px;
+    width: 100%;
+    background: green;
+    display: flex;
+    justify-content: space-around;
+    position: sticky;
+    top: 0;
+    
+}
+.navbar-container .navbar{
+    line-height: 50px;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    position: static;
+    top: 0;
+    gap: .9rem;
+    
+
+}
+.navbar a{
+    text-transform: capitalize;
+    text-decoration: none;
+    color: #fff;
+    font-weight: 600;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: .9rem;
+    padding: 0 15px;
+    
+}
+.navbar a:hover{
+    background-color: #f00;
+}
+.hero{
+    height: 800px;
+    width: 100%;
+}
+.hero .i-content{
+    height: 550px;
+    width: 100%;
+    background-image: url("heroimg.jpg");
+    background-size: cover;
+    
+}
+.mainsliding{
+    height: 50px;
+    width: 100%;
+    background-color: #f00;
+    
+
+}
+.mainsliding .notice{
+    line-height: 50px;
+    width: 130px;
+    background-color: green;
+    color: #fff;
+    font-size: medium;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    font-weight: bold;
+    margin-left: 100px;
+    text-align: center;
+    text-transform: uppercase;
+}
+.principal-box{
+    height: 600px;
+    width: 100%;
+    margin: 150px auto;
+    display: flex;
+
+}
+.sign{
+    height: 50px;
+    width: 100px;
+    background-image: url("comma.png");
+    background-size: cover;
+
+}
+.principal-image{
+    height: 450px;
+    width: 450px;
+    background-image: url("sambprincipal.jpg");
+    background-size: cover;
+    border-radius: 15px;
+    float: left;
+    padding-left: 12rem;
+    margin-left: 10rem;
+    
+}
+.text{
+    line-height: 3rem;
+    margin-left: 3rem;
+    font-family:'Times New Roman', Times, serif ;
+    font-size: 1.1rem;
+    color: #333333;
+    
+}
+.read{
+    color: #f00;
+    font-size: 1.3rem
+}
+.name{
+    font-family: cursive;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+.laison-box{
+    height: 500px;
+    width: 100%;
+    margin: 150px auto;
+    display: flex;
+    flex-direction: row-reverse;
+
+}
+.laison-box .sign{
+    height: 50px;
+    width: 100px;
+    background-image: url("comma.png");
+    background-size: cover;
+    margin-top: 2rem;
+
+}
+.laison-image{
+    height: 400px;
+    width: 350px;
+    background-image: url("laison.jpg");
+    background-size: cover;
+    border-radius: 15px;
+    float: right;
+    margin-right: 12rem;
+    padding-right: 2rem;
+    transition: bottom 0.3s ease;
+    
+}
+.text{
+    line-height: 3rem;
+    margin-right: 10rem;
+    font-family:'Times New Roman', Times, serif ;
+    font-size: 1.1rem;
+    color: #333333;
+    
+}
+.read{
+    color: #f00;
+    font-size: 1.3rem
+}
+.name{
+    font-family: cursive;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+.news-event{
+    display: flex;
+    justify-content: space-around;
+}
+.news{
+    text-transform: capitalize;
+    font-size: 2rem;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    font-weight: bold;
+    color: #333333;
+    
+}
+.event{
+    text-transform: capitalize;
+    font-size: 2rem;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    font-weight: bold;
+    color: #333333;    
+}
+.boxes{
+    height: 900px;
+    width: 100%;
+    margin: 10px auto;
+    display: flex;
+    justify-content: space-evenly;
+    
+}
+
+.boxes .b{
+    height: 150px;
+    width: 500px;
+    background-color: #fff;
+    border-radius: 5px;
+    margin: 5rem 0 auto 0 ;
+    box-shadow: 10px 10px 10px 10px #f7f7f7;
+    display: flex;
+    justify-content: start;
+    align-items: normal;
+    
+}
+.boxes .image1{
+    height: 120px;
+    width: 150px;
+    background-color: #f00;
+    background-image: url("1.jpg");
+    background-size: cover;
+    border-radius: 5px;
+    margin-top: 1rem;
+}
+.boxes .image2{
+    height: 120px;
+    width: 150px;
+    background-color: #f00;
+    background-image: url("2.jpg");
+    background-size: cover;
+    border-radius: 5px;
+    margin-top: 1rem;
+}
+.boxes .image3{
+    height: 120px;
+    width: 150px;
+    background-color: #f00;
+    background-image: url("3.jpg");
+    background-size: cover;
+    border-radius: 5px;
+    margin-top: 1rem;
+}
+.imagetext{
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    margin-left: 1rem;
+    margin-top: 1.5rem;
+    font-size: 1rem;
+    font-family:Georgia, 'Times New Roman', Times, serif;
+    color: #333333;
+    font-size: 1.1rem;
+}
+.imagetext .time{
+    color:#f00 ;
+}
+.imagetext .xiivisit:hover{
+    cursor: pointer;
+    color: #f00;
+}
+.boxes .image4{
+    height: 140px;
+    width: 150px;
+    background-color: #f00;
+    background-image: url("5.png");
+    background-size: cover;
+    border-radius: 5px;
+}
+.boxes .image5{
+    height: 140px;
+    width: 150px;
+    background-color: #f00;
+    background-image: url("5.png");
+    background-size: cover;
+    border-radius: 5px;
+}
+.boxes .image6{
+    height: 140px;
+    width: 150px;
+    background-color: #f00;
+    background-image: url("6.png");
+    background-size: cover;
+    border-radius: 5px;
+}
+.browse-container{
+    height: 700px;
+    width: 100%;
+}
+.browse-text{
+    font-family: sans-serif;
+    font-size:32px;
+    font-weight: 600;
+    margin-left: 5rem;    
+    color: #434343;
+}
+.browse-image{
+    height: 500px;
+    width: 100%;
+    margin-top: 2rem;
+    
+    display: flex;
+    justify-content: space-evenly;
+}
+.browse-image .school-level{
+    height: 400px;
+    width: 400px;
+    background-image: url("schoollevel.jpeg");
+    background-size: cover;
+    color: #fff;
+    display:flex ;
+    flex-direction: column;
+    justify-content:end;
+    align-items: center;
+    gap: 1.1rem;
+    padding-bottom: 2rem;
+    border-radius: 15px;
+    animation: zoom-in-zoom-out 1s ease infinite;
+
+}
+.browse-image .school-level p{
+    text-align: center;
+    font-size: 1.1rem;
+    font-family: sans-serif;
+    
+}
+.school-level:hover{
+    transform: scale(1.1);
+    cursor: pointer;
+}
+.browse-image .plus2{
+    height: 400px;
+    width: 400px;
+    background-image: url("+2.jpg");
+    background-size: cover;
+    color: #fff;
+    display:flex ;
+    flex-direction: column;
+    justify-content:end;
+    align-items: center;
+    gap: 1.1rem;
+    padding-bottom: 2rem;
+    border-radius: 15px;
+    animation: zoom-in-zoom-out 1s ease infinite;
+
+}
+.browse-image .plus2 p{
+    text-align: center;
+    font-size: 1.1rem;
+    font-family: sans-serif;
+    
+}
+.plus2:hover{
+    transform: scale(1.1);
+    cursor: pointer;
+}
+.browse-image .bachelor{
+    height: 400px;
+    width: 400px;
+    background-image: url("bachelor.jpeg");
+    background-size: cover;
+    color: #fff;
+    display:flex ;
+    flex-direction: column;
+    justify-content:end;
+    align-items: center;
+    gap: 1.1rem;
+    padding-bottom: 2rem;
+    border-radius: 15px;
+    animation: zoom-in-zoom-out 1s ease infinite;
+
+}
+.browse-image .bachelor p{
+    text-align: center;
+    font-size: 1.1rem;
+    font-family: sans-serif;
+    
+}
+.bachelor:hover{
+    transform: scale(1.1);
+    cursor: pointer;
+}
+ .pich:hover{
+    cursor: pointer;
+    color: #f00;
+}
+.student-queries{
+    height: 150px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.query1{
+    color: #2e8019;
+    font-family: sans-serif;
+}
+.query2{
+    color: #434343;
+    font-family: sans-serif;
+}
+.queriesstd{
+    display: block;
+    margin-left: 10rem;
+    gap: 3rem;
+}
+.queries{
+    height: 300px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: row;
+
+}
+.imgstd1{
+    height: 80px;
+    width: 80px;
+    border-radius: 50%;
+    margin-top: 4rem;
+    margin-left: 3rem;
+}
+.firststd{
+    height: 180px;
+    width: 600px;
+    background-color: #fff;
+    font-family: sans-serif;
+    color: #434343;
+    display: flex;
+    flex-direction: column;
+    gap: 1.3rem;
+    padding-top: 2rem;
+    padding-left: 2rem;
+    margin-left: 1rem;
+    box-shadow: 10px 10px 10px 10px #f7f7f7;
+    border-radius: 8px;
+}
+.stdname{
+    color: #2e8019;
+    font-family: cursive;
+    font-size: 2rem;
+}
+.firststd .std{
+    font-size: .8rem;
+}
+
+.last-button{
+    height: 100px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.viewmorebutton{
+    height: 50px;
+    width: 180px;
+    background-color: #fff;
+    border: 3px solid #2e8019;
+    border-radius: 50px;
+    font-family: sans-serif;
+    font-size: 1.1rem;
+    
+}
+.viewmorebutton:hover{
+    background-color: #f00;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+@media screen (max-width: 1100px) {
+    .navbar-container {
+        flex-direction: column;
+    }
+}
