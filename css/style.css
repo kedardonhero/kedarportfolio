@@ -271,21 +271,55 @@ a {
   color: red;
   /* font-size: 50px; */
 }
+/* MOBILE */
 @media screen and (max-width: 768px) {
-  .homeContent h1,
-  .homeContent h2{
+
+  .homePage {
+    height: 100vh;
+    min-height: 100svh;
+
+    background-image: url(../images/koko.jpeg);
+    background-size: cover;
+    background-position: center center;
+
+    /* IMPORTANT for phones */
+    background-attachment: scroll;
+
+    margin-bottom: 70px;
+  }
+
+  .homeContent {
+    height: 100vh;
+    min-height: 100svh;
+
+    padding-left: 20px;
+    padding-right: 20px;
+
+    text-align: center;
+  }
+
+  .homeContent h1 {
+    font-size: 38px;
+    line-height: 1.15;
+    font-weight: 600;
+    max-width: 100%;
+  }
+
+  .homeContent h2 {
+    font-size: 26px;
+    line-height: 1.3;
+  }
+
+  .navbar-brand h2 {
     font-size: 30px;
+    margin: 0;
   }
-}
-@media screen and (min-width: 768px) {
-  .homeContent h1,
-  .homeContent h2{
-    font-size: 50px;
+
+  .navbar-toggler {
+    border: none;
   }
-}
-@media screen and (min-width: 1200px) {
-  .homeContent h1,
-  .homeContent h2{
-    font-size: 72px;
+
+  .navbar-toggler:focus {
+    box-shadow: none;
   }
 }
