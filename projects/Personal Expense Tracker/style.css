@@ -1,28 +1,12 @@
 /* ---------- Colour variables (light theme is the default) ---------- */
 :root {
-  --bg: #f4f6f3;
-  --surface: #ffffff;
-  --text: #15211c;
-  --muted: #62716a;
-  --border: #dfe5e0;
-  --accent: #0f6b5c;
-  --accent-text: #ffffff;
-  --income: #1f9d63;
-  --expense: #d9503f;
-  --warn-bg: #fdeceA;
-  --shadow: 0 1px 2px rgba(20, 33, 28, 0.06), 0 6px 18px rgba(20, 33, 28, 0.05);
+  --bg: #f1f4f9; --surface: #ffffff; --text: #0b1b33; --muted: #5d6d86; --border: #e0e6ef;
+  --accent: #1553d6; --accent-text: #ffffff; --income: #0f8a5f; --expense: #c93a3a; --warn-bg: #fdecec;
+  --shadow: 0 1px 2px rgba(11, 27, 51, 0.05), 0 8px 24px rgba(11, 27, 51, 0.06);
 }
 [data-theme="dark"] {
-  --bg: #0e1613;
-  --surface: #17211d;
-  --text: #e8efeb;
-  --muted: #8fa097;
-  --border: #26342e;
-  --accent: #3cc4a6;
-  --accent-text: #08130f;
-  --income: #4cd391;
-  --expense: #ff7a68;
-  --warn-bg: #3a1f1b;
+  --bg: #0a1220; --surface: #121c2e; --text: #e7edf7; --muted: #8c9bb3; --border: #22304a;
+  --accent: #5b8dff; --accent-text: #071226; --income: #3ed598; --expense: #ff7b7b; --warn-bg: #3a1c22;
   --shadow: none;
 }
 
@@ -190,3 +174,232 @@ tbody tr:hover { background: var(--bg); }
 .row-head .delete-btn { vertical-align: middle; padding: 2px 4px; margin-left: 4px; }
 .row-head .delete-btn svg { width: 16px; height: 16px; }
 @media (max-width: 800px) { .plan-form { grid-template-columns: 1fr; } }
+
+/* ---------- Net worth, accounts, loans ---------- */
+.clickable { cursor: pointer; }
+.cards .clickable:hover { border-color: var(--accent); }
+.card small { font-weight: 400; font-size: 0.75rem; color: var(--muted); }
+#networth .card, #loans .card { margin-bottom: 16px; }
+#networth .cards .card, #loans .cards .card { margin-bottom: 0; }
+#networth .cards, #loans .cards { margin-bottom: 16px; }
+.acct { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.acct:last-child { border-bottom: none; }
+.acct-actions { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+.mini-btn { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; font-size: 0.85rem; font-weight: 500; transition: border-color 0.2s; }
+.mini-btn:hover { border-color: var(--accent); }
+.mini-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 14px; align-items: center; }
+#loans .mini-form { margin-top: 0; }
+.mini-form .check { display: flex; gap: 8px; align-items: center; font-size: 0.9rem; }
+.transfer-line { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; color: var(--muted); }
+
+/* ---------- Banking theme ---------- */
+body { font-variant-numeric: tabular-nums; }
+h1 { letter-spacing: -0.02em; }
+.card { border-radius: 16px; }
+.sidebar { background: #0b1b33; border-right: none; }
+.sidebar .logo { color: #fff; }
+.sidebar .nav-btn, .sidebar .ghost-btn { color: #9fb0cc; }
+.sidebar .nav-btn:hover, .sidebar .ghost-btn:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.sidebar .nav-btn.active { background: var(--accent); color: #fff; }
+.sidebar .ghost-btn.danger:hover { color: #ff9a9a; }
+th { text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.06em; }
+.hero { background: linear-gradient(135deg, #0b1b33 0%, #16408f 100%); color: #fff; border: none; padding: 28px; margin-bottom: 16px; }
+.hero .label, .hero small { color: #b9c8e3; }
+.hero strong { display: block; font-size: 2.4rem; font-weight: 800; margin: 4px 0 6px; }
+.kind-cash { border-top: 4px solid var(--income); }
+.kind-checking { border-top: 4px solid var(--accent); }
+.kind-credit { border-top: 4px solid var(--expense); }
+.acct, .acct:last-child { border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+.acct-credit { background: linear-gradient(135deg, #0b1b33, #1f3f7a); color: #fff; border-color: transparent; }
+.acct-credit .row-note { color: #c3d1ea; }
+.acct-credit .progress { background: rgba(255, 255, 255, 0.2); border-color: transparent; }
+.acct-credit .mini-btn { background: rgba(255, 255, 255, 0.12); color: #fff; border-color: rgba(255, 255, 255, 0.25); }
+.acct-credit .delete-btn { color: #c3d1ea; }
+.avatar { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: var(--accent-text); font-weight: 700; font-size: 0.85rem; margin-right: 10px; }
+dialog { border: none; border-radius: 16px; padding: 24px; width: min(380px, 92vw); background: var(--surface); color: var(--text); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); }
+dialog::backdrop { background: rgba(7, 18, 38, 0.55); }
+dialog h2 { font-size: 1.2rem; margin-bottom: 4px; }
+dialog input { width: 100%; margin: 8px 0; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; }
+
+/* ---------- Account detail, loans ---------- */
+.acct { cursor: pointer; transition: box-shadow 0.2s, transform 0.2s; }
+.acct:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+.back-btn { margin-bottom: 14px; }
+.loan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin: 14px 0; }
+.loan-grid label { display: flex; flex-direction: column; gap: 6px; font-weight: 500; font-size: 0.9rem; }
+#loan-form .check { display: flex; gap: 8px; align-items: center; font-size: 0.9rem; margin-bottom: 8px; }
+.progress.thin { height: 8px; margin-bottom: 4px; }
+td small { color: var(--muted); }
+td.actions { white-space: nowrap; }
+.dialog-field { display: flex; flex-direction: column; gap: 6px; font-weight: 500; font-size: 0.9rem; margin-top: 8px; }
+.dialog-field[hidden] { display: none; }
+dialog select { width: 100%; }
+
+/* ---------- Welcome screen, set-up wizard ---------- */
+[hidden] { display: none !important; }
+.overlay { position: fixed; inset: 0; z-index: 100; background: linear-gradient(135deg, #0b1b33, #16408f); display: grid; place-items: center; padding: 20px; overflow: auto; }
+.welcome-card { background: var(--surface); color: var(--text); border-radius: 20px; padding: 32px; width: min(440px, 100%); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35); animation: fade 0.3s ease; }
+.welcome-card.wide { width: min(560px, 100%); }
+.logo.big { font-size: 1.8rem; margin-bottom: 6px; padding: 0; }
+.block { display: block; width: 100%; margin-top: 12px; text-align: center; padding: 12px; }
+.stack { display: flex; flex-direction: column; gap: 14px; margin-top: 12px; }
+.stack label { display: flex; flex-direction: column; gap: 6px; font-weight: 500; font-size: 0.9rem; }
+.step-label { color: var(--muted); font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; }
+.ob-step h2 { font-size: 1.3rem; margin: 18px 0 4px; }
+.ob-step .mini-form { margin-top: 10px; }
+.ob-list { list-style: none; padding: 0; margin: 12px 0; }
+.ob-list li { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+#ob-cash { width: 100%; margin-top: 8px; }
+.profile-chip { color: #9fb0cc; font-size: 0.8rem; padding: 0 12px 10px; word-break: break-all; }
+@media (max-width: 800px) { .profile-chip { display: none; } }
+
+textarea { width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text); font: inherit; resize: vertical; }
+#transfer-dialog { width: min(520px, 92vw); }
+#transfer-dialog textarea { margin: 8px 0; font-size: 0.8rem; word-break: break-all; }
+
+/* ============================================================
+   v2 — simpler, friendlier layout
+   ============================================================ */
+button, input, select, textarea { font: inherit; }
+.muted { color: var(--muted); }
+.grow { flex: 1; min-width: 0; }
+
+/* ---------- Credit: "Designed & made by Kedar" ---------- */
+.sidebar { overflow-y: auto; }
+.credit { display: flex; flex-direction: column; gap: 2px; margin: 12px 12px 0; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.14); font-size: 0.78rem; color: #9fb0cc; }
+.credit strong { color: #fff; font-size: 1.05rem; font-weight: 800; letter-spacing: 0.01em; }
+.credit-line { margin-top: 24px; text-align: center; font-size: 0.85rem; color: var(--muted); }
+.credit-line strong { color: var(--text); font-weight: 800; }
+
+/* ---------- Page headers, clickable cards ---------- */
+.page-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.page-head h1 { margin: 0; }
+.primary-btn svg { width: 16px; height: 16px; vertical-align: -2px; margin-right: 2px; }
+.card.clickable { position: relative; }
+.card .go { position: absolute; top: 16px; right: 14px; width: 18px; height: 18px; color: var(--muted); }
+.card.clickable:hover .go { color: var(--accent); }
+.hint { margin-bottom: 12px; }
+
+/* ---------- Money page: folded forms, tidy account rows ---------- */
+details.fold > summary { cursor: pointer; list-style: none; font-weight: 700; color: var(--accent); padding: 8px 0 2px; }
+details.fold > summary::-webkit-details-marker { display: none; }
+details.fold[open] > summary { margin-bottom: 4px; }
+details.card.fold { margin-bottom: 16px; }
+details.card.fold > summary { color: var(--text); padding: 0; font-size: 1rem; display: flex; justify-content: space-between; align-items: center; }
+details.card.fold > summary::after { content: "+"; color: var(--muted); font-size: 1.3rem; line-height: 1; }
+details.card.fold[open] > summary::after { content: "−"; }
+details.card.fold[open] > summary { margin-bottom: 8px; }
+.acct-actions .spacer { flex: 1; }
+.acct-actions .delete-btn { padding: 8px; }
+.acct { cursor: pointer; }
+
+/* ---------- People rows (Contacts and Loans) ---------- */
+.people-list { display: flex; flex-direction: column; gap: 8px; }
+#contacts .people-list { margin-bottom: 16px; }
+.person-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); cursor: pointer; transition: border-color 0.2s; }
+.person-row:hover { border-color: var(--accent); }
+.person-row .avatar { margin: 0; flex: none; }
+.person-name { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bal { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.2; }
+.bal small { font-size: 0.72rem; color: var(--muted); }
+.bal strong { font-size: 1.05rem; }
+.go-inline { width: 16px; height: 16px; color: var(--muted); flex: none; }
+#contacts .card, #contact-detail .card { margin-bottom: 16px; }
+#contacts .mini-form { margin-top: 0; grid-template-columns: 1fr auto; }
+#contact-empty { margin-bottom: 0; }
+
+/* ---------- Contact page ---------- */
+.person-head { display: flex; align-items: center; gap: 16px; }
+.avatar.big { width: 56px; height: 56px; font-size: 1.4rem; margin: 0; flex: none; }
+.person-head h1 { margin: 0 0 4px; font-size: 1.5rem; overflow-wrap: anywhere; }
+#cd-status { font-weight: 700; }
+.person-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.danger-text { color: var(--expense); }
+#contact-detail .cards { margin-bottom: 16px; }
+.loan-item { padding: 14px 0; border-bottom: 1px solid var(--border); }
+.loan-item:last-child { border-bottom: none; padding-bottom: 0; }
+.loan-item:first-child { padding-top: 0; }
+.loan-item .top { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.loan-item .meta { color: var(--muted); font-size: 0.82rem; margin: 2px 0 0; }
+.loan-item .actions { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+.activity-row { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.activity-row:last-child { border-bottom: none; }
+.activity-row p { margin: 0; }
+.activity-row small { color: var(--muted); }
+.dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 6px; flex: none; background: var(--muted); }
+.dot.income { background: var(--income); }
+.dot.expense { background: var(--expense); }
+
+/* ---------- Loans page ---------- */
+#loan-headline { font-size: 1.9rem; }
+#loans .card { max-width: 760px; }
+#loans .hero { max-width: 760px; }
+
+/* ---------- Add expense pop-up ---------- */
+#loan-dialog { width: min(480px, 94vw); max-height: 92vh; overflow: auto; }
+#loan-form { display: flex; flex-direction: column; gap: 12px; }
+#loan-dialog h2 { margin-bottom: 0; }
+.field { display: flex; flex-direction: column; gap: 6px; font-weight: 500; font-size: 0.9rem; }
+.field input, .field select { margin: 0; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+fieldset.seg-group { border: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.seg-group legend { font-weight: 500; font-size: 0.9rem; margin-bottom: 6px; padding: 0; }
+.seg { position: relative; display: block; }
+.seg input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.seg span { display: flex; flex-direction: column; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; font-weight: 700; transition: border-color 0.2s; }
+.seg span small { font-weight: 500; color: var(--muted); font-size: 0.8rem; }
+.seg input:checked + span { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.seg input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+.check { display: flex; gap: 8px; align-items: center; font-size: 0.9rem; }
+dialog input[type="checkbox"], dialog input[type="radio"] { width: auto; margin: 0; }
+.exp-box { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px dashed var(--border); border-radius: 12px; }
+.preview { font-weight: 700; min-height: 1.3em; }
+#loan-dialog .error { min-height: 0; }
+
+/* ---------- Set-up wizard extras ---------- */
+.link-btn { background: none; border: none; color: var(--muted); text-decoration: underline; padding: 8px 4px; }
+.link-btn:hover { color: var(--text); }
+.push-left { margin-right: auto; }
+.guest-note { margin: 14px 0 0; font-size: 0.85rem; }
+
+/* ---------- Phones and small screens ---------- */
+@media (max-width: 800px) {
+  /* bottom bar = pages, top bar = credit + menu icons */
+  .sidebar { padding-bottom: calc(6px + env(safe-area-inset-bottom)); overflow: visible; }
+  .sidebar-bottom { position: fixed; top: 0; left: 0; right: 0; z-index: 11; margin: 0; flex-direction: row; align-items: center; gap: 2px; background: #0b1b33; padding: calc(6px + env(safe-area-inset-top)) 10px 6px 14px; }
+  .sidebar-bottom .ghost-btn { padding: 8px; }
+  .credit { order: -1; margin: 0 auto 0 0; padding: 0; border: none; font-size: 0.68rem; line-height: 1.15; }
+  .credit strong { font-size: 0.95rem; }
+  main { padding: calc(64px + env(safe-area-inset-top)) 16px 100px; }
+  .nav-btn { font-size: 0.66rem; padding: 8px 4px; white-space: nowrap; }
+  .cards { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .cards .card { padding: 14px; }
+  .cards strong { font-size: 1.25rem; }
+  .card .go { top: 12px; right: 10px; }
+  h1 { font-size: 1.5rem; }
+  #loan-headline { font-size: 1.5rem; }
+  .hero strong { font-size: 1.9rem; }
+  .charts { grid-template-columns: 1fr; }
+  .person-actions .primary-btn, .person-actions .filter-btn { flex: 1; }
+  .field-row { grid-template-columns: 1fr; }
+  #contacts .mini-form { grid-template-columns: 1fr; }
+  .welcome-card { padding: 24px 20px; }
+  .dialog-actions { flex-wrap: wrap; }
+}
+@media (max-width: 380px) { .cards { grid-template-columns: 1fr; } }
+
+/* Tables turn into easy-to-read cards on phones */
+@media (max-width: 700px) {
+  .table-wrap { padding: 4px 12px; }
+  table { min-width: 0; }
+  table thead { display: none; }
+  table, tbody, tr, td { display: block; width: 100%; }
+  tr { padding: 10px 0; border-bottom: 1px solid var(--border); }
+  tbody tr:last-child { border-bottom: none; }
+  td { border: none; padding: 3px 0; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; text-align: right; }
+  td::before { content: attr(data-label); color: var(--muted); font-size: 0.8rem; text-align: left; flex: none; }
+  td.actions { justify-content: flex-end; }
+  td.actions::before { content: none; }
+  tbody tr:hover { background: none; }
+}

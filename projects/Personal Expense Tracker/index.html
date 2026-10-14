@@ -2,30 +2,38 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>FinTrack — Personal Expense Tracker</title>
+  <meta name="author" content="Kedar">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Sidebar navigation -->
+  <!-- Sidebar (desktop) / bottom bar + top bar (mobile) -->
   <aside class="sidebar">
     <div class="logo"><i data-lucide="wallet"></i> FinTrack</div>
     <nav>
-      <button class="nav-btn active" data-view="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</button>
-      <button class="nav-btn" data-view="add"><i data-lucide="plus-circle"></i> Add transaction</button>
+      <button class="nav-btn active" data-view="dashboard"><i data-lucide="layout-dashboard"></i> Home</button>
+      <button class="nav-btn" data-view="add"><i data-lucide="plus-circle"></i> Add</button>
       <button class="nav-btn" data-view="history"><i data-lucide="list"></i> History</button>
-      <button class="nav-btn" data-view="budget"><i data-lucide="target"></i> Budget plan</button>
+      <button class="nav-btn" data-view="budget"><i data-lucide="target"></i> Budget</button>
+      <button class="nav-btn" data-view="networth"><i data-lucide="landmark"></i> Money</button>
+      <button class="nav-btn" data-view="contacts"><i data-lucide="users"></i> Contacts</button>
+      <button class="nav-btn" data-view="loans"><i data-lucide="handshake"></i> Loans</button>
     </nav>
     <div class="sidebar-bottom">
+      <div id="profile-chip" class="profile-chip"></div>
       <button id="theme-toggle" class="ghost-btn"><i data-lucide="moon"></i> <span>Dark mode</span></button>
       <button id="clear-all" class="ghost-btn danger"><i data-lucide="trash-2"></i> <span>Clear all data</span></button>
+      <button id="transfer-btn" class="ghost-btn" hidden><i data-lucide="smartphone"></i> <span>Move to another device</span></button>
+      <button id="logout-btn" class="ghost-btn"><i data-lucide="log-out"></i> <span>Log out</span></button>
+      <p class="credit"><span>Designed &amp; made by</span><strong>Kedar</strong></p>
     </div>
   </aside>
 
   <main>
-    <!-- Month selector: everything below shows the selected month -->
+    <!-- Month selector: only shown on Home, History and Budget -->
     <div class="month-bar">
       <button id="prev-month" aria-label="Previous month"><i data-lucide="chevron-left"></i></button>
       <strong id="month-label"></strong>
@@ -33,15 +41,19 @@
       <button id="this-month" class="filter-btn">This month</button>
     </div>
 
-    <!-- DASHBOARD -->
+    <!-- HOME -->
     <section id="dashboard" class="view active">
-      <h1>Dashboard</h1>
+      <div class="page-head">
+        <h1>Home</h1>
+        <button class="primary-btn" data-go="add"><i data-lucide="plus"></i> Add transaction</button>
+      </div>
       <div id="alerts"></div>
       <div class="cards">
-        <div class="card"><span class="label">Income</span><strong id="total-income" class="income">$0.00</strong></div>
-        <div class="card"><span class="label">Expenses</span><strong id="total-expenses" class="expense">$0.00</strong></div>
-        <div class="card"><span class="label">Balance for the month</span><strong id="balance">$0.00</strong></div>
+        <div class="card clickable" id="income-card" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Income</span><strong id="total-income" class="income">$0.00</strong></div>
+        <div class="card clickable" id="expense-card" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Expenses</span><strong id="total-expenses" class="expense">$0.00</strong></div>
+        <div class="card"><span class="label">Left this month</span><strong id="balance">$0.00</strong></div>
         <div class="card"><span class="label">Planned spending</span><strong id="budget-card">Not set</strong></div>
+        <div class="card clickable" id="nw-card" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Net worth</span><strong id="nw-dash">$0.00</strong></div>
       </div>
       <div class="charts">
         <div class="card chart-box"><h2>Where the money went</h2>
@@ -62,8 +74,9 @@
           <label><input type="radio" name="type" value="expense" checked><span>Expense</span></label>
           <label><input type="radio" name="type" value="income"><span>Income</span></label>
         </div>
-        <label>Amount ($)<input type="number" id="amount" step="0.01" min="0" placeholder="0.00"></label>
+        <label>Amount<input type="number" id="amount" step="0.01" min="0" placeholder="0.00" inputmode="decimal"></label>
         <label>Category<select id="category"></select></label>
+        <label>Account (where the money goes or comes from)<select id="account"></select></label>
         <label>Description<input type="text" id="description" maxlength="60" placeholder="e.g. Groceries"></label>
         <label>Date<input type="date" id="date"></label>
         <p id="form-error" class="error" role="alert"></p>
@@ -81,7 +94,7 @@
       </div>
       <div class="card table-wrap">
         <table>
-          <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th class="right">Amount</th><th></th></tr></thead>
+          <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Account</th><th>Type</th><th class="right">Amount</th><th></th></tr></thead>
           <tbody id="transaction-body"></tbody>
         </table>
         <p id="history-empty" class="empty">No transactions in this month.</p>
@@ -94,7 +107,7 @@
       <p class="hint">Add each expense you plan to pay in <strong id="plan-month"></strong> and how much you will spend on it.</p>
       <form id="plan-form" class="card plan-form" novalidate>
         <label>What is the expense?<input type="text" id="plan-name" maxlength="30" placeholder="e.g. Rent, Electricity, Shopping"></label>
-        <label>Planned amount ($)<input type="number" id="plan-amount" step="0.01" min="0" placeholder="0.00"></label>
+        <label>Planned amount<input type="number" id="plan-amount" step="0.01" min="0" placeholder="0.00" inputmode="decimal"></label>
         <button type="submit" class="primary-btn">Add to plan</button>
       </form>
       <p id="budget-error" class="error" role="alert"></p>
@@ -107,12 +120,278 @@
         </div>
       </div>
     </section>
+
+    <!-- MONEY: cash, bank accounts, credit cards -->
+    <section id="networth" class="view">
+      <h1>Money &amp; net worth</h1>
+      <div class="card hero"><span class="label">Total net worth</span><strong id="nw-total">$0.00</strong><small id="nw-note"></small></div>
+      <div class="cards">
+        <div class="card kind-cash clickable" data-action="open-kind" data-id="cash" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Cash on hand</span><strong id="nw-cash">$0.00</strong></div>
+        <div class="card kind-checking clickable" data-action="open-kind" data-id="checking" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Bank accounts</span><strong id="nw-checking">$0.00</strong></div>
+        <div class="card kind-credit clickable" data-action="open-kind" data-id="credit" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Credit card balance owed</span><strong id="nw-debt" class="expense">$0.00</strong></div>
+      </div>
+      <p class="hint">Tap any account to see its transactions.</p>
+      <p id="nw-error" class="error" role="alert"></p>
+      <div class="card"><h2>Cash</h2><div id="cash-list"></div></div>
+      <div class="card"><h2>Bank accounts</h2><div id="checking-list"></div>
+        <details class="fold"><summary>+ Add a bank account</summary>
+          <form id="checking-form" class="mini-form" novalidate>
+            <input type="text" id="checking-name" maxlength="30" placeholder="Account name (e.g. Chase)" aria-label="Bank account name">
+            <input type="number" id="checking-balance" step="0.01" min="0" placeholder="Balance now" aria-label="Bank balance" inputmode="decimal">
+            <button type="submit" class="primary-btn">Add account</button>
+          </form>
+        </details></div>
+      <div class="card"><h2>Credit cards</h2><div id="credit-list"></div>
+        <details class="fold"><summary>+ Add a credit card</summary>
+          <form id="credit-form" class="mini-form" novalidate>
+            <input type="text" id="credit-name" maxlength="30" placeholder="Card name (e.g. Visa)" aria-label="Card name">
+            <input type="number" id="credit-limit" step="0.01" min="0" placeholder="Credit limit" aria-label="Credit limit" inputmode="decimal">
+            <input type="number" id="credit-owed" step="0.01" min="0" placeholder="Balance owed now" aria-label="Balance owed" inputmode="decimal">
+            <button type="submit" class="primary-btn">Add card</button>
+          </form>
+        </details></div>
+      <details class="card fold" id="transfer-card"><summary>Move money</summary>
+        <p class="hint">Deposit cash into your bank, pay a credit card, or move money between accounts.</p>
+        <form id="transfer-form" class="mini-form" novalidate>
+          <select id="transfer-from" aria-label="From account"></select>
+          <select id="transfer-to" aria-label="To account"></select>
+          <input type="number" id="transfer-amount" step="0.01" min="0" placeholder="Amount" aria-label="Amount" inputmode="decimal">
+          <input type="text" id="transfer-note" maxlength="40" placeholder="Note (optional)" aria-label="Note">
+          <button type="submit" class="primary-btn">Move money</button>
+        </form>
+        <div id="transfer-list"></div>
+      </details>
+    </section>
+
+    <!-- ACCOUNT DETAIL: every transaction of one account or one group -->
+    <section id="account-detail" class="view">
+      <button id="detail-back" class="mini-btn back-btn">← Back to Money</button>
+      <h1 id="detail-title"></h1>
+      <div class="cards">
+        <div class="card"><span class="label" id="detail-balance-label">Balance</span><strong id="detail-balance">$0.00</strong></div>
+        <div class="card"><span class="label" id="detail-in-label">Money in</span><strong id="detail-in" class="income">$0.00</strong></div>
+        <div class="card"><span class="label" id="detail-out-label">Money out</span><strong id="detail-out" class="expense">$0.00</strong></div>
+        <div class="card"><span class="label" id="detail-extra-label">Transactions</span><strong id="detail-extra">0</strong></div>
+      </div>
+      <div class="card table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Description</th><th>Account</th><th>Type</th><th class="right">Amount</th></tr></thead>
+          <tbody id="detail-body"></tbody>
+        </table>
+        <p id="detail-empty" class="empty">No activity yet.</p>
+      </div>
+    </section>
+
+    <!-- CONTACTS: tap a person to see everything between you -->
+    <section id="contacts" class="view">
+      <h1>Contacts</h1>
+      <p class="hint">Add the people you share money with. Tap a name to see everything between you.</p>
+      <form id="contact-form" class="card mini-form" novalidate>
+        <input type="text" id="contact-name" maxlength="30" placeholder="Full name" aria-label="Contact name">
+        <button type="submit" class="primary-btn">Add contact</button>
+      </form>
+      <p id="contact-error" class="error" role="alert"></p>
+      <div id="contact-list" class="people-list"></div>
+      <p id="contact-empty" class="empty card">No contacts yet. Add a person to start.</p>
+    </section>
+
+    <!-- CONTACT DETAIL: all details with one person -->
+    <section id="contact-detail" class="view">
+      <button id="contact-back" class="mini-btn back-btn">← Back to Contacts</button>
+      <div class="card person-head">
+        <span class="avatar big" id="cd-avatar"></span>
+        <div>
+          <h1 id="cd-name"></h1>
+          <p id="cd-status"></p>
+        </div>
+      </div>
+      <div class="person-actions">
+        <button id="cd-add" class="primary-btn" data-action="add-for"><i data-lucide="plus"></i> Add expense</button>
+        <button id="cd-settle" class="filter-btn" data-action="settle-up">Settle up</button>
+        <button id="cd-delete" class="filter-btn danger-text" data-action="delete-contact">Delete contact</button>
+      </div>
+      <div class="cards">
+        <div class="card"><span class="label">They owe you</span><strong id="cd-owed" class="income">$0.00</strong></div>
+        <div class="card"><span class="label">You owe them</span><strong id="cd-owe" class="expense">$0.00</strong></div>
+        <div class="card"><span class="label">Total lent or paid by you</span><strong id="cd-lent">$0.00</strong></div>
+        <div class="card"><span class="label">Total lent or paid by them</span><strong id="cd-borrowed">$0.00</strong></div>
+      </div>
+      <div class="card"><h2>Expenses &amp; loans</h2><div id="cd-loans"></div></div>
+      <div class="card"><h2>Payment history</h2><div id="cd-payments"></div></div>
+    </section>
+
+    <!-- LOANS: simple, like Splitwise -->
+    <section id="loans" class="view">
+      <div class="page-head">
+        <h1>Loans</h1>
+        <button id="open-loan-dialog" class="primary-btn"><i data-lucide="plus"></i> Add expense</button>
+      </div>
+      <div class="card hero">
+        <span class="label">Where you stand</span>
+        <strong id="loan-headline">You're all settled up</strong>
+        <small id="loan-sub"></small>
+      </div>
+      <div class="card"><h2>Balances</h2>
+        <div id="loan-people" class="people-list"></div>
+        <p id="loan-empty" class="empty">No loans yet. Tap "Add expense" to start.</p>
+      </div>
+      <div class="card"><h2>Recent activity</h2>
+        <div id="loan-activity"></div>
+      </div>
+    </section>
   </main>
+
+  <!-- Welcome screen: guest / log in / create account -->
+  <div id="welcome" class="overlay" hidden>
+    <div class="welcome-card">
+      <div class="logo big"><i data-lucide="wallet"></i> FinTrack</div>
+      <p class="hint">Budgets, banking and net worth in one place.</p>
+      <div id="welcome-choice">
+        <button class="primary-btn block" data-welcome="login">Log in</button>
+        <button class="mini-btn block" data-welcome="signup">Create account</button>
+        <button class="filter-btn block" data-welcome="restore">Restore from a transfer code</button>
+        <button class="filter-btn block" data-welcome="guest">Continue as guest</button>
+        <p id="cloud-note" class="hint"></p>
+      </div>
+      <form id="welcome-login" class="stack" hidden novalidate>
+        <label>Username<input type="text" id="li-username" autocomplete="username"></label>
+        <label>Password<input type="password" id="li-password" autocomplete="current-password"></label>
+        <p id="li-error" class="error" role="alert"></p>
+        <button type="submit" class="primary-btn">Log in</button>
+        <button type="button" class="filter-btn" data-welcome="choice">Back</button>
+      </form>
+      <form id="welcome-signup" class="stack" hidden novalidate>
+        <label>Choose a username<input type="text" id="su-username" maxlength="20" autocomplete="username" placeholder="letters, numbers, _"></label>
+        <label>Password<input type="password" id="su-password" autocomplete="new-password" placeholder="at least 6 characters"></label>
+        <label>Country (sets your currency)<select id="su-country"></select></label>
+        <p id="signup-note" class="hint"></p>
+        <p id="su-error" class="error" role="alert"></p>
+        <button type="submit" class="primary-btn">Create account</button>
+        <button type="button" class="filter-btn" data-welcome="choice">Back</button>
+      </form>
+      <form id="welcome-restore" class="stack" hidden novalidate>
+        <p class="hint">On your other device, open the menu and tap "Move to another device", copy the code, then paste it here.</p>
+        <label>Transfer code<textarea id="rs-code" rows="5" placeholder="Paste the code here"></textarea></label>
+        <p id="rs-error" class="error" role="alert"></p>
+        <button type="submit" class="primary-btn">Restore my data</button>
+        <button type="button" class="filter-btn" data-welcome="choice">Back</button>
+      </form>
+      <p class="credit-line">Designed &amp; made by <strong>Kedar</strong></p>
+    </div>
+  </div>
+
+  <!-- Set-up wizard: shown once for new accounts and new guests -->
+  <div id="onboarding" class="overlay" hidden>
+    <div class="welcome-card wide">
+      <p class="step-label" id="ob-step-label">Step 1 of 3</p>
+      <div class="progress"><div id="ob-bar" class="bar"></div></div>
+      <p id="ob-guest-note" class="hint guest-note" hidden>You're using guest mode. Your data stays on this device only.</p>
+      <div id="ob-1" class="ob-step">
+        <h2>Plan your monthly budget</h2>
+        <p class="hint">Add what you expect to spend this month, like rent, food or bills.</p>
+        <form id="ob-budget-form" class="mini-form" novalidate>
+          <input type="text" id="ob-budget-name" maxlength="30" placeholder="Expense (e.g. Rent)" aria-label="Expense name">
+          <input type="number" id="ob-budget-amount" step="0.01" min="0" placeholder="Amount" aria-label="Planned amount" inputmode="decimal">
+          <button type="submit" class="primary-btn">Add</button>
+        </form>
+        <ul id="ob-budget-list" class="ob-list"></ul>
+      </div>
+      <div id="ob-2" class="ob-step" hidden>
+        <h2>Set up your banking</h2>
+        <p class="hint">Add at least one bank account. A credit card is optional.</p>
+        <form id="ob-bank-form" class="mini-form" novalidate>
+          <input type="text" id="ob-bank-name" maxlength="30" placeholder="Account name (e.g. Chase)" aria-label="Account name">
+          <input type="number" id="ob-bank-balance" step="0.01" min="0" placeholder="Balance now" aria-label="Balance" inputmode="decimal">
+          <button type="submit" class="primary-btn">Add account</button>
+        </form>
+        <form id="ob-card-form" class="mini-form" novalidate>
+          <input type="text" id="ob-card-name" maxlength="30" placeholder="Card name (optional)" aria-label="Card name">
+          <input type="number" id="ob-card-limit" step="0.01" min="0" placeholder="Credit limit" aria-label="Credit limit" inputmode="decimal">
+          <input type="number" id="ob-card-owed" step="0.01" min="0" placeholder="Balance owed" aria-label="Balance owed" inputmode="decimal">
+          <button type="submit" class="mini-btn">Add card</button>
+        </form>
+        <ul id="ob-bank-list" class="ob-list"></ul>
+      </div>
+      <div id="ob-3" class="ob-step" hidden>
+        <h2>Record your cash</h2>
+        <p class="hint">How much cash do you have on hand right now? Enter 0 if none.</p>
+        <input type="number" id="ob-cash" step="0.01" min="0" placeholder="Cash amount" aria-label="Cash amount" inputmode="decimal">
+      </div>
+      <p id="ob-error" class="error" role="alert"></p>
+      <div class="dialog-actions">
+        <button id="ob-skip" class="link-btn push-left">Skip for now</button>
+        <button id="ob-back" class="filter-btn">Back</button>
+        <button id="ob-next" class="primary-btn">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add expense / loan (Splitwise style) -->
+  <dialog id="loan-dialog">
+    <form id="loan-form" novalidate>
+      <h2>Add expense or loan</h2>
+      <fieldset class="seg-group">
+        <legend>What happened?</legend>
+        <label class="seg"><input type="radio" name="loan-kind" value="lent" checked><span>I paid<small>They owe me</small></span></label>
+        <label class="seg"><input type="radio" name="loan-kind" value="paid-for-me"><span>They paid for me<small>I owe them</small></span></label>
+        <label class="seg"><input type="radio" name="loan-kind" value="borrowed"><span>They lent me cash<small>I owe them</small></span></label>
+      </fieldset>
+      <label class="field">With whom?<select id="loan-person"></select></label>
+      <label class="field" id="loan-new-wrap" hidden>New person's name<input type="text" id="loan-new-name" maxlength="30" placeholder="Full name"></label>
+      <div class="field-row">
+        <label class="field">Amount<input type="number" id="loan-amount" step="0.01" min="0" placeholder="0.00" inputmode="decimal"></label>
+        <label class="field">What for?<input type="text" id="loan-note" maxlength="60" placeholder="e.g. Dinner"></label>
+      </div>
+      <label class="check" id="loan-split-wrap"><input type="checkbox" id="loan-split"> Split equally (each of us pays half)</label>
+      <label class="field" id="loan-account-wrap"><span id="loan-account-text">Paid from (optional)</span><select id="loan-account"></select></label>
+      <div id="loan-expense-wrap" class="exp-box" hidden>
+        <label class="check"><input type="checkbox" id="loan-expense" checked> <span id="loan-expense-text">Add my share to my expenses</span></label>
+        <label class="field">Expense category<select id="loan-category"></select></label>
+      </div>
+      <p id="loan-preview" class="preview" aria-live="polite"></p>
+      <p id="loan-error" class="error" role="alert"></p>
+      <div class="dialog-actions">
+        <button type="button" id="loan-cancel" class="filter-btn">Cancel</button>
+        <button type="submit" class="primary-btn">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Pop-up used to type an amount (set balance, record payment, settle up) -->
+  <dialog id="amount-dialog">
+    <form id="amount-form" method="dialog">
+      <h2 id="dialog-title"></h2>
+      <p id="dialog-label" class="hint"></p>
+      <input type="number" id="dialog-amount" step="0.01" aria-label="Amount" inputmode="decimal">
+      <label id="dialog-account-label" class="dialog-field" hidden><span id="dialog-account-text"></span><select id="dialog-account"></select></label>
+      <p id="dialog-error" class="error" role="alert"></p>
+      <div class="dialog-actions">
+        <button type="button" id="dialog-cancel" class="filter-btn">Cancel</button>
+        <button type="submit" class="primary-btn">Confirm</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Transfer code: copy it, then paste it on your other device -->
+  <dialog id="transfer-dialog">
+    <h2>Move to another device</h2>
+    <p class="hint">Copy this code and send it to yourself (Notes, email, a message to yourself). On the other device choose "Restore from a transfer code" and paste it. Treat it like a password and delete the message afterwards.</p>
+    <textarea id="transfer-code" rows="6" readonly aria-label="Transfer code"></textarea>
+    <div class="dialog-actions">
+      <button id="transfer-close" class="filter-btn">Close</button>
+      <button id="transfer-copy" class="primary-btn">Copy code</button>
+    </div>
+  </dialog>
 
   <div id="toast" class="toast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/lucide@0.383.0/dist/umd/lucide.min.js"></script>
+  <!-- Firebase (accounts + sync). Your keys go in firebase-config.js -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
