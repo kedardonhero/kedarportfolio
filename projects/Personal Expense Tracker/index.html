@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FinTrack — Personal Expense Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Sidebar navigation -->
+  <aside class="sidebar">
+    <div class="logo"><i data-lucide="wallet"></i> FinTrack</div>
+    <nav>
+      <button class="nav-btn active" data-view="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</button>
+      <button class="nav-btn" data-view="add"><i data-lucide="plus-circle"></i> Add transaction</button>
+      <button class="nav-btn" data-view="history"><i data-lucide="list"></i> History</button>
+      <button class="nav-btn" data-view="budget"><i data-lucide="target"></i> Budget</button>
+    </nav>
+    <div class="sidebar-bottom">
+      <button id="theme-toggle" class="ghost-btn"><i data-lucide="moon"></i> <span>Dark mode</span></button>
+      <button id="clear-all" class="ghost-btn danger"><i data-lucide="trash-2"></i> <span>Clear all data</span></button>
+    </div>
+  </aside>
+
+  <main>
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="view active">
+      <h1>Dashboard</h1>
+      <div class="cards">
+        <div class="card"><span class="label">Total income</span><strong id="total-income" class="income">$0.00</strong></div>
+        <div class="card"><span class="label">Total expenses</span><strong id="total-expenses" class="expense">$0.00</strong></div>
+        <div class="card"><span class="label">Remaining balance</span><strong id="balance">$0.00</strong></div>
+        <div class="card"><span class="label">Monthly budget</span><strong id="budget-card">Not set</strong></div>
+      </div>
+      <div class="charts">
+        <div class="card chart-box"><h2>Expenses by category</h2>
+          <div class="chart-wrap"><canvas id="category-chart"></canvas></div>
+          <p id="category-empty" class="empty">Add an expense to see your spending breakdown.</p>
+        </div>
+        <div class="card chart-box"><h2>Income vs expenses by month</h2>
+          <div class="chart-wrap"><canvas id="monthly-chart"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADD TRANSACTION -->
+    <section id="add" class="view">
+      <h1>Add transaction</h1>
+      <form id="transaction-form" class="card form" novalidate>
+        <div class="type-switch">
+          <label><input type="radio" name="type" value="expense" checked><span>Expense</span></label>
+          <label><input type="radio" name="type" value="income"><span>Income</span></label>
+        </div>
+        <label>Amount ($)<input type="number" id="amount" step="0.01" min="0" placeholder="0.00"></label>
+        <label>Category
+          <select id="category">
+            <option>Food</option><option>Rent</option><option>Transport</option>
+            <option>Shopping</option><option>Entertainment</option><option>Health</option>
+            <option>Education</option><option>Salary</option><option>Other</option>
+          </select>
+        </label>
+        <label>Description<input type="text" id="description" maxlength="60" placeholder="e.g. Groceries"></label>
+        <label>Date<input type="date" id="date"></label>
+        <p id="form-error" class="error" role="alert"></p>
+        <button type="submit" class="primary-btn">Save transaction</button>
+      </form>
+    </section>
+
+    <!-- HISTORY -->
+    <section id="history" class="view">
+      <h1>History</h1>
+      <div class="filters">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="income">Income</button>
+        <button class="filter-btn" data-filter="expense">Expenses</button>
+      </div>
+      <div class="card table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th class="right">Amount</th><th></th></tr></thead>
+          <tbody id="transaction-body"></tbody>
+        </table>
+        <p id="history-empty" class="empty">No transactions yet. Use “Add transaction” to create one.</p>
+      </div>
+    </section>
+
+    <!-- BUDGET -->
+    <section id="budget" class="view">
+      <h1>Monthly budget</h1>
+      <div class="card form">
+        <label>Spending budget for this month ($)<input type="number" id="budget-input" step="0.01" min="0" placeholder="e.g. 800"></label>
+        <button id="save-budget" class="primary-btn">Save budget</button>
+        <p id="budget-error" class="error" role="alert"></p>
+      </div>
+      <div class="card budget-status">
+        <div class="budget-numbers">
+          <div><span class="label">Spent this month</span><strong id="spent">$0.00</strong></div>
+          <div><span class="label">Remaining</span><strong id="remaining">—</strong></div>
+        </div>
+        <div class="progress"><div id="progress-bar"></div></div>
+        <p id="budget-message" class="budget-message">Set a budget to start tracking.</p>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@0.383.0/dist/umd/lucide.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
