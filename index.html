@@ -5,7 +5,8 @@
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0" />
-    <title>Kedar</title>
+    <title>Kedar Nath Sapkota | Software Developer</title>
+    <meta name="description" content="Portfolio of Kedar Nath Sapkota, Computer Science student at Louisiana Tech seeking a software engineering internship." />
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
@@ -19,7 +20,7 @@
       href="css/style.css" />
     <link
       rel="icon"
-      type="png"
+      type="image/png"
       href="images/apple-touch-icon.png" />
   </head>
   <body>
@@ -30,10 +31,8 @@
         id="nav"
         class="navbar py-1 navbar-expand-lg bg-nav position-fixed start-0 end-0 top-0">
         <div class="container">
-          <a
-            class="navbar-brand"
-            href="#">
-            <h2>Kedar</h2>
+          <a class="navbar-brand" href="#home" id="brand" aria-label="Kedar, go to home">
+            <h2>Kedar<span>.</span></h2>
           </a>
           <button
             class="navbar-toggler"
@@ -121,12 +120,19 @@
       </nav>
       <div
         class="homeContent d-flex flex-column justify-content-center align-items-center justify-content-center">
-        <h1 >I am Kedar Nath Sapkota</h1>
+        <p class="heroHi">Hello, I am</p>
+        <h1 class="text-center">Kedar Nath Sapkota</h1>
         <h2 class="text-center">
           <span
             class="element"
             ></span>
         </h2>
+        <p class="heroSub text-center">Computer Science student at Louisiana Tech, looking for a software engineering internship.</p>
+        <div class="heroBtns d-flex flex-wrap justify-content-center gap-3">
+          <a href="#work" class="btn btn-primary btn-lg rounded-pill px-5">View My Work</a>
+          <a href="#contact" class="btn btn-outline-light btn-lg rounded-pill px-5">Contact Me</a>
+        </div>
+        <a href="#about" class="scrollHint" aria-label="Scroll down"><i class="bi bi-chevron-double-down"></i></a>
       </div>
     </div>
     <div
@@ -182,8 +188,8 @@
                 <div class="col-md-11 offset-md-1">
                   <div class="row">
                     <p>Python 90%</p>
-                    <div class="hamada col-6"></div>
-                    <div class="hamada2 col-6"></div>
+                    <div class="hamada col-11"></div>
+                    <div class="hamada2 col-1"></div>
                   </div>
                 </div>
               </div>
@@ -196,8 +202,8 @@
                   </div>
                   <div class="row">
                     <p>Java 60%</p>
-                    <div class="hamada col-6"></div>
-                    <div class="hamada2 col-6"></div>
+                    <div class="hamada col-7"></div>
+                    <div class="hamada2 col-5"></div>
                   </div>
                 </div>
               </div>
@@ -384,7 +390,7 @@
       <div class="overflow-hidden">
         <img
           src="images/smart-trash-bin.png"
-          class="card-img-top protofolioImg rounded-0"
+          class="card-img-top imgContain protofolioImg rounded-0 fitImg"
           alt="Smart Trash Bin Project" />
       </div>
 
@@ -633,7 +639,7 @@
       <div class="sliderCover py-5">
         <div
           id="carouselExampleIndicators"
-          class="carousel slide py-5">
+          class="carousel slide py-5" data-bs-ride="carousel" data-bs-interval="7000">
           <div class="carousel-indicators">
             <button
               type="button"
@@ -647,7 +653,20 @@
               data-bs-target="#carouselExampleIndicators"
               data-bs-slide-to="1"
               aria-label="Slide 2"></button>
+            <button
+              type="button"
+              data-bs-target="#carouselExampleIndicators"
+              data-bs-slide-to="2"
+              aria-label="Slide 3"></button>
           </div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
           <div class="carousel-inner">
             <div class="carousel-item active">
               <div class="sliderImg my-2">
@@ -662,6 +681,22 @@
                   Kedar is a very hardworking and genuine devloper. 
                   I love the work oh this man dedication and commitment towards his works. 
                   I wish he gets many many sucess later.
+                </p>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <div class="sliderImg my-2">
+                <img
+                  src="images/cherry-kevin.jpg"
+                  class="d-block w-100"
+                  alt="Professor Kevin Cherry" />
+              </div>
+              <div class="sliderContent w-75 mx-auto text-center">
+                <p class="h4 py-2">Professor Kevin Cherry</p>
+                <p>
+                  Kedar is a dedicated and curious student who takes initiative in his learning.
+                  He asks thoughtful questions, works hard on his projects, and shows real
+                  growth as a developer. I am confident he will do well in his career.
                 </p>
               </div>
             </div>
@@ -706,7 +741,7 @@
 
         <img
           src="images/smarttrashbin.jpeg"
-          class="card-img-top"
+          class="card-img-top imgContain fitImg"
           alt="Smart Waste Management System" />
 
         <div class="card-body">
@@ -862,7 +897,7 @@
       <div class="formCover">
         <div class="row container g-5 mx-auto bg-body p-5">
           <div class="col-md-6">
-            <p class="h1">Send Us Message </p>
+            <p class="h1">Send Me a Message</p>
             <div class="formLine mb-5"></div>
             <form
               action="https://formspree.io/f/mgaowrjy"
@@ -961,7 +996,7 @@
             </a>
 
             <!-- LinkedIn -->
-            <a href="https://www.linkedin.com/in/kedarnathsapkota">
+            <a href="https://www.linkedin.com/in/kedarnathsapkota" target="_blank" rel="noopener">
               <div class="socialItem d-flex align-items-center justify-content-center">
                 <i class="bi bi-linkedin"></i>
               </div>
@@ -972,6 +1007,7 @@
         </div>
       </div>
     </div>
+    <a href="#home" class="toTop" id="toTop" aria-label="Back to top"><i class="bi bi-arrow-up"></i></a>
     <div class="footer bg-primary text-center p-5 shadow">
       <p class="h4">© Copyright KedarNathSapkota. All Rights Reserved</p>
       <p class="h5">Designed by Kedar Nath Sapkota</p>
@@ -980,7 +1016,7 @@
     <script src="https://unpkg.com/typed.js@2.1.0/dist/typed.umd.js"></script>
     <script>
       var typed = new Typed(".element", {
-        strings: ["Designer", "Devolper", "Teacher"],
+        strings: ["Software Developer", "Web Developer", "Problem Solver"],
         typeSpeed: 50,
         backSpeed: 50,
         loop: true,
@@ -989,6 +1025,47 @@
         cursorChar: "|",
         autoInsertCss: true,
       });
+    </script>
+    <script>
+      // navbar turns solid + back-to-top button after scrolling
+      const nav = document.getElementById("nav");
+      const toTop = document.getElementById("toTop");
+      function onScroll() {
+        const y = window.scrollY;
+        nav.classList.toggle("scrolled", y > 40);
+        toTop.classList.toggle("show", y > 600);
+      }
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+
+      // clicking the name always goes to the top / home
+      document.getElementById("brand").addEventListener("click", (e) => {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        history.replaceState(null, "", "#home");
+        e.currentTarget.blur();
+      });
+      // close the mobile menu after choosing a link
+      const menu = document.getElementById("navbarSupportedContent");
+      menu.querySelectorAll("a:not(.dropdown-toggle)").forEach((a) =>
+        a.addEventListener("click", () => {
+          if (menu.classList.contains("show")) bootstrap.Collapse.getOrCreateInstance(menu).hide();
+        })
+      );
+
+      // reveal sections as they scroll into view
+      const targets = document.querySelectorAll(
+        ".about .container, .servicesContent, .sevicesItem, .info .row, .protofolioContent, .protofolio .col-md-4, .blogContent, .blog .col-md-4, .formCover .row"
+      );
+      if ("IntersectionObserver" in window && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        const io = new IntersectionObserver(
+          (entries) => entries.forEach((e) => {
+            if (e.isIntersecting) { e.target.classList.add("in-view"); io.unobserve(e.target); }
+          }),
+          { threshold: 0.12 }
+        );
+        targets.forEach((t) => { t.classList.add("reveal"); io.observe(t); });
+      }
     </script>
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
