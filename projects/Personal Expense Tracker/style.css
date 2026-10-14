@@ -162,3 +162,31 @@ tbody tr:hover { background: var(--bg); }
   .toast { bottom: 90px; right: 16px; left: 16px; text-align: center; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* ---------- Month bar, budget plan, alerts ---------- */
+.month-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.month-bar button:not(.filter-btn) { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px; display: flex; transition: border-color 0.2s; }
+.month-bar button:not(.filter-btn):hover { border-color: var(--accent); }
+.month-bar strong { min-width: 160px; text-align: center; font-size: 1.1rem; }
+.hint { color: var(--muted); margin-bottom: 16px; }
+#budget .card { max-width: 760px; margin-bottom: 16px; }
+.plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 16px; }
+.plan-grid label { display: flex; flex-direction: column; gap: 6px; font-weight: 500; font-size: 0.9rem; }
+.plan-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+#alerts:not(:empty) { margin-bottom: 16px; }
+.alert { background: var(--warn-bg); color: var(--expense); padding: 10px 14px; border-radius: 10px; font-weight: 700; margin-bottom: 8px; }
+.progress-row { margin-bottom: 18px; }
+.row-head { display: flex; justify-content: space-between; margin-bottom: 6px; font-weight: 500; }
+.bar { height: 100%; background: var(--accent); border-radius: 999px; transition: width 0.5s ease; }
+.bar.over { background: var(--expense); }
+.row-note { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+.row-note.over { color: var(--expense); font-weight: 700; }
+
+/* ---------- Add-expense form on the Budget plan page ---------- */
+.plan-form { display: grid; grid-template-columns: 2fr 1fr auto; gap: 12px; align-items: end; margin-bottom: 8px; }
+.plan-form label { display: flex; flex-direction: column; gap: 6px; font-weight: 500; font-size: 0.9rem; }
+.plan-form .primary-btn { height: 44px; }
+.plan-actions { margin-top: 8px; }
+.row-head .delete-btn { vertical-align: middle; padding: 2px 4px; margin-left: 4px; }
+.row-head .delete-btn svg { width: 16px; height: 16px; }
+@media (max-width: 800px) { .plan-form { grid-template-columns: 1fr; } }

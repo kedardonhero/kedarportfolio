@@ -4,10 +4,11 @@ A responsive personal finance dashboard built with HTML, CSS and vanilla JavaScr
 
 ## Features
 
-- Dashboard with income, expenses, balance and budget cards
+- Month selector (opens on the current month) to review any past month
+- Dashboard with income, expenses, balance and planned-spending cards
 - Add income or expenses with input validation
 - Transaction history with filtering and delete confirmation
-- Monthly budget with progress bar and over-budget warning
+- Monthly budget plan: type your own expenses (rent, electricity, shopping...) with planned amounts, progress bars and over-plan warnings
 - Doughnut chart (expenses by category) and bar chart (income vs expenses by month)
 - Data persists after refresh; "Clear all data" with confirmation
 - Dark/light mode, sidebar navigation, mobile layout

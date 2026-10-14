@@ -16,7 +16,7 @@
       <button class="nav-btn active" data-view="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</button>
       <button class="nav-btn" data-view="add"><i data-lucide="plus-circle"></i> Add transaction</button>
       <button class="nav-btn" data-view="history"><i data-lucide="list"></i> History</button>
-      <button class="nav-btn" data-view="budget"><i data-lucide="target"></i> Budget</button>
+      <button class="nav-btn" data-view="budget"><i data-lucide="target"></i> Budget plan</button>
     </nav>
     <div class="sidebar-bottom">
       <button id="theme-toggle" class="ghost-btn"><i data-lucide="moon"></i> <span>Dark mode</span></button>
@@ -25,21 +25,30 @@
   </aside>
 
   <main>
+    <!-- Month selector: everything below shows the selected month -->
+    <div class="month-bar">
+      <button id="prev-month" aria-label="Previous month"><i data-lucide="chevron-left"></i></button>
+      <strong id="month-label"></strong>
+      <button id="next-month" aria-label="Next month"><i data-lucide="chevron-right"></i></button>
+      <button id="this-month" class="filter-btn">This month</button>
+    </div>
+
     <!-- DASHBOARD -->
     <section id="dashboard" class="view active">
       <h1>Dashboard</h1>
+      <div id="alerts"></div>
       <div class="cards">
-        <div class="card"><span class="label">Total income</span><strong id="total-income" class="income">$0.00</strong></div>
-        <div class="card"><span class="label">Total expenses</span><strong id="total-expenses" class="expense">$0.00</strong></div>
-        <div class="card"><span class="label">Remaining balance</span><strong id="balance">$0.00</strong></div>
-        <div class="card"><span class="label">Monthly budget</span><strong id="budget-card">Not set</strong></div>
+        <div class="card"><span class="label">Income</span><strong id="total-income" class="income">$0.00</strong></div>
+        <div class="card"><span class="label">Expenses</span><strong id="total-expenses" class="expense">$0.00</strong></div>
+        <div class="card"><span class="label">Balance for the month</span><strong id="balance">$0.00</strong></div>
+        <div class="card"><span class="label">Planned spending</span><strong id="budget-card">Not set</strong></div>
       </div>
       <div class="charts">
-        <div class="card chart-box"><h2>Expenses by category</h2>
+        <div class="card chart-box"><h2>Where the money went</h2>
           <div class="chart-wrap"><canvas id="category-chart"></canvas></div>
-          <p id="category-empty" class="empty">Add an expense to see your spending breakdown.</p>
+          <p id="category-empty" class="empty">No expenses in this month yet.</p>
         </div>
-        <div class="card chart-box"><h2>Income vs expenses by month</h2>
+        <div class="card chart-box"><h2>Income vs expenses (last 6 months)</h2>
           <div class="chart-wrap"><canvas id="monthly-chart"></canvas></div>
         </div>
       </div>
@@ -54,13 +63,7 @@
           <label><input type="radio" name="type" value="income"><span>Income</span></label>
         </div>
         <label>Amount ($)<input type="number" id="amount" step="0.01" min="0" placeholder="0.00"></label>
-        <label>Category
-          <select id="category">
-            <option>Food</option><option>Rent</option><option>Transport</option>
-            <option>Shopping</option><option>Entertainment</option><option>Health</option>
-            <option>Education</option><option>Salary</option><option>Other</option>
-          </select>
-        </label>
+        <label>Category<select id="category"></select></label>
         <label>Description<input type="text" id="description" maxlength="60" placeholder="e.g. Groceries"></label>
         <label>Date<input type="date" id="date"></label>
         <p id="form-error" class="error" role="alert"></p>
@@ -81,25 +84,27 @@
           <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th class="right">Amount</th><th></th></tr></thead>
           <tbody id="transaction-body"></tbody>
         </table>
-        <p id="history-empty" class="empty">No transactions yet. Use “Add transaction” to create one.</p>
+        <p id="history-empty" class="empty">No transactions in this month.</p>
       </div>
     </section>
 
-    <!-- BUDGET -->
+    <!-- BUDGET PLAN (one plan per month, expenses are typed by you) -->
     <section id="budget" class="view">
-      <h1>Monthly budget</h1>
-      <div class="card form">
-        <label>Spending budget for this month ($)<input type="number" id="budget-input" step="0.01" min="0" placeholder="e.g. 800"></label>
-        <button id="save-budget" class="primary-btn">Save budget</button>
-        <p id="budget-error" class="error" role="alert"></p>
-      </div>
+      <h1>Budget plan</h1>
+      <p class="hint">Add each expense you plan to pay in <strong id="plan-month"></strong> and how much you will spend on it.</p>
+      <form id="plan-form" class="card plan-form" novalidate>
+        <label>What is the expense?<input type="text" id="plan-name" maxlength="30" placeholder="e.g. Rent, Electricity, Shopping"></label>
+        <label>Planned amount ($)<input type="number" id="plan-amount" step="0.01" min="0" placeholder="0.00"></label>
+        <button type="submit" class="primary-btn">Add to plan</button>
+      </form>
+      <p id="budget-error" class="error" role="alert"></p>
       <div class="card budget-status">
-        <div class="budget-numbers">
-          <div><span class="label">Spent this month</span><strong id="spent">$0.00</strong></div>
-          <div><span class="label">Remaining</span><strong id="remaining">—</strong></div>
+        <h2>Your plan</h2>
+        <div id="budget-progress"></div>
+        <div class="plan-actions">
+          <button id="plan-done" class="primary-btn">Done</button>
+          <button id="copy-plan" class="filter-btn">Copy last month's plan</button>
         </div>
-        <div class="progress"><div id="progress-bar"></div></div>
-        <p id="budget-message" class="budget-message">Set a budget to start tracking.</p>
       </div>
     </section>
   </main>

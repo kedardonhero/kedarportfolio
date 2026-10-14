@@ -2,31 +2,34 @@
 // FinTrack — Personal Expense Tracker (vanilla JavaScript)
 // ============================================================
 
-// ---------- 1. App data (loaded from localStorage) ----------
+// ---------- 1. Data ----------
+const INCOME_CATEGORIES = ["Salary", "Allowance", "Freelance", "Other"];
+
 let transactions = JSON.parse(localStorage.getItem("fintrack-transactions")) || [];
-let monthlyBudget = Number(localStorage.getItem("fintrack-budget")) || 0;
+// One spending plan per month, e.g. { "2026-10": { Rent: 800, Food: 250 } }
+let budgets = JSON.parse(localStorage.getItem("fintrack-budgets")) || {};
+// Expense names you created (they appear in the Add transaction list)
+let expenseNames = JSON.parse(localStorage.getItem("fintrack-expense-names")) || [];
+// Keep names from older plans too
+Object.values(budgets).forEach((plan) => Object.keys(plan).forEach((n) => { if (!expenseNames.includes(n)) expenseNames.push(n); }));
 let currentFilter = "all";
 let categoryChart = null;
 let monthlyChart = null;
 
-// ---------- 2. Page elements we need to use ----------
 const $ = (id) => document.getElementById(id);
 const form = $("transaction-form");
 
-// ---------- 3. Helper functions ----------
-
-// Turn a number into money text like "$1,234.50"
+// ---------- 2. Helper functions ----------
 function formatMoney(amount) {
   return amount.toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
 
-// Save everything to the browser so it survives a refresh
 function saveData() {
   localStorage.setItem("fintrack-transactions", JSON.stringify(transactions));
-  localStorage.setItem("fintrack-budget", String(monthlyBudget));
+  localStorage.setItem("fintrack-budgets", JSON.stringify(budgets));
+  localStorage.setItem("fintrack-expense-names", JSON.stringify(expenseNames));
 }
 
-// Show a small message in the corner for 2.5 seconds
 function showToast(message) {
   const toast = $("toast");
   toast.textContent = message;
@@ -34,63 +37,110 @@ function showToast(message) {
   setTimeout(() => toast.classList.remove("show"), 2500);
 }
 
-// Today's date as YYYY-MM-DD (used as the default in the form)
+// Today's date as YYYY-MM-DD using the computer's local time
 function today() {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
 
-// ---------- 4. Sidebar navigation ----------
+// The month being viewed ("YYYY-MM"). It starts as the current month automatically.
+let selectedMonth = today().slice(0, 7);
+
+function monthName(month) {
+  const [year, number] = month.split("-");
+  return new Date(year, number - 1, 1).toLocaleString("en-US", { month: "long", year: "numeric" });
+}
+
+// Only the transactions that belong to the month being viewed
+function getMonthTransactions() {
+  return transactions.filter((t) => t.date.startsWith(selectedMonth));
+}
+
+// Add up the expenses of the viewed month for each category
+function getSpentByCategory() {
+  const totals = {};
+  getMonthTransactions()
+    .filter((t) => t.type === "expense")
+    .forEach((t) => { totals[t.category] = (totals[t.category] || 0) + t.amount; });
+  return totals;
+}
+
+function getPlan() {
+  return budgets[selectedMonth] || {};
+}
+
+function sum(numbers) {
+  return numbers.reduce((total, n) => total + n, 0);
+}
+
+// Stops typed text from being treated as HTML
+function escapeHtml(text) {
+  return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+// ---------- 3. Navigation ----------
+function showView(name) {
+  document.querySelectorAll(".view").forEach((v) => v.classList.toggle("active", v.id === name));
+  document.querySelectorAll(".nav-btn").forEach((b) => b.classList.toggle("active", b.dataset.view === name));
+  window.scrollTo(0, 0);
+}
 document.querySelectorAll(".nav-btn").forEach((button) => {
-  button.addEventListener("click", () => {
-    document.querySelectorAll(".nav-btn").forEach((b) => b.classList.remove("active"));
-    document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
-    button.classList.add("active");
-    $(button.dataset.view).classList.add("active");
-  });
+  button.addEventListener("click", () => showView(button.dataset.view));
 });
 
-// ---------- 5. Adding a transaction ----------
-form.addEventListener("submit", (event) => {
-  event.preventDefault(); // stop the page from reloading
+// ---------- 4. Month selector ----------
+function changeMonth(step) {
+  const [year, number] = selectedMonth.split("-").map(Number);
+  const d = new Date(year, number - 1 + step, 1);
+  selectedMonth = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+  render();
+}
+$("prev-month").addEventListener("click", () => changeMonth(-1));
+$("next-month").addEventListener("click", () => changeMonth(1));
+$("this-month").addEventListener("click", () => { selectedMonth = today().slice(0, 7); render(); });
 
+// ---------- 5. Adding a transaction ----------
+// The category list changes depending on Income / Expense
+function fillCategories() {
+  const type = form.elements["type"].value;
+  const list = type === "income" ? INCOME_CATEGORIES : getExpenseCategories();
+  $("category").innerHTML = list.map((c) => `<option>${escapeHtml(c)}</option>`).join("");
+}
+form.querySelectorAll('input[name="type"]').forEach((r) => r.addEventListener("change", fillCategories));
+
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
   const amount = parseFloat($("amount").value);
   const description = $("description").value.trim();
   const date = $("date").value;
-  const type = form.elements["type"].value;
   const errorBox = $("form-error");
 
-  // Validation: make sure the inputs make sense
-  if (isNaN(amount) || amount <= 0) {
-    errorBox.textContent = "Enter an amount greater than 0.";
-    return;
-  }
-  if (description === "") {
-    errorBox.textContent = "Enter a short description.";
-    return;
-  }
-  if (date === "") {
-    errorBox.textContent = "Choose a date.";
-    return;
-  }
+  // Validation
+  if (isNaN(amount) || amount <= 0) { errorBox.textContent = "Enter an amount greater than 0."; return; }
+  if (description === "") { errorBox.textContent = "Enter a short description."; return; }
+  if (date === "") { errorBox.textContent = "Choose a date."; return; }
   errorBox.textContent = "";
 
   transactions.push({
-    id: Date.now(), // a unique number for each transaction
-    type: type,
+    id: Date.now(),
+    type: form.elements["type"].value,
     amount: Math.round(amount * 100) / 100,
     category: $("category").value,
     description: description,
     date: date,
   });
-
   saveData();
-  render();
+
+  selectedMonth = date.slice(0, 7); // show the month this transaction belongs to
   form.reset();
+  fillCategories();
   $("date").value = today();
+  render();
+  showView("dashboard");            // go back to the home page automatically
   showToast("Transaction saved");
 });
 
-// ---------- 6. Deleting a transaction ----------
+// ---------- 6. Deleting ----------
 function deleteTransaction(id) {
   if (!confirm("Delete this transaction?")) return;
   transactions = transactions.filter((t) => t.id !== id);
@@ -99,87 +149,136 @@ function deleteTransaction(id) {
   showToast("Transaction deleted");
 }
 
-// ---------- 7. Filter buttons (All / Income / Expenses) ----------
-document.querySelectorAll(".filter-btn").forEach((button) => {
+document.querySelectorAll(".filter-btn[data-filter]").forEach((button) => {
   button.addEventListener("click", () => {
-    document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".filter-btn[data-filter]").forEach((b) => b.classList.remove("active"));
     button.classList.add("active");
     currentFilter = button.dataset.filter;
     renderTable();
   });
 });
 
-// ---------- 8. Budget ----------
-$("save-budget").addEventListener("click", () => {
-  const value = parseFloat($("budget-input").value);
-  if (isNaN(value) || value <= 0) {
-    $("budget-error").textContent = "Enter a budget greater than 0.";
-    return;
-  }
-  $("budget-error").textContent = "";
-  monthlyBudget = value;
-  saveData();
-  render();
-  showToast("Budget saved");
-});
-
-// Add up expenses that happened in the current month
-function getSpentThisMonth() {
-  const thisMonth = today().slice(0, 7); // "2026-10"
-  return transactions
-    .filter((t) => t.type === "expense" && t.date.startsWith(thisMonth))
-    .reduce((sum, t) => sum + t.amount, 0);
+// ---------- 7. Monthly budget plan ----------
+// Every expense name you created, plus "Other"
+function getExpenseCategories() {
+  return expenseNames.includes("Other") ? expenseNames : [...expenseNames, "Other"];
 }
 
-// ---------- 9. Clear all data ----------
-$("clear-all").addEventListener("click", () => {
-  if (!confirm("This will delete ALL transactions and your budget. Continue?")) return;
-  transactions = [];
-  monthlyBudget = 0;
-  $("budget-input").value = "";
-  localStorage.removeItem("fintrack-transactions");
-  localStorage.removeItem("fintrack-budget");
+// Add an expense (or change its amount) in the plan of the viewed month
+$("plan-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  let name = $("plan-name").value.trim();
+  const amount = parseFloat($("plan-amount").value);
+
+  if (name === "") { $("budget-error").textContent = "Type what the expense is, for example Rent."; return; }
+  if (isNaN(amount) || amount <= 0) { $("budget-error").textContent = "Enter an amount greater than 0."; return; }
+  $("budget-error").textContent = "";
+
+  // "rent" and "Rent" count as the same expense
+  const existing = getExpenseCategories().find((c) => c.toLowerCase() === name.toLowerCase());
+  if (existing) name = existing;
+  else expenseNames.push(name);
+
+  if (!budgets[selectedMonth]) budgets[selectedMonth] = {};
+  budgets[selectedMonth][name] = Math.round(amount * 100) / 100;
+  saveData();
+
+  $("plan-form").reset();
+  $("plan-name").focus();   // ready to type the next expense
+  fillCategories();
   render();
+  showToast(name + " added to the plan");
+});
+
+// Remove one expense from the viewed month's plan
+function removeFromPlan(name) {
+  if (!confirm(`Remove ${name} from this month's plan?`)) return;
+  delete budgets[selectedMonth][name];
+  if (Object.keys(budgets[selectedMonth]).length === 0) delete budgets[selectedMonth];
+  saveData();
+  render();
+}
+
+// "Done" goes back to the dashboard
+$("plan-done").addEventListener("click", () => {
+  showView("dashboard");
+  showToast("Plan saved for " + monthName(selectedMonth));
+});
+
+// Copy the most recent earlier plan into this month (keeps amounts already set here)
+$("copy-plan").addEventListener("click", () => {
+  const earlier = Object.keys(budgets).filter((m) => m < selectedMonth).sort();
+  if (earlier.length === 0) { showToast("No earlier plan to copy"); return; }
+  const from = earlier[earlier.length - 1];
+  budgets[selectedMonth] = { ...budgets[from], ...(budgets[selectedMonth] || {}) };
+  saveData();
+  render();
+  showToast("Copied from " + monthName(from));
+});
+
+// ---------- 8. Clear all data ----------
+$("clear-all").addEventListener("click", () => {
+  if (!confirm("This will delete ALL transactions and plans. Continue?")) return;
+  transactions = [];
+  budgets = {};
+  expenseNames = [];
+  localStorage.removeItem("fintrack-expense-names");
+  localStorage.removeItem("fintrack-transactions");
+  localStorage.removeItem("fintrack-budgets");
+  render();
+  fillCategories();
   showToast("All data cleared");
 });
 
-// ---------- 10. Dark / light mode ----------
+// ---------- 9. Dark / light mode ----------
 function applyTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
   localStorage.setItem("fintrack-theme", theme);
   $("theme-toggle").querySelector("span").textContent = theme === "dark" ? "Light mode" : "Dark mode";
   $("theme-toggle").querySelector("i, svg").outerHTML = `<i data-lucide="${theme === "dark" ? "sun" : "moon"}"></i>`;
   lucide.createIcons();
-  // Chart text colour depends on the theme, so redraw the charts
   if (categoryChart) renderCharts();
 }
 $("theme-toggle").addEventListener("click", () => {
-  const current = document.documentElement.getAttribute("data-theme");
-  applyTheme(current === "dark" ? "light" : "dark");
+  applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
 });
 
-// ---------- 11. Drawing the page ----------
-
-// Dashboard summary cards
+// ---------- 10. Drawing the page ----------
 function renderSummary() {
-  const income = transactions.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-  const expenses = transactions.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+  const monthTx = getMonthTransactions();
+  const income = sum(monthTx.filter((t) => t.type === "income").map((t) => t.amount));
+  const expenses = sum(monthTx.filter((t) => t.type === "expense").map((t) => t.amount));
   const balance = income - expenses;
+  const planned = sum(Object.values(getPlan()));
 
   $("total-income").textContent = formatMoney(income);
   $("total-expenses").textContent = formatMoney(expenses);
   $("balance").textContent = formatMoney(balance);
   $("balance").className = balance < 0 ? "expense" : "";
-  $("budget-card").textContent = monthlyBudget > 0 ? formatMoney(monthlyBudget) : "Not set";
+  $("budget-card").textContent = planned > 0 ? formatMoney(planned) : "Not set";
 }
 
-// Transaction history table
+// Red warnings on the dashboard for every category that went over its plan
+function renderAlerts() {
+  const plan = getPlan();
+  const spent = getSpentByCategory();
+  let html = "";
+  for (const category in plan) {
+    const over = (spent[category] || 0) - plan[category];
+    if (over > 0) html += `<div class="alert">⚠ ${escapeHtml(category)}: you spent ${formatMoney(over)} more than planned.</div>`;
+  }
+  const totalPlan = sum(Object.values(plan));
+  const totalSpent = sum(Object.values(spent));
+  if (totalPlan > 0 && totalSpent > totalPlan) {
+    html = `<div class="alert">⚠ Total spending is ${formatMoney(totalSpent - totalPlan)} over your plan for this month.</div>` + html;
+  }
+  $("alerts").innerHTML = html;
+}
+
 function renderTable() {
   const body = $("transaction-body");
   body.innerHTML = "";
-
-  // Filter, then show newest first
-  const shown = transactions
+  const shown = getMonthTransactions()
     .filter((t) => currentFilter === "all" || t.type === currentFilter)
     .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
 
@@ -188,72 +287,63 @@ function renderTable() {
   shown.forEach((t) => {
     const row = document.createElement("tr");
     const sign = t.type === "income" ? "+" : "−";
-    // textContent is used for the description so typed text can't inject HTML
     row.innerHTML = `
       <td>${t.date}</td>
       <td class="desc"></td>
-      <td>${t.category}</td>
+      <td>${escapeHtml(t.category)}</td>
       <td><span class="badge ${t.type}">${t.type}</span></td>
       <td class="right ${t.type}">${sign}${formatMoney(t.amount)}</td>
       <td><button class="delete-btn" aria-label="Delete transaction"><i data-lucide="trash-2"></i></button></td>`;
-    row.querySelector(".desc").textContent = t.description;
+    row.querySelector(".desc").textContent = t.description; // textContent keeps typed text safe
     row.querySelector(".delete-btn").addEventListener("click", () => deleteTransaction(t.id));
     body.appendChild(row);
   });
   lucide.createIcons();
 }
 
-// Budget progress bar and warning
+// Budget page: a progress bar for every planned expense
 function renderBudget() {
-  const spent = getSpentThisMonth();
-  $("spent").textContent = formatMoney(spent);
+  $("plan-month").textContent = monthName(selectedMonth);
+  const plan = getPlan();
+  const spent = getSpentByCategory();
+  const names = [...new Set([...Object.keys(plan), ...Object.keys(spent)])];
 
-  const bar = $("progress-bar");
-  const message = $("budget-message");
-
-  if (monthlyBudget <= 0) {
-    $("remaining").textContent = "—";
-    bar.style.width = "0%";
-    bar.classList.remove("over");
-    message.className = "budget-message";
-    message.textContent = "Set a budget to start tracking.";
+  if (names.length === 0) {
+    $("budget-progress").innerHTML = '<p class="empty">No expenses planned yet. Add one above.</p>';
     return;
   }
 
-  const remaining = monthlyBudget - spent;
-  const percent = Math.min((spent / monthlyBudget) * 100, 100);
-  $("remaining").textContent = formatMoney(remaining);
-  bar.style.width = percent + "%";
+  // First row is the total, then one row per expense
+  const rows = [["Total", sum(Object.values(plan)), sum(Object.values(spent))]];
+  names.forEach((n) => rows.push([n, plan[n] || 0, spent[n] || 0]));
 
-  if (spent > monthlyBudget) {
-    bar.classList.add("over");
-    message.className = "budget-message over";
-    message.textContent = `Warning: you are ${formatMoney(spent - monthlyBudget)} over budget this month.`;
-  } else {
-    bar.classList.remove("over");
-    message.className = "budget-message";
-    message.textContent = `You have used ${Math.round(percent)}% of your budget.`;
-  }
+  $("budget-progress").innerHTML = rows.map(([name, planned, used], index) => {
+    const over = planned > 0 && used > planned;
+    const percent = planned > 0 ? Math.min((used / planned) * 100, 100) : (used > 0 ? 100 : 0);
+    let note = "Not planned yet.";
+    if (planned > 0) note = over ? `Over by ${formatMoney(used - planned)}` : `${formatMoney(planned - used)} left`;
+    const removeButton = index > 0 && planned > 0
+      ? `<button class="delete-btn remove-plan" data-name="${escapeHtml(name)}" aria-label="Remove ${escapeHtml(name)}"><i data-lucide="x"></i></button>` : "";
+    return `<div class="progress-row">
+      <div class="row-head"><span>${escapeHtml(name)}</span><span>${formatMoney(used)} / ${formatMoney(planned)} ${removeButton}</span></div>
+      <div class="progress"><div class="bar ${over ? "over" : ""}" style="width:${percent}%"></div></div>
+      <p class="row-note ${over ? "over" : ""}">${note}</p></div>`;
+  }).join("");
+
+  document.querySelectorAll(".remove-plan").forEach((button) => {
+    button.addEventListener("click", () => removeFromPlan(button.dataset.name));
+  });
+  lucide.createIcons();
 }
 
-// Both charts (they are destroyed and rebuilt so they always match the data)
 function renderCharts() {
-  const textColor = getComputedStyle(document.documentElement).getPropertyValue("--muted").trim();
-  const gridColor = getComputedStyle(document.documentElement).getPropertyValue("--border").trim();
-  const incomeColor = getComputedStyle(document.documentElement).getPropertyValue("--income").trim();
-  const expenseColor = getComputedStyle(document.documentElement).getPropertyValue("--expense").trim();
-  Chart.defaults.color = textColor;
+  const css = getComputedStyle(document.documentElement);
+  Chart.defaults.color = css.getPropertyValue("--muted").trim();
   Chart.defaults.font.family = "Manrope, sans-serif";
 
-  // --- Doughnut: expenses by category ---
-  const totalsByCategory = {};
-  transactions
-    .filter((t) => t.type === "expense")
-    .forEach((t) => {
-      totalsByCategory[t.category] = (totalsByCategory[t.category] || 0) + t.amount;
-    });
-
-  const hasExpenses = Object.keys(totalsByCategory).length > 0;
+  // Doughnut: expenses by category for the viewed month
+  const spent = getSpentByCategory();
+  const hasExpenses = Object.keys(spent).length > 0;
   $("category-empty").style.display = hasExpenses ? "none" : "block";
   $("category-chart").parentElement.style.display = hasExpenses ? "block" : "none";
 
@@ -261,27 +351,25 @@ function renderCharts() {
   categoryChart = new Chart($("category-chart"), {
     type: "doughnut",
     data: {
-      labels: Object.keys(totalsByCategory),
+      labels: Object.keys(spent),
       datasets: [{
-        data: Object.values(totalsByCategory),
-        backgroundColor: ["#0f6b5c", "#e8a33d", "#d9503f", "#4a7fd1", "#8e5bb5", "#3cc4a6", "#c9708a", "#7c8a82", "#b5a642"],
+        data: Object.values(spent),
+        backgroundColor: ["#0f6b5c", "#e8a33d", "#d9503f", "#4a7fd1", "#8e5bb5", "#3cc4a6", "#c9708a", "#7c8a82", "#b5a642", "#2f9fd0", "#a0522d"],
         borderWidth: 0,
       }],
     },
     options: { maintainAspectRatio: false, cutout: "62%", plugins: { legend: { position: "bottom" } } },
   });
 
-  // --- Bar chart: income vs expenses for the last 6 months ---
+  // Bar chart: the viewed month and the 5 months before it
+  const [year, number] = selectedMonth.split("-").map(Number);
   const months = [];
-  const now = new Date();
   for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const d = new Date(year, number - 1 - i, 1);
     months.push(d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"));
   }
-  const sumFor = (month, type) =>
-    transactions
-      .filter((t) => t.type === type && t.date.startsWith(month))
-      .reduce((sum, t) => sum + t.amount, 0);
+  const totalFor = (month, type) =>
+    sum(transactions.filter((t) => t.type === type && t.date.startsWith(month)).map((t) => t.amount));
 
   if (monthlyChart) monthlyChart.destroy();
   monthlyChart = new Chart($("monthly-chart"), {
@@ -289,29 +377,31 @@ function renderCharts() {
     data: {
       labels: months.map((m) => new Date(m + "-01T00:00").toLocaleString("en-US", { month: "short" })),
       datasets: [
-        { label: "Income", data: months.map((m) => sumFor(m, "income")), backgroundColor: incomeColor, borderRadius: 6 },
-        { label: "Expenses", data: months.map((m) => sumFor(m, "expense")), backgroundColor: expenseColor, borderRadius: 6 },
+        { label: "Income", data: months.map((m) => totalFor(m, "income")), backgroundColor: css.getPropertyValue("--income").trim(), borderRadius: 6 },
+        { label: "Expenses", data: months.map((m) => totalFor(m, "expense")), backgroundColor: css.getPropertyValue("--expense").trim(), borderRadius: 6 },
       ],
     },
     options: {
       maintainAspectRatio: false,
-      scales: { y: { beginAtZero: true, grid: { color: gridColor } }, x: { grid: { display: false } } },
+      scales: { y: { beginAtZero: true, grid: { color: css.getPropertyValue("--border").trim() } }, x: { grid: { display: false } } },
       plugins: { legend: { position: "bottom" } },
     },
   });
 }
 
-// Redraw everything — called whenever data changes
+// Redraw everything. Called whenever the data or the month changes.
 function render() {
+  $("month-label").textContent = monthName(selectedMonth);
   renderSummary();
+  renderAlerts();
   renderTable();
   renderBudget();
   renderCharts();
 }
 
-// ---------- 12. Start the app ----------
+// ---------- 11. Start the app ----------
+fillCategories();
 $("date").value = today();
-if (monthlyBudget > 0) $("budget-input").value = monthlyBudget;
 applyTheme(localStorage.getItem("fintrack-theme") || "light");
 render();
 lucide.createIcons();
