@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Number Guessing Game</title>
+<link rel="stylesheet" href="guessing.css">
+</head>
+<body>
+<main>
+  <h1>Number Guessing Game</h1>
+  <p class="sub">Pick a level and find the secret number.</p>
+
+  <div class="levels" id="levels" role="group" aria-label="Difficulty">
+    <button type="button" data-level="easy" aria-pressed="false">Easy<small>1&ndash;50</small></button>
+    <button type="button" data-level="medium" aria-pressed="true">Medium<small>1&ndash;100</small></button>
+    <button type="button" data-level="hard" aria-pressed="false">Hard<small>1&ndash;500</small></button>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b id="triesLeft">7</b><span>Tries left</span></div>
+    <div class="stat"><b id="triesUsed">0</b><span>Guesses made</span></div>
+  </div>
+
+  <div class="range" aria-live="polite">
+    <div class="range-bar"><div class="range-fill" id="fill"></div></div>
+    <div class="range-labels">
+      <span>Above <b id="lowLabel">0</b></span>
+      <span>Below <b id="highLabel">101</b></span>
+    </div>
+  </div>
+
+  <div class="guess-row">
+    <input id="guess" type="number" inputmode="numeric" placeholder="Your guess" aria-label="Your guess" autocomplete="off">
+    <button class="btn" id="guessBtn" type="button">Guess</button>
+  </div>
+
+  <p class="message" id="message" role="status" aria-live="polite">Make your first guess.</p>
+
+  <div class="history">
+    <h2>Your guesses</h2>
+    <div class="chips" id="chips"><span class="empty">No guesses yet.</span></div>
+  </div>
+
+  <div class="footer">
+    <span class="best" id="best"></span>
+    <button class="btn ghost" id="newBtn" type="button">New game</button>
+  </div>
+</main>
+
+
+<script src="guessing.js"></script>
+</body>
+</html>

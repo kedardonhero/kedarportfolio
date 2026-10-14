@@ -3,35 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stone Paper Scicsor</title>
-    <link rel="stylesheet" href="style.css" />
+    <title>Rock Paper Scissors</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Rock Paper Scissors Game</h1>
-    <div class="choices">
-        <div class="choice" id="paper">
-            <img src="paper.png" >
+    <h1>Rock Paper Scissors</h1>
+
+    <main>
+        <p class="prompt">Pick your move</p>
+        <div class="choices">
+            <button class="choice" id="rock" aria-label="Rock"><img src="rock.png" alt=""></button>
+            <button class="choice" id="paper" aria-label="Paper"><img src="paper.png" alt=""></button>
+            <button class="choice" id="scissors" aria-label="Scissors"><img src="scissors.png" alt=""></button>
         </div>
-        <div class="choice" id="rock">
-            <img src="rock.png">
+
+        <div class="arena" aria-hidden="true">
+            <div class="pick"><img id="user-pick" alt=""><span>You</span></div>
+            <div class="vs">vs</div>
+            <div class="pick"><img id="comp-pick" alt=""><span>Computer</span></div>
         </div>
-        <div class="choice" id="scissors">
-            <img src="scissors.png">
+
+        <div class="score-board">
+            <div class="score">
+                <p id="user-score">0</p>
+                <p>You</p>
+            </div>
+            <div class="score">
+                <p id="draw-score">0</p>
+                <p>Draws</p>
+            </div>
+            <div class="score">
+                <p id="comp-score">0</p>
+                <p>Computer</p>
+            </div>
         </div>
-    </div>
-    <div class="score-board">
-        <div class="score">
-            <p id="user-score">0</p>
-            <p>You</p>
+
+        <div class="msg-container">
+            <div id="msg" aria-live="polite">Play your move</div>
         </div>
-        <div class="score">
-            <p id="comp-score">0</p>
-            <p>Computer</p>
-        </div>
-    </div>
-    <div class="msg-container">
-        <div id="msg">Play your move</div>
-    </div>
+
+        <button id="reset-btn">Reset score</button>
+    </main>
+
     <script src="app.js"></script>
 </body>
 </html>

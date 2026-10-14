@@ -1,183 +1,124 @@
 <!doctype html>
 <html lang="en">
-
-<Head>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Amazon Clone</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />"
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="style.css">
-</Head>
-
+</head>
 <body>
     <header>
         <div class="navbar">
-            <div class="nav-logo border">
-                <div class="logo"></div>
-            </div>
-            <div class="nav-adress border">
+            <button class="menu-btn" id="menuBtn" aria-label="Open menu"><i class="fa-solid fa-bars"></i></button>
+            <a href="#" class="nav-logo border" aria-label="Amazon home"><div class="logo"></div></a>
+            <div class="nav-address border">
                 <p class="a1">Deliver to</p>
-                <div class="add-icon">
-                    <i class="fa-solid fa-location-dot"></i>
-                    <p class="a2">Nepal</p>
-                </div>
+                <div class="add-icon"><i class="fa-solid fa-location-dot"></i><p class="a2" id="deliverTo">Nepal</p></div>
             </div>
-            <div class="nav-search">
-                <select class="search-select">
-                    <option>All</option>
-                    <input placeholder="Search Amazon" class="search-input">
-                    <div class="search-icon">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </div>
+            <form class="nav-search" id="searchForm" role="search">
+                <select class="search-select" id="searchCategory" aria-label="Category">
+                    <option value="all">All</option>
+                    <option value="pc">PCs</option>
+                    <option value="home">Home</option>
+                    <option value="toys">Toys</option>
+                    <option value="wearables">Wearables</option>
+                    <option value="gaming">Gaming</option>
+                    <option value="office">Office</option>
                 </select>
-            </div>
-            <div class="nav-signin border">
-            <p><span>Hello,sign in</span></p>
-            <p class="nav-second">Account & Lists</p>
-            </div>
-            <div class="nav-return border">
-                <p><span>Returns</span></p>
-                <p class="nav-second">& Orders</p>
-            </div>
-            <div class="nav-cart border">
+                <input type="search" placeholder="Search Amazon" class="search-input" id="searchInput" aria-label="Search">
+                <button type="submit" class="search-icon" aria-label="Search"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </form>
+            <button class="nav-signin border" id="signinBtn">
+                <span>Hello, <b id="userName">sign in</b></span>
+                <p class="nav-second">Account &amp; Lists</p>
+            </button>
+            <a href="#shop" class="nav-return border">
+                <span>Returns</span>
+                <p class="nav-second">&amp; Orders</p>
+            </a>
+            <button class="nav-cart border" id="cartBtn" aria-label="Open cart">
                 <i class="fa-solid fa-cart-shopping"></i>
-                Cart
-            </div>
+                <span class="cart-count" id="cartCount">0</span>
+                <span class="cart-label">Cart</span>
+            </button>
         </div>
-        <div class="panel">
-            <div class="panel-all">
-                <i class="fa-solid fa-bars"></i>
-                All
-            </div>
+        <nav class="panel">
+            <button class="panel-all" id="panelAll"><i class="fa-solid fa-bars"></i> All</button>
             <div class="one">
-                <p>Today's Deals</p>
-                <p>Customer Services</p>
-                <P>Registry</P>
-                <p>Gifts Cards</p>
-                <p>Sell</p>
+                <a href="#shop">Today's Deals</a>
+                <a href="#footer">Customer Service</a>
+                <a href="#footer">Registry</a>
+                <a href="#footer">Gift Cards</a>
+                <a href="#footer">Sell</a>
             </div>
-                <div class="two">
-                    Shop deals in Electronics
-                </div>
-            </div>
-        </div>
+            <a href="#shop" class="two">Shop deals in Electronics</a>
+        </nav>
     </header>
-    <div class="hero-section">
-        
-    </div>
-    <div class="shop-section">
-        <div class="box1 box">
-            <div class="box-content">
-                <h2>Deals in PCs</h2>
-            <div class="box-img" style="background-image: url('box1.jpg');"></div>
-            <p>See more</p>
-            </div>
-        </div>
-        <div class="box2 box">
-            <div class="box-content">
-                <h2>Home décor under $50</h2>
-            <div class="box-img" style="background-image: url('box2.jpg');"></div>
-            <p>See more</p>
-            </div>
-        </div>
-        <div class="box3 box">
-            <div class="box-content">
-                <h2>Toys under $25</h2>
-            <div class="box-img" style="background-image: url('box3.jpg');"></div>
-            <p>See more</p>
-            </div>
-        </div>
-        <div class="box4 box">
-            <div class="box-content">
-                <h2>Shop activity trackers and smartwatches</h2>
-            <div class="box-img" style="background-image: url('box4.jpg');"></div>
-            <p>See more</p>
-            </div>
-        </div>
-        <div class="box1 box">
-            <div class="box-content">
-                <h2>Player's paradise starts here</h2>
-            <div class="box-img" style="background-image: url('box5.jpg');"></div>
-            <p>See more</p>
-            </div>
-        </div>
-        <div class="box2 box">
-            <div class="box-content">
-                <h2>A whole new way to work</h2>
-            <div class="box-img" style="background-image: url('box6.jpg');"></div>
-            <p>See more</p>
-            </div>
-        </div>
-        <div class="box3 box">
-            <div class="box-content">
-                <h2>Laptops for every need</h2>
-            <div class="box-img" style="background-image: url('box7.jpg');"></div>
-            <p>See more</p>
-            </div>
-        </div>
-        <div class="box4 box">
-            <div class="box-content">
-                <h2>Upgrade your office furniture</h2>
-            <div class="box-img" style="background-image: url('box8.jpg');"></div>
-            <p>See more</p>
-            </div>
-        </div>
-    </div>
-    <footer>
-        <div class="footpanel1">
-          Back to Top
-        </div>
-        <div class="footpanel2">
-            <ul>
-                <p>Get to know Us</p>
-                <a>Carrers</a>
-                <a>Blogs</a>
-                <a>About Kedar</a>
-                <a>Investors Relation</a>
-                <a>Amazon Devices</a>
-                <a>Amazon Sciences</a>
-            </ul>
-            <ul>
-                <p>Get to know Us</p>
-                <a>Carrers</a>
-                <a>Blogs</a>
-                <a>About Kedar</a>
-                <a>Investors Relation</a>
-                <a>Amazon Devices</a>
-                <a>Amazon Sciences</a>
-            </ul>
-            <ul>
-                <p>Get to know Us</p>
-                <a>Carrers</a>
-                <a>Blogs</a>
-                <a>About Kedar</a>
-                <a>Investors Relation</a>
-                <a>Amazon Devices</a>
-                <a>Amazon Sciences</a>
-            </ul>
-            <ul>
-                <p>Get to know Us</p>
-                <a>Carrers</a>
-                <a>Blogs</a>
-                <a>About Kedar</a>
-                <a>Investors Relation</a>
-                <a>Amazon Devices</a>
-                <a>Amazon Sciences</a>
-            </ul>
-        </div>
-        <div class="footpanel3">
-            <div class="logo1">
 
-            </div>
+    <aside class="sidebar" id="sidebar" aria-hidden="true">
+        <div class="sidebar-head"><span><i class="fa-solid fa-circle-user"></i> Hello, sign in</span>
+            <button class="close-btn" data-close aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button></div>
+        <h3>Shop by category</h3>
+        <a href="#shop" data-cat="all">All</a>
+        <a href="#shop" data-cat="pc">PCs</a>
+        <a href="#shop" data-cat="home">Home</a>
+        <a href="#shop" data-cat="toys">Toys</a>
+        <a href="#shop" data-cat="wearables">Wearables</a>
+        <a href="#shop" data-cat="gaming">Gaming</a>
+        <a href="#shop" data-cat="office">Office</a>
+    </aside>
+    <div class="overlay" id="overlay"></div>
+
+    <aside class="cart-drawer" id="cartDrawer" aria-hidden="true">
+        <div class="drawer-head"><h2>Shopping Cart</h2>
+            <button class="close-btn" data-close aria-label="Close cart"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="cart-items" id="cartItems"></div>
+        <div class="cart-foot">
+            <p>Subtotal: <strong id="cartTotal">$0.00</strong></p>
+            <button class="btn-yellow" id="checkoutBtn">Proceed to checkout</button>
+            <button class="btn-link" id="clearCart">Clear cart</button>
         </div>
+    </aside>
+
+    <div class="modal" id="signinModal" role="dialog" aria-modal="true" aria-labelledby="signinTitle">
+        <form class="modal-box" id="signinForm">
+            <button type="button" class="close-btn" data-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+            <h2 id="signinTitle">Sign in</h2>
+            <label>Your name<input type="text" id="nameInput" required placeholder="e.g. Kedar"></label>
+            <label>Email<input type="email" required placeholder="you@example.com"></label>
+            <label>Password<input type="password" required minlength="6" placeholder="At least 6 characters"></label>
+            <button type="submit" class="btn-yellow">Sign in</button>
+        </form>
+    </div>
+
+    <main>
+        <section class="hero-section" id="hero" aria-label="Featured offers">
+            <button class="hero-arrow left" id="heroPrev" aria-label="Previous slide"><i class="fa-solid fa-chevron-left"></i></button>
+            <div class="hero-text" id="heroText"></div>
+            <button class="hero-arrow right" id="heroNext" aria-label="Next slide"><i class="fa-solid fa-chevron-right"></i></button>
+        </section>
+
+        <section class="shop-section" id="shop"></section>
+        <p class="no-results" id="noResults" hidden>No products match your search. Try a different word or category.</p>
+    </main>
+
+    <div class="toast" id="toast" role="status"></div>
+
+    <footer id="footer">
+        <a href="#" class="footpanel1" id="backTop">Back to top</a>
+        <div class="footpanel2">
+            <ul><p>Get to Know Us</p><a href="#">Careers</a><a href="#">Blog</a><a href="#">About Kedar</a><a href="#">Investor Relations</a><a href="#">Amazon Devices</a><a href="#">Amazon Science</a></ul>
+            <ul><p>Make Money with Us</p><a href="#">Sell products</a><a href="#">Become an affiliate</a><a href="#">Advertise your products</a><a href="#">Self-publish</a></ul>
+            <ul><p>Payment Products</p><a href="#">Business Card</a><a href="#">Shop with Points</a><a href="#">Reload Your Balance</a><a href="#">Currency Converter</a></ul>
+            <ul><p>Let Us Help You</p><a href="#">Your Account</a><a href="#">Your Orders</a><a href="#">Shipping Rates</a><a href="#">Returns</a><a href="#">Help</a></ul>
+        </div>
+        <div class="footpanel3"><div class="logo1"></div></div>
         <div class="footpanel4">
-            <div class="pages">
-                <a>Conditions of use</a>
-                <a>Privacy notice</a>
-                <a>Privacy Choices</a>
-            </div>
-            <div class="copyright">
-                © 1996-2024, Amazon.com, Inc. or its affiliates
-            </div>
+            <div class="pages"><a href="#">Conditions of Use</a><a href="#">Privacy Notice</a><a href="#">Privacy Choices</a></div>
+            <div class="copyright">&copy; 1996-2026, Amazon.com, Inc. or its affiliates (clone for learning)</div>
         </div>
     </footer>
+    <script src="script.js"></script>
 </body>
 </html>

@@ -1,68 +1,170 @@
 * {
-    margin: 0;
-    padding: 0;
-    text-align: center;
-  }
-  
-  h1 {
-    background-color: #081b31;
-    color: #fff;
-    height: 5rem;
-    line-height: 5rem;
-  }
-  
-  .choice {
-    height: 165px;
-    width: 165px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .choice:hover {
-    cursor: pointer;
-    background-color: #081b31;
-  }
-  
-  img {
-    height: 150px;
-    width: 150px;
-    object-fit: cover;
-    border-radius: 50%;
-  }
-  
-  .choices {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 3rem;
-    margin-top: 5rem;
-  }
-  
-  .score-board {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 2rem;
-    margin-top: 3rem;
-    gap: 5rem;
-  }
-  
-  #user-score,
-  #comp-score {
-    font-size: 4rem;
-  }
-  
-  .msg-container {
-    margin-top: 5rem;
-  }
-  
-  #msg {
-    background-color: #081b31;
-    color: #fff;
-    font-size: 2rem;
-    display: inline;
-    padding: 1rem;
-    border-radius: 1rem;
-  }
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --navy: #081b31;
+  --win: #1f8a4c;
+  --lose: #c0392b;
+  --draw: #6b7280;
+  --size: clamp(84px, 24vw, 150px);
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  text-align: center;
+  color: var(--navy);
+  min-height: 100dvh;
+}
+
+h1 {
+  background-color: var(--navy);
+  color: #fff;
+  padding: 1.2rem 1rem;
+  font-size: clamp(1.4rem, 5vw, 2.2rem);
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(1rem, 3dvh, 2rem);
+  padding: clamp(1rem, 4dvh, 2.5rem) 1rem 2rem;
+}
+
+.prompt {
+  font-size: 1.2rem;
+}
+
+.choices {
+  display: flex;
+  justify-content: center;
+  gap: clamp(0.8rem, 4vw, 3rem);
+}
+
+.choice {
+  width: calc(var(--size) + 14px);
+  height: calc(var(--size) + 14px);
+  border: 0;
+  border-radius: 50%;
+  padding: 7px;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.15s, transform 0.15s;
+}
+
+.choice:hover:not(:disabled),
+.choice:focus-visible {
+  background-color: var(--navy);
+  transform: scale(1.06);
+}
+
+.choice:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.choice:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+:focus-visible {
+  outline: 3px solid #4f8cff;
+  outline-offset: 3px;
+}
+
+.choice img,
+.pick img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+.arena {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.8rem, 5vw, 3rem);
+}
+
+.pick {
+  width: clamp(72px, 20vw, 120px);
+}
+
+.pick img {
+  aspect-ratio: 1;
+  background: #e5e7eb;
+}
+
+.pick img:not([src]) {
+  visibility: hidden;
+}
+
+.pick span {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.95rem;
+}
+
+.vs {
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.score-board {
+  display: flex;
+  justify-content: center;
+  gap: clamp(1.5rem, 8vw, 4rem);
+}
+
+.score p:first-child {
+  font-size: clamp(2.4rem, 9vw, 4rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.score p:last-child {
+  font-size: 1.1rem;
+}
+
+#msg {
+  display: inline-block;
+  background-color: var(--navy);
+  color: #fff;
+  font-size: clamp(1.1rem, 4.5vw, 1.8rem);
+  padding: 0.9rem 1.4rem;
+  border-radius: 1rem;
+  transition: background-color 0.2s;
+}
+
+#msg.win { background-color: var(--win); }
+#msg.lose { background-color: var(--lose); }
+#msg.draw { background-color: var(--draw); }
+
+#reset-btn {
+  padding: 0.7rem 1.4rem;
+  font-size: 1.05rem;
+  background: #fff;
+  color: var(--navy);
+  border: 2px solid var(--navy);
+  border-radius: 99px;
+  cursor: pointer;
+}
+
+#reset-btn:hover {
+  background: var(--navy);
+  color: #fff;
+}
+
+@media (max-height: 640px) and (orientation: landscape) {
+  :root { --size: 70px; }
+  .arena { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .choice, #msg { transition: none; }
+}

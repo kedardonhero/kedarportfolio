@@ -7,14 +7,27 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="msg-container hide">
-        <p id="msg">Winner</p>
-        <button id="new-btn">New game</button>
-    </div>
     <main>
         <h1>Tic Tac Toe</h1>
+
+        <label class="mode">Play
+            <select id="mode">
+                <option value="2p">against a friend</option>
+                <option value="easy">against the computer (easy)</option>
+                <option value="hard">against the computer (hard)</option>
+            </select>
+        </label>
+
+        <div class="scores" aria-label="Scoreboard">
+            <div id="s-O"><span>O</span><b>0</b></div>
+            <div id="s-D"><span>Draws</span><b>0</b></div>
+            <div id="s-X"><span>X</span><b>0</b></div>
+        </div>
+
+        <p id="status" aria-live="polite">O’s turn</p>
+
         <div class="container">
-            <div class="game">
+            <div class="game" id="board">
                 <button class="box"></button>
                 <button class="box"></button>
                 <button class="box"></button>
@@ -26,8 +39,20 @@
                 <button class="box"></button>
             </div>
         </div>
-        <button id="reset-btn">Reset game</button>
+
+        <div class="actions">
+            <button id="again-btn">New round</button>
+            <button id="reset-btn">Reset score</button>
+        </div>
     </main>
+
+    <div class="msg-container hide" role="dialog" aria-modal="true" aria-labelledby="msg">
+        <div class="msg-card">
+            <p id="msg">Winner</p>
+            <button id="new-btn">New game</button>
+        </div>
+    </div>
+
     <script src="first.js"></script>
 </body>
 </html>
