@@ -13,12 +13,14 @@ let accounts = [newCash()]; // for credit cards "balance" is the money you OWE
 let contacts = [];
 let loans = [];
 let transfers = [];
+let savingsPlan = {};  // where each month's leftover is kept, e.g. { "2026-10": { cash: 300, bank: 750 } }
 let storeKey = "fintrack-state-guest"; // where this profile is saved in the browser
 let currentCurrency = "USD";
 let localUser = null;   // username of the account saved on this device (null otherwise)
 let cloudUser = null;   // signed-in Firebase user (null in guest mode)
 let profile = null;     // { username, country, currency }
 let currentFilter = "all";
+let editingId = null;    // id of the transaction being edited (null when adding a new one)
 let detailTarget = null; // which account (or group) the detail page shows
 let detailContact = null; // which contact the contact page shows
 let categoryChart = null;
@@ -34,7 +36,7 @@ function formatMoney(amount) {
 
 // All app data in one object, so it can be saved locally and in the cloud
 function getState() {
-  return { transactions, budgets, expenseNames, accounts, contacts, loans, transfers };
+  return { transactions, budgets, expenseNames, accounts, contacts, loans, transfers, savingsPlan };
 }
 function loadState(state) {
   transactions = state.transactions || [];
@@ -44,6 +46,7 @@ function loadState(state) {
   contacts = state.contacts || [];
   loans = state.loans || [];
   transfers = state.transfers || [];
+  savingsPlan = state.savingsPlan || {};
   // keep names from older plans too
   Object.values(budgets).forEach((plan) => Object.keys(plan).forEach((n) => { if (!expenseNames.includes(n)) expenseNames.push(n); }));
 }
@@ -102,12 +105,14 @@ function escapeHtml(text) {
 }
 
 // ---------- 3. Navigation ----------
-const MONTH_VIEWS = ["dashboard", "history", "budget"]; // pages that depend on the selected month
+const MONTH_VIEWS = ["dashboard", "history", "budget", "reports"]; // pages that depend on the selected month
 function showView(name) {
   const parent = { "account-detail": "networth", "contact-detail": "contacts" }[name] || name;
   document.querySelectorAll(".view").forEach((v) => v.classList.toggle("active", v.id === name));
   document.querySelectorAll(".nav-btn").forEach((b) => b.classList.toggle("active", b.dataset.view === parent));
   document.querySelector(".month-bar").hidden = !MONTH_VIEWS.includes(name);
+  if (name !== "add") stopEditing();
+  if (name === "reports") renderReport();
   window.scrollTo(0, 0);
 }
 document.querySelectorAll(".nav-btn").forEach((button) => {
@@ -124,6 +129,7 @@ function changeMonth(step) {
   selectedMonth = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
   render();
 }
+$("month-pick").addEventListener("change", (e) => { if (e.target.value) { selectedMonth = e.target.value; render(); } });
 $("prev-month").addEventListener("click", () => changeMonth(-1));
 $("next-month").addEventListener("click", () => changeMonth(1));
 $("this-month").addEventListener("click", () => { selectedMonth = today().slice(0, 7); render(); });
@@ -150,16 +156,16 @@ form.addEventListener("submit", (event) => {
   if (date === "") { errorBox.textContent = "Choose a date."; return; }
   errorBox.textContent = "";
 
-  transactions.push({
-    id: Date.now(),
-    type: form.elements["type"].value,
-    amount: Math.round(amount * 100) / 100,
-    category: $("category").value,
-    description: description,
-    date: date,
-    accountId: $("account").value,
-  });
-  applyEffect(transactions[transactions.length - 1], 1); // update the account balance
+  const data = { type: form.elements["type"].value, amount: Math.round(amount * 100) / 100, category: $("category").value,
+    description: description, date: date, accountId: $("account").value };
+  const wasEditing = editingId !== null;
+  if (wasEditing) {   // undo the old version on its account, then apply the new version
+    const old = transactions.find((t) => t.id === editingId);
+    if (old) { applyEffect(old, -1); Object.assign(old, data); applyEffect(old, 1); }
+  } else {
+    transactions.push(Object.assign({ id: Date.now() }, data));
+    applyEffect(transactions[transactions.length - 1], 1); // update the account balance
+  }
   saveData();
 
   selectedMonth = date.slice(0, 7); // show the month this transaction belongs to
@@ -168,8 +174,31 @@ form.addEventListener("submit", (event) => {
   $("date").value = today();
   render();
   showView("dashboard");            // go back to the home page automatically
-  showToast("Transaction saved");
+  showToast(wasEditing ? "Changes saved" : "Transaction saved");
 });
+
+// Edit: put an existing transaction back into the form
+function startEdit(t) {
+  showView("add");
+  editingId = t.id;
+  form.elements["type"].value = t.type;
+  fillCategories();
+  if (![...$("category").options].some((o) => o.value === t.category)) $("category").add(new Option(t.category));
+  $("category").value = t.category;
+  $("amount").value = t.amount;
+  $("description").value = t.description;
+  $("date").value = t.date;
+  $("account").value = t.accountId;
+  form.querySelector('button[type="submit"]').textContent = "Save changes";
+}
+function stopEditing() {
+  if (editingId === null) return;
+  editingId = null;
+  form.reset();
+  fillCategories();
+  $("date").value = today();
+  form.querySelector('button[type="submit"]').textContent = "Save transaction";
+}
 
 // ---------- 6. Deleting ----------
 function deleteTransaction(id) {
@@ -259,6 +288,7 @@ $("clear-all").addEventListener("click", () => {
   loans = [];
   contacts = [];
   transfers = [];
+  savingsPlan = {};
   saveData();
   render();
   fillCategories();
@@ -288,9 +318,22 @@ function renderSummary() {
 
   $("total-income").textContent = formatMoney(income);
   $("total-expenses").textContent = formatMoney(expenses);
-  $("balance").textContent = formatMoney(balance);
-  $("balance").className = balance < 0 ? "expense" : "";
-  $("budget-card").textContent = planned > 0 ? formatMoney(planned) : "Not set";
+
+  // "Your money right now": real balances, kept apart from money friends still owe
+  const kindSum = (kind) => sum(accounts.filter((a) => a.kind === kind).map((a) => a.balance));
+  const nw = getNetWorth();
+  $("d-avail").textContent = formatMoney(round2(kindSum("cash") + kindSum("checking")));
+  $("d-cash").textContent = formatMoney(kindSum("cash"));
+  $("d-bank").textContent = formatMoney(kindSum("checking"));
+  // Saved this month = income minus personal expenses, worked out automatically
+  const saved = Math.max(round2(income - expenses), 0), keep = savingsPlan[selectedMonth];
+  $("d-saved").textContent = formatMoney(saved);
+  $("d-saved-note").textContent = keep ? "Cash " + formatMoney(keep.cash) + " · Bank " + formatMoney(keep.bank) : saved > 0 ? "Tap to choose where to keep it" : "Nothing saved yet";
+  $("d-owed").textContent = formatMoney(nw.owedToMe);
+  $("d-owe").textContent = formatMoney(nw.iOwe);
+  $("d-budget-left").textContent = planned > 0 ? formatMoney(round2(planned - expenses)) : "Not set";
+  $("d-budget-left").className = planned > 0 && planned < expenses ? "expense" : "";
+  $("d-budget-note").textContent = planned > 0 ? "of " + formatMoney(planned) + " planned" : "Set a plan on the Budget page";
 }
 
 // Red warnings on the dashboard for every category that went over its plan
@@ -313,8 +356,11 @@ function renderAlerts() {
 function renderTable() {
   const body = $("transaction-body");
   body.innerHTML = "";
-  const shown = getMonthTransactions()
+  const search = $("hist-search").value.trim().toLowerCase();
+  const shown = ($("hist-all").checked ? transactions : getMonthTransactions())
     .filter((t) => currentFilter === "all" || t.type === currentFilter)
+    .filter((t) => !$("hist-account").value || t.accountId === $("hist-account").value)
+    .filter((t) => !search || (t.description + " " + t.category).toLowerCase().includes(search))
     .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
 
   $("history-empty").style.display = shown.length === 0 ? "block" : "none";
@@ -329,9 +375,10 @@ function renderTable() {
       <td data-label="Account">${escapeHtml(accountName(t.accountId))}</td>
       <td data-label="Type"><span class="badge ${t.type}">${t.type}</span></td>
       <td class="right ${t.type}" data-label="Amount">${sign}${formatMoney(t.amount)}</td>
-      <td class="actions"><button class="delete-btn" aria-label="Delete transaction"><i data-lucide="trash-2"></i></button></td>`;
+      <td class="actions"><button class="delete-btn edit-btn" aria-label="Edit transaction"><i data-lucide="pencil"></i></button><button class="delete-btn" aria-label="Delete transaction"><i data-lucide="trash-2"></i></button></td>`;
     row.querySelector(".desc").textContent = t.description; // textContent keeps typed text safe
-    row.querySelector(".delete-btn").addEventListener("click", () => deleteTransaction(t.id));
+    row.querySelector(".edit-btn").addEventListener("click", () => startEdit(t));
+    row.querySelector(".delete-btn:not(.edit-btn)").addEventListener("click", () => deleteTransaction(t.id));
     body.appendChild(row);
   });
   lucide.createIcons();
@@ -428,6 +475,7 @@ function renderCharts() {
 // Redraw everything. Called whenever the data or the month changes.
 function render() {
   $("month-label").textContent = monthName(selectedMonth);
+  $("month-pick").value = selectedMonth;
   fillAccountSelects();
   renderSummary();
   renderAlerts();
@@ -439,6 +487,7 @@ function render() {
   renderContactDetail();
   renderAccountDetail();
   renderCharts();
+  if ($("reports").classList.contains("active")) renderReport();
 }
 
 // ---------- Dashboard cards open the details ----------
@@ -483,6 +532,7 @@ function fillAccountSelects() {
     if (old && [...select.options].some((o) => o.value === old)) select.value = old;
   };
   fill("account", accountOptions("", false));
+  fill("hist-account", '<option value="">All payment methods</option>' + accountOptions("", false));
   fill("transfer-from", accountOptions("From: ", true));
   fill("transfer-to", accountOptions("To: ", false));
   fill("loan-account", '<option value="">No account</option>' + accountOptions("", false));
@@ -526,12 +576,14 @@ function renderNetWorth() {
   $("nw-cash").textContent = formatMoney(sumOf("cash"));
   $("nw-checking").textContent = formatMoney(sumOf("checking"));
   $("nw-debt").textContent = formatMoney(n.debt);
+  $("nw-savings").textContent = formatMoney(sumOf("savings"));
   $("nw-note").textContent = `Includes loans: people owe you ${formatMoney(n.owedToMe)}, you owe ${formatMoney(n.iOwe)}`;
 
   const list = (kind) => accounts.filter((a) => a.kind === kind).map(accountRow).join("") || '<p class="empty">None yet.</p>';
   $("cash-list").innerHTML = list("cash");
   $("checking-list").innerHTML = list("checking");
   $("credit-list").innerHTML = list("credit");
+  $("savings-list").innerHTML = list("savings");
   $("transfer-list").innerHTML = transfers.slice(-8).reverse().map((t) =>
     `<div class="transfer-line"><span>${t.date} · ${escapeHtml(t.from)} → ${escapeHtml(t.to)} ${escapeHtml(t.note)}</span><strong>${formatMoney(t.amount)}</strong></div>`).join("");
   lucide.createIcons();
@@ -545,6 +597,15 @@ $("checking-form").addEventListener("submit", (e) => {
   if (name === "" || isNaN(balance) || balance < 0) { $("nw-error").textContent = "Enter an account name and a balance of 0 or more."; return; }
   $("nw-error").textContent = "";
   accounts.push({ id: "a" + Date.now(), kind: "checking", name: name, balance: round2(balance) });
+  saveData(); e.target.reset(); render(); showToast(name + " added");
+});
+$("savings-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = $("savings-name").value.trim();
+  const balance = parseFloat($("savings-balance").value || "0");
+  if (name === "" || isNaN(balance) || balance < 0) { $("nw-error").textContent = "Enter a savings account name and a balance of 0 or more."; return; }
+  $("nw-error").textContent = "";
+  accounts.push({ id: "a" + Date.now(), kind: "savings", name: name, balance: round2(balance) });
   saveData(); e.target.reset(); render(); showToast(name + " added");
 });
 $("credit-form").addEventListener("submit", (e) => {
@@ -652,7 +713,7 @@ const owedBy = (id) => sum(loans.filter((l) => l.contactId === id && l.kind === 
 const iOweTo = (id) => sum(loans.filter((l) => l.contactId === id && l.kind !== "lent").map(remaining));
 const initial = (name) => (String(name).trim()[0] || "?").toUpperCase();
 const hasOpen = (id) => loans.some((l) => l.contactId === id && remaining(l) > 0);
-const kindText = { "lent": "I paid", "borrowed": "They lent me cash", "paid-for-me": "They paid for me" };
+const kindText = { "lent": "Paid by me", "borrowed": "They lent me cash", "paid-for-me": "Paid by a friend" };
 let paySeq = 0;
 const nextPayId = () => Date.now() + (paySeq++) / 1000;
 
@@ -788,6 +849,9 @@ function renderLoans() {
 
 // ---------- Add expense or loan (pop-up) ----------
 const loanDialog = $("loan-dialog");
+let extraFor = null; // whose "also split with" list is on screen
+// ids of the extra friends ticked in "Also split with"
+function extraIds() { return [...document.querySelectorAll("#loan-extra input:checked")].map((i) => i.value); }
 const loanKind = () => $("loan-form").elements["loan-kind"].value;
 function loanPersonName() {
   const value = $("loan-person").value;
@@ -802,38 +866,49 @@ function loanNumbers() {
   const amount = parseFloat($("loan-amount").value);
   const total = isNaN(amount) || amount <= 0 ? 0 : round2(amount);
   const split = kind !== "borrowed" && $("loan-split").checked;
-  const share = split ? round2(total / 2) : total;                     // the amount that gets owed
-  const myExpense = kind === "paid-for-me" ? share : kind === "lent" && split ? round2(total - share) : 0;
-  return { kind, total, split, share, myExpense };
+  const extras = split ? extraIds().length : 0;   // friends added with "Also split with"
+  const parts = split ? extras + 2 : 1;           // people sharing the bill, me included
+  const share = split ? Math.floor(Math.round(total * 100) / parts) / 100 : total; // each friend's share, in whole cents
+  const myExpense = kind === "paid-for-me" ? share : kind === "lent" && split ? round2(total - share * (parts - 1)) : 0;
+  return { kind, total, split, share, myExpense, extras, parts };
 }
 
 // Show only the fields that matter, and say in plain words who owes what
 function updateLoanForm() {
-  const { kind, total, split, share, myExpense } = loanNumbers();
+  const { kind, total, split, share, myExpense, extras, parts } = loanNumbers();
   const name = loanPersonName() || "They";
   $("loan-new-wrap").hidden = $("loan-person").value !== "__new";
+  $("loan-person-text").textContent = kind === "paid-for-me" ? "Which friend paid?" : kind === "borrowed" ? "Who lent you cash?" : "Who shares it with you?";
   $("loan-split-wrap").hidden = kind === "borrowed";
+  if ($("loan-person").value !== extraFor) {   // rebuild the friends list only when the main person changes
+    extraFor = $("loan-person").value;
+    $("loan-extra").innerHTML = contacts.filter((c) => c.id !== extraFor).map((c) => `<label class="check"><input type="checkbox" value="${c.id}"> ${escapeHtml(c.name)}</label>`).join("");
+  }
+  $("loan-extra-wrap").hidden = !split || contacts.length < 2;
   $("loan-account-wrap").hidden = kind === "paid-for-me";
   $("loan-account-text").textContent = kind === "borrowed" ? "Money received into (optional)" : "Paid from (optional)";
   $("loan-expense-wrap").hidden = myExpense <= 0;
   $("loan-expense-text").textContent = "Add my share (" + formatMoney(myExpense) + ") to my expenses";
-  const half = split ? " (half of " + formatMoney(total) + ")" : "";
+  const half = split ? " (" + formatMoney(total) + " split " + parts + " ways)" : "";
   let text = "";
   if (total > 0) {
-    if (kind === "lent") text = name + " owes you " + formatMoney(share) + half;
+    if (kind === "lent") text = (extras ? (extras + 1) + " friends each owe you " : name + " owes you ") + formatMoney(share) + half;
     else if (kind === "paid-for-me") text = "You owe " + name + " " + formatMoney(share) + half;
     else text = "You owe " + name + " " + formatMoney(total);
   }
+  if (split && total > 0) text += ". Group of " + parts + " (you included). Your own share: " + formatMoney(myExpense) + ".";
   $("loan-preview").textContent = text;
 }
 loanDialog.addEventListener("input", updateLoanForm);
 loanDialog.addEventListener("change", updateLoanForm);
 
-function openLoanDialog(contactId) {
+function openLoanDialog(contactId, kind) {
   $("loan-form").reset();
   $("loan-error").textContent = "";
+  extraFor = null;
   fillAccountSelects();
   $("loan-person").value = contactId || (contacts.length ? "" : "__new");
+  if (kind) { $("loan-form").elements["loan-kind"].value = kind; $("loan-split").checked = true; }  // quick start from the Add page
   updateLoanForm();
   loanDialog.showModal();
 }
@@ -843,7 +918,7 @@ $("loan-cancel").addEventListener("click", () => loanDialog.close());
 $("loan-form").addEventListener("submit", (e) => {
   e.preventDefault();
   const error = $("loan-error");
-  const { kind, total, split, share, myExpense } = loanNumbers();
+  const { kind, total, split, share, myExpense, parts } = loanNumbers();
   const note = $("loan-note").value.trim();
 
   let contact = contacts.find((c) => c.id === $("loan-person").value);
@@ -864,14 +939,16 @@ $("loan-form").addEventListener("submit", (e) => {
 
   if (!contact) { contact = { id: "c" + Date.now(), name: newName }; contacts.push(contact); }
   if (account) moveMoney(account, kind === "borrowed" ? total : -total);
-  loans.push({ id: Date.now(), kind: kind, contactId: contact.id, person: contact.name,
-    accountId: account ? account.id : "", payments: [], amount: share, total: total, split: split,
-    paid: 0, note: note, date: today() });
+  // Everyone in a split gets their own IOU. The account is linked to the first IOU only, so money leaves it once.
+  const who = [contact].concat(kind === "lent" && split ? extraIds().map((id) => contacts.find((c) => c.id === id)).filter(Boolean) : []);
+  who.forEach((c, i) => loans.push({ id: Date.now() + i, kind: kind, contactId: c.id, person: c.name,
+    accountId: i === 0 && account ? account.id : "", payments: [], amount: share, total: i === 0 ? total : share, split: i === 0 && split,
+    parts: parts, paid: 0, note: note, date: today() }));
 
   // Optionally count my own part as an expense (it does not touch any account again)
   if (myExpense > 0 && $("loan-expense").checked) {
     transactions.push({ id: Date.now() + 1, type: "expense", amount: myExpense, category: $("loan-category").value,
-      description: (note || "Shared expense") + " (with " + contact.name + ")", date: today(), accountId: "" });
+      description: (note || "Shared expense") + " (with " + contact.name + (who.length > 1 ? " +" + (who.length - 1) : "") + ")", date: today(), accountId: "", shared: true });
   }
   saveData();
   loanDialog.close();
@@ -996,7 +1073,7 @@ function renderAccountDetail() {
   if (detailTarget.id && !single) { detailTarget = null; return; }
   const kind = single ? single.kind : detailTarget.kind;
   const list = single ? [single] : accounts.filter((a) => a.kind === kind);
-  const groupNames = { cash: "cash", checking: "checking accounts", credit: "credit cards" };
+  const groupNames = { cash: "cash", checking: "checking accounts", credit: "credit cards", savings: "savings accounts" };
   const items = list.flatMap(accountActivity).sort((x, y) => y.date.localeCompare(x.date) || y.id - x.id);
 
   $("detail-title").textContent = single ? single.name : "All " + groupNames[kind];
@@ -1376,6 +1453,147 @@ $("ob-next").addEventListener("click", () => {
   }
   obStep++;
   showObStep();
+});
+
+// ============================================================
+// Monthly report (everything is worked out from transaction dates)
+// ============================================================
+const monthKey = (offset) => {   // the month `offset` months away from the selected one
+  const [y, m] = selectedMonth.split("-").map(Number);
+  const d = new Date(y, m - 1 + offset, 1);
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+};
+const transferKind = (id, name) => { const a = id ? getAccount(id) : accounts.find((x) => x.name === name); return a ? a.kind : ""; };
+
+// Income, personal expenses and savings moves for one month
+function monthTotals(month) {
+  const tx = transactions.filter((t) => t.date.startsWith(month));
+  const byCategory = {};
+  tx.filter((t) => t.type === "expense").forEach((t) => { byCategory[t.category] = round2((byCategory[t.category] || 0) + t.amount); });
+  let saved = 0, withdrawn = 0;
+  transfers.filter((t) => t.date.startsWith(month)).forEach((t) => {   // moving money into or out of savings
+    const from = transferKind(t.fromId, t.from), to = transferKind(t.toId, t.to);
+    if (to === "savings" && from !== "savings") saved += t.amount;
+    if (from === "savings" && to !== "savings") withdrawn += t.amount;
+  });
+  return { income: round2(sum(tx.filter((t) => t.type === "income").map((t) => t.amount))), expenses: round2(sum(Object.values(byCategory))),
+    byCategory: byCategory, saved: round2(saved), withdrawn: round2(withdrawn), net: round2(saved - withdrawn) };
+}
+
+// Balance at the end of a month = today's balance minus everything that happened after that month
+const balanceChange = (a, i) => (a.kind === "credit" ? -i.moneyIn : i.moneyIn);
+function closingBalance(a, month) {
+  return round2(a.balance - sum(accountActivity(a).filter((i) => i.date > month + "-99").map((i) => balanceChange(a, i))));
+}
+function openingBalance(a, month) {
+  return round2(closingBalance(a, month) - sum(accountActivity(a).filter((i) => i.date.startsWith(month)).map((i) => balanceChange(a, i))));
+}
+
+let repCat = null, repBar = null, repLine = null;
+function renderReport() {
+  const month = selectedMonth, r = monthTotals(month), prev = monthTotals(monthKey(-1));
+  const plan = getPlan(), planned = round2(sum(Object.values(plan))), nw = getNetWorth();
+  const groupShare = round2(sum(transactions.filter((t) => t.shared && t.date.startsWith(month)).map((t) => t.amount)));
+  $("rep-title").textContent = "Report · " + monthName(month);
+
+  // Insights in plain words
+  const cats = Object.entries(r.byCategory).sort((a, b) => b[1] - a[1]);
+  const notes = [];
+  if (cats.length) notes.push(`Highest spending: ${cats[0][0]} (${formatMoney(cats[0][1])}, ${Math.round((cats[0][1] / r.expenses) * 100)}% of your expenses).`);
+  const diff = round2(r.net - prev.net);
+  notes.push(diff > 0 ? `You saved ${formatMoney(diff)} more than last month.` : diff < 0 ? `You saved ${formatMoney(-diff)} less than last month.` : "You saved the same as last month.");
+  if (r.income > 0) notes.push(`You spent ${Math.round((r.expenses / r.income) * 100)}% of your income.`);
+  if (planned > 0) notes.push(r.expenses <= planned ? `You stayed within budget with ${formatMoney(planned - r.expenses)} to spare.` : `You went over budget by ${formatMoney(r.expenses - planned)}.`);
+  const keepPlan = savingsPlan[month];
+  if (keepPlan) notes.push(`Savings kept: ${formatMoney(keepPlan.cash)} in cash and ${formatMoney(keepPlan.bank)} in the bank.`);
+  $("rep-insights").innerHTML = notes.map((n) => `<li>${escapeHtml(n)}</li>`).join("");
+
+  const card = (label, value, tone) => `<div class="card"><span class="label">${label}</span><strong class="${tone || ""}">${formatMoney(value)}</strong></div>`;
+  $("rep-cards").innerHTML = card("Income", r.income, "income") + card("Personal expenses", r.expenses, "expense")
+    + card("Added to savings", r.saved) + card("Taken from savings", r.withdrawn) + card("Net savings", r.net, r.net < 0 ? "expense" : "income")
+    + card("My share of group expenses", groupShare) + card("Friends owe me (open)", nw.owedToMe, "income") + card("I owe friends (open)", nw.iOwe, "expense");
+
+  // Budget vs actual and balances
+  const names = [...new Set([...Object.keys(plan), ...Object.keys(r.byCategory)])];
+  $("rep-cats").innerHTML = names.map((n) => { const s = r.byCategory[n] || 0, p = plan[n] || 0;
+    return `<tr><td>${escapeHtml(n)}</td><td class="right">${formatMoney(s)}</td><td class="right">${p ? formatMoney(p) : "—"}</td><td class="right ${p && s > p ? "expense" : ""}">${p ? formatMoney(round2(p - s)) : "—"}</td></tr>`; }).join("")
+    || '<tr><td colspan="4" class="empty">No spending or plan yet.</td></tr>';
+  $("rep-accts").innerHTML = accounts.map((a) => `<tr><td>${escapeHtml(a.name)}${a.kind === "credit" ? " (owed)" : ""}</td><td class="right">${formatMoney(openingBalance(a, month))}</td><td class="right">${formatMoney(closingBalance(a, month))}</td></tr>`).join("");
+
+  // Charts
+  const css = getComputedStyle(document.documentElement), color = (v) => css.getPropertyValue(v).trim();
+  Chart.defaults.color = color("--muted");
+  const months = [-5, -4, -3, -2, -1, 0].map(monthKey);
+  const labels = months.map((m) => new Date(m + "-01T00:00").toLocaleString("en-US", { month: "short" }));
+  $("rep-cat-empty").style.display = cats.length ? "none" : "block";
+  $("rep-cat").parentElement.style.display = cats.length ? "block" : "none";
+  [repCat, repBar, repLine].forEach((c) => c && c.destroy());
+  repCat = new Chart($("rep-cat"), { type: "doughnut", data: { labels: cats.map((c) => c[0]), datasets: [{ data: cats.map((c) => c[1]), borderWidth: 0,
+    backgroundColor: ["#0f6b5c", "#e8a33d", "#d9503f", "#4a7fd1", "#8e5bb5", "#3cc4a6", "#c9708a", "#7c8a82", "#b5a642", "#2f9fd0", "#a0522d"] }] },
+    options: { maintainAspectRatio: false, cutout: "62%", plugins: { legend: { position: "bottom" } } } });
+  const totals = months.map(monthTotals);
+  repBar = new Chart($("rep-bar"), { type: "bar", data: { labels: labels, datasets: [
+    { label: "Income", data: totals.map((t) => t.income), backgroundColor: color("--income"), borderRadius: 6 },
+    { label: "Expenses", data: totals.map((t) => t.expenses), backgroundColor: color("--expense"), borderRadius: 6 }] },
+    options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: color("--border") } }, x: { grid: { display: false } } }, plugins: { legend: { position: "bottom" } } } });
+  const savingsAccounts = accounts.filter((a) => a.kind === "savings");
+  repLine = new Chart($("rep-line"), { type: "line", data: { labels: labels, datasets: [{ label: "Savings balance", borderColor: color("--accent"), tension: 0.3,
+    data: months.map((m) => round2(sum(savingsAccounts.map((a) => closingBalance(a, m))))) }] },
+    options: { maintainAspectRatio: false, scales: { y: { grid: { color: color("--border") } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } } });
+}
+
+// CSV: the month's summary, then every transaction of that month
+function downloadCsv() {
+  const r = monthTotals(selectedMonth), nw = getNetWorth();
+  const safe = (v) => { let s = String(v); if (isNaN(Number(s)) && /^[=+\-@]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
+  const rows = [["FinTrack report", monthName(selectedMonth)], ["Income", r.income], ["Personal expenses", r.expenses], ["Added to savings", r.saved],
+    ["Taken from savings", r.withdrawn], ["Net savings", r.net], ["Friends owe me (open)", nw.owedToMe], ["I owe friends (open)", nw.iOwe], []];
+  Object.entries(r.byCategory).forEach(([name, amount]) => rows.push(["Category", name, amount]));
+  rows.push([], ["Date", "Type", "Category", "Description", "Account", "Amount"]);
+  getMonthTransactions().sort((a, b) => a.date.localeCompare(b.date)).forEach((t) => rows.push([t.date, t.type, t.category, t.description, accountName(t.accountId), t.amount]));
+  const blob = new Blob(["\ufeff" + rows.map((row) => row.map(safe).join(",")).join("\n")], { type: "text/csv" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "fintrack-" + selectedMonth + ".csv";
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+}
+$("report-csv").addEventListener("click", downloadCsv);
+// PDF: the browser's print window has a "Save as PDF" choice, and the print styles show only the report
+$("report-pdf").addEventListener("click", () => {
+  const oldTitle = document.title;
+  document.title = "FinTrack report " + selectedMonth;
+  window.print();
+  document.title = oldTitle;
+});
+["input", "change"].forEach((evt) => ["hist-search", "hist-account", "hist-all"].forEach((id) => $(id).addEventListener(evt, renderTable)));
+
+// ---------- Savings: where this month's leftover is kept ----------
+$("save-card").addEventListener("click", () => {
+  const t = monthTotals(selectedMonth), saved = Math.max(round2(t.income - t.expenses), 0), keep = savingsPlan[selectedMonth] || {};
+  $("save-sub").textContent = monthName(selectedMonth) + ": income " + formatMoney(t.income) + " minus expenses " + formatMoney(t.expenses) + " = " + formatMoney(saved) + " saved.";
+  $("save-cash").value = keep.cash === undefined ? "" : keep.cash;
+  $("save-bank").value = keep.bank === undefined ? "" : keep.bank;
+  $("save-error").textContent = "";
+  $("save-dialog").showModal();
+});
+$("save-card").addEventListener("keydown", (e) => { if (e.key === "Enter") $("save-card").click(); });
+$("save-cancel").addEventListener("click", () => $("save-dialog").close());
+$("save-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const t = monthTotals(selectedMonth), saved = Math.max(round2(t.income - t.expenses), 0);
+  const cash = parseFloat($("save-cash").value || "0"), bank = parseFloat($("save-bank").value || "0");
+  if (isNaN(cash) || isNaN(bank) || cash < 0 || bank < 0) { $("save-error").textContent = "Enter amounts of 0 or more."; return; }
+  if (round2(cash + bank) > saved + 0.004) { $("save-error").textContent = "You only saved " + formatMoney(saved) + " this month."; return; }
+  savingsPlan[selectedMonth] = { cash: round2(cash), bank: round2(bank) };
+  saveData();
+  $("save-dialog").close();
+  render();
+  showToast("Savings plan saved");
+});
+// Quick start buttons on the Add page: "Paid by me" / "Paid by a friend"
+document.querySelectorAll("[data-share]").forEach((button) => {
+  button.addEventListener("click", () => openLoanDialog("", button.dataset.share));
 });
 
 // ---------- 11. Start the app ----------

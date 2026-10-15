@@ -403,3 +403,42 @@ dialog input[type="checkbox"], dialog input[type="radio"] { width: auto; margin:
   td.actions::before { content: none; }
   tbody tr:hover { background: none; }
 }
+
+/* ---------- Reports, history tools, savings ---------- */
+.kind-savings { border-top: 4px solid #8e5bb5; }
+.section-title { font-size: 1rem; margin: 22px 0 10px; color: var(--muted); }
+.hist-tools { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+.hist-tools input[type="search"] { flex: 1; min-width: 160px; padding: 11px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text); }
+.head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.insights { list-style: none; padding: 0; margin: 0 0 16px; display: grid; gap: 8px; }
+.insights li { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 12px; padding: 12px 14px; }
+.chip-list { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+#month-pick { padding: 7px 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; }
+.edit-btn:hover { color: var(--accent); background: var(--bg); }
+#reports .card { margin-bottom: 16px; }
+#reports .cards .card, #reports .charts .card { margin-bottom: 0; }
+#reports .cards, #reports .charts { margin-bottom: 16px; }
+@media print {
+  [data-theme="dark"] { --bg: #fff; --surface: #fff; --text: #0b1b33; --muted: #5d6d86; --border: #e0e6ef; }
+  body > *:not(main) { display: none !important; }
+  main { padding: 0; max-width: none; }
+  .month-bar, .head-actions, .view:not(#reports) { display: none !important; }
+  #reports { display: block !important; }
+  .card { box-shadow: none; break-inside: avoid; }
+}
+
+/* ---------- Dashboard polish ---------- */
+.money-hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 20px; align-items: center; margin-bottom: 8px; }
+.money-hero .hero-main strong { font-size: 2.6rem; }
+.hero-split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.hero-split > div { background: rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 14px; transition: background 0.2s, transform 0.2s; }
+.hero-split > div:hover { background: rgba(255, 255, 255, 0.18); transform: translateY(-2px); }
+.hero-split strong { font-size: 1.35rem; margin: 2px 0 0; }
+.cards .card small { display: block; margin-top: 4px; color: var(--muted); font-size: 0.78rem; }
+.share-card { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; max-width: 480px; margin-bottom: 16px; }
+.share-card .hint { margin: 2px 0 0; }
+.share-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+@media (max-width: 700px) {
+  .money-hero { grid-template-columns: 1fr; padding: 22px; gap: 16px; }
+  .money-hero .hero-main strong { font-size: 2.1rem; }
+}

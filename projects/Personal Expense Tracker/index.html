@@ -21,6 +21,7 @@
       <button class="nav-btn" data-view="networth"><i data-lucide="landmark"></i> Money</button>
       <button class="nav-btn" data-view="contacts"><i data-lucide="users"></i> Contacts</button>
       <button class="nav-btn" data-view="loans"><i data-lucide="handshake"></i> Loans</button>
+      <button class="nav-btn" data-view="reports"><i data-lucide="bar-chart-3"></i> Reports</button>
     </nav>
     <div class="sidebar-bottom">
       <div id="profile-chip" class="profile-chip"></div>
@@ -38,6 +39,7 @@
       <button id="prev-month" aria-label="Previous month"><i data-lucide="chevron-left"></i></button>
       <strong id="month-label"></strong>
       <button id="next-month" aria-label="Next month"><i data-lucide="chevron-right"></i></button>
+      <input type="month" id="month-pick" aria-label="Pick any month and year">
       <button id="this-month" class="filter-btn">This month</button>
     </div>
 
@@ -48,11 +50,24 @@
         <button class="primary-btn" data-go="add"><i data-lucide="plus"></i> Add transaction</button>
       </div>
       <div id="alerts"></div>
+      <div class="card hero money-hero">
+        <div class="hero-main"><span class="label">Available money</span><strong id="d-avail">$0.00</strong><small>Cash + bank. Money friends owe you is not included.</small></div>
+        <div class="hero-split">
+          <div class="clickable" data-action="open-kind" data-id="cash" tabindex="0" role="button"><span class="label">Cash in hand</span><strong id="d-cash">$0.00</strong></div>
+          <div class="clickable" data-action="open-kind" data-id="checking" tabindex="0" role="button"><span class="label">Bank</span><strong id="d-bank">$0.00</strong></div>
+        </div>
+      </div>
+      <h2 class="section-title">This month</h2>
       <div class="cards">
         <div class="card clickable" id="income-card" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Income</span><strong id="total-income" class="income">$0.00</strong></div>
         <div class="card clickable" id="expense-card" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Expenses</span><strong id="total-expenses" class="expense">$0.00</strong></div>
-        <div class="card"><span class="label">Left this month</span><strong id="balance">$0.00</strong></div>
-        <div class="card"><span class="label">Planned spending</span><strong id="budget-card">Not set</strong></div>
+        <div class="card"><span class="label">Left budget</span><strong id="d-budget-left">Not set</strong><small id="d-budget-note"></small></div>
+        <div class="card clickable" id="save-card" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Saved this month</span><strong id="d-saved" class="income">$0.00</strong><small id="d-saved-note"></small></div>
+      </div>
+      <h2 class="section-title">Friends &amp; net worth</h2>
+      <div class="cards">
+        <div class="card"><span class="label">Friends owe me</span><strong id="d-owed" class="income">$0.00</strong></div>
+        <div class="card"><span class="label">I owe friends</span><strong id="d-owe" class="expense">$0.00</strong></div>
         <div class="card clickable" id="nw-card" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Net worth</span><strong id="nw-dash">$0.00</strong></div>
       </div>
       <div class="charts">
@@ -69,6 +84,13 @@
     <!-- ADD TRANSACTION -->
     <section id="add" class="view">
       <h1>Add transaction</h1>
+      <div class="card share-card">
+        <div><strong>Shared with friends?</strong><p class="hint">Split a bill in a group. Only your own share counts as your expense.</p></div>
+        <div class="share-btns">
+          <button type="button" class="mini-btn" data-share="lent">Paid by me</button>
+          <button type="button" class="mini-btn" data-share="paid-for-me">Paid by a friend</button>
+        </div>
+      </div>
       <form id="transaction-form" class="card form" novalidate>
         <div class="type-switch">
           <label><input type="radio" name="type" value="expense" checked><span>Expense</span></label>
@@ -87,6 +109,11 @@
     <!-- HISTORY -->
     <section id="history" class="view">
       <h1>History</h1>
+      <div class="hist-tools">
+        <input type="search" id="hist-search" placeholder="Search transactions" aria-label="Search transactions">
+        <select id="hist-account" aria-label="Payment method"></select>
+        <label class="check"><input type="checkbox" id="hist-all"> All months</label>
+      </div>
       <div class="filters">
         <button class="filter-btn active" data-filter="all">All</button>
         <button class="filter-btn" data-filter="income">Income</button>
@@ -128,6 +155,7 @@
       <div class="cards">
         <div class="card kind-cash clickable" data-action="open-kind" data-id="cash" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Cash on hand</span><strong id="nw-cash">$0.00</strong></div>
         <div class="card kind-checking clickable" data-action="open-kind" data-id="checking" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Bank accounts</span><strong id="nw-checking">$0.00</strong></div>
+        <div class="card kind-savings clickable" data-action="open-kind" data-id="savings" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Savings</span><strong id="nw-savings">$0.00</strong></div>
         <div class="card kind-credit clickable" data-action="open-kind" data-id="credit" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Credit card balance owed</span><strong id="nw-debt" class="expense">$0.00</strong></div>
       </div>
       <p class="hint">Tap any account to see its transactions.</p>
@@ -139,6 +167,14 @@
             <input type="text" id="checking-name" maxlength="30" placeholder="Account name (e.g. Chase)" aria-label="Bank account name">
             <input type="number" id="checking-balance" step="0.01" min="0" placeholder="Balance now" aria-label="Bank balance" inputmode="decimal">
             <button type="submit" class="primary-btn">Add account</button>
+          </form>
+        </details></div>
+      <div class="card"><h2>Savings</h2><div id="savings-list"></div>
+        <details class="fold"><summary>+ Add a savings account</summary>
+          <form id="savings-form" class="mini-form" novalidate>
+            <input type="text" id="savings-name" maxlength="30" placeholder="Savings name (e.g. Emergency fund)" aria-label="Savings account name">
+            <input type="number" id="savings-balance" step="0.01" min="0" placeholder="Balance now" aria-label="Savings balance" inputmode="decimal">
+            <button type="submit" class="primary-btn">Add savings</button>
           </form>
         </details></div>
       <div class="card"><h2>Credit cards</h2><div id="credit-list"></div>
@@ -161,6 +197,28 @@
         </form>
         <div id="transfer-list"></div>
       </details>
+    </section>
+
+    <!-- MONTHLY REPORT -->
+    <section id="reports" class="view">
+      <div class="page-head">
+        <h1 id="rep-title">Monthly report</h1>
+        <div class="head-actions">
+          <button class="mini-btn" id="report-csv">Download CSV</button>
+          <button class="mini-btn" id="report-pdf">Download PDF</button>
+        </div>
+      </div>
+      <ul id="rep-insights" class="insights"></ul>
+      <div class="cards" id="rep-cards"></div>
+      <div class="charts">
+        <div class="card chart-box"><h2>Spending by category</h2><div class="chart-wrap"><canvas id="rep-cat"></canvas></div><p id="rep-cat-empty" class="empty">No expenses this month.</p></div>
+        <div class="card chart-box"><h2>Income vs expenses</h2><div class="chart-wrap"><canvas id="rep-bar"></canvas></div></div>
+        <div class="card chart-box"><h2>Savings balance trend</h2><div class="chart-wrap"><canvas id="rep-line"></canvas></div></div>
+      </div>
+      <div class="card table-wrap"><h2>Budget vs actual</h2>
+        <table><thead><tr><th>Category</th><th class="right">Spent</th><th class="right">Planned</th><th class="right">Left</th></tr></thead><tbody id="rep-cats"></tbody></table></div>
+      <div class="card table-wrap"><h2>Balances (opening and closing)</h2>
+        <table><thead><tr><th>Account</th><th class="right">Opening</th><th class="right">Closing</th></tr></thead><tbody id="rep-accts"></tbody></table></div>
     </section>
 
     <!-- ACCOUNT DETAIL: every transaction of one account or one group -->
@@ -332,17 +390,18 @@
       <h2>Add expense or loan</h2>
       <fieldset class="seg-group">
         <legend>What happened?</legend>
-        <label class="seg"><input type="radio" name="loan-kind" value="lent" checked><span>I paid<small>They owe me</small></span></label>
-        <label class="seg"><input type="radio" name="loan-kind" value="paid-for-me"><span>They paid for me<small>I owe them</small></span></label>
+        <label class="seg"><input type="radio" name="loan-kind" value="lent" checked><span>Paid by me<small>They owe me</small></span></label>
+        <label class="seg"><input type="radio" name="loan-kind" value="paid-for-me"><span>Paid by a friend<small>I owe them</small></span></label>
         <label class="seg"><input type="radio" name="loan-kind" value="borrowed"><span>They lent me cash<small>I owe them</small></span></label>
       </fieldset>
-      <label class="field">With whom?<select id="loan-person"></select></label>
+      <label class="field"><span id="loan-person-text">With whom?</span><select id="loan-person"></select></label>
       <label class="field" id="loan-new-wrap" hidden>New person's name<input type="text" id="loan-new-name" maxlength="30" placeholder="Full name"></label>
       <div class="field-row">
         <label class="field">Amount<input type="number" id="loan-amount" step="0.01" min="0" placeholder="0.00" inputmode="decimal"></label>
         <label class="field">What for?<input type="text" id="loan-note" maxlength="60" placeholder="e.g. Dinner"></label>
       </div>
-      <label class="check" id="loan-split-wrap"><input type="checkbox" id="loan-split"> Split equally (each of us pays half)</label>
+      <label class="check" id="loan-split-wrap"><input type="checkbox" id="loan-split"> Split equally</label>
+      <div class="field" id="loan-extra-wrap" hidden><span>Also split with</span><div id="loan-extra" class="chip-list"></div></div>
       <label class="field" id="loan-account-wrap"><span id="loan-account-text">Paid from (optional)</span><select id="loan-account"></select></label>
       <div id="loan-expense-wrap" class="exp-box" hidden>
         <label class="check"><input type="checkbox" id="loan-expense" checked> <span id="loan-expense-text">Add my share to my expenses</span></label>
@@ -381,6 +440,23 @@
       <button id="transfer-close" class="filter-btn">Close</button>
       <button id="transfer-copy" class="primary-btn">Copy code</button>
     </div>
+  </dialog>
+
+  <!-- Where this month's savings are kept -->
+  <dialog id="save-dialog">
+    <form id="save-form" novalidate>
+      <h2>Where will you keep your savings?</h2>
+      <p id="save-sub" class="hint"></p>
+      <div class="field-row">
+        <label class="field">Keep in cash<input type="number" id="save-cash" step="0.01" min="0" placeholder="0.00" inputmode="decimal"></label>
+        <label class="field">Keep in bank<input type="number" id="save-bank" step="0.01" min="0" placeholder="0.00" inputmode="decimal"></label>
+      </div>
+      <p id="save-error" class="error" role="alert"></p>
+      <div class="dialog-actions">
+        <button type="button" id="save-cancel" class="filter-btn">Cancel</button>
+        <button type="submit" class="primary-btn">Save</button>
+      </div>
+    </form>
   </dialog>
 
   <div id="toast" class="toast"></div>
