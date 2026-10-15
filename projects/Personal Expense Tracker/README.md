@@ -15,6 +15,12 @@ A responsive personal finance dashboard built with HTML, CSS and vanilla JavaScr
 - Clickable dashboard cards that open the income / expense details
 - Net worth page: cash, multiple checking accounts, multiple credit cards (limit, balance, pay balance), and moving money between accounts
 - Contacts page: add people, then tap a name to see everything between you (balance, every expense and loan, payment history, settle up)
+- Split a bill with several friends at once (everyone gets their own IOU; only your share counts as your expense)
+- Savings accounts, plus a dashboard that keeps cash, bank, savings and money friends owe you separate
+- Monthly reports with insights, three charts, budget vs actual, opening and closing balances, and CSV / PDF download
+- Edit any transaction, search History, and jump to any month and year
+- Dashboard: available money (cash + bank), this month's income, expenses, left budget and saved amount, plus friends and net worth
+- "Saved this month" is income minus expenses; choose how much of it you keep in cash and in the bank
 - Account statements: click cash, checking or a credit card to see every transaction, transfer and loan payment
 - Loans page, Splitwise style: add an expense (I paid / they paid for me / they lent me cash), split it equally, see who owes what, and tap **Settle up**
 - Guest mode asks the same set-up questions as an account (budget, bank accounts, cash), and you can skip them
@@ -81,20 +87,15 @@ If Git asks you to log in, use a GitHub Personal Access Token as the password.
 
 Export to CSV, edit existing transactions, recurring transactions, per-category budgets.
 
-## Accounts (no setup needed)
+## Accounts and sync (Firebase)
 
-Open the site and choose **Create account**. Pick a username, a password and your country (this sets your currency), then finish the three set-up steps. The account is saved in that browser, so the username is only unique on that device.
+Open the site and choose **Create account**. Pick a username, a password and your country (this sets your currency), then finish the three set-up steps. Log in with the same username and password on any phone or computer and your data is there. Changes made on one device appear on your other devices within a few seconds. There is no password reset, so remember your password. Guest mode keeps data in that browser only and does not sync.
 
-To use the same account on another device:
-1. On the first device, open the menu and tap **Move to another device**, then **Copy code**.
-2. Send the code to yourself (Notes, email, a message to yourself).
-3. On the other device choose **Restore from a transfer code**, paste it, and tap **Restore my data**. Log in later with the same username and password.
+Set-up for the site owner is in `SETUP-FIREBASE.md`.
 
-The code contains your data and password check, so treat it like a password. Each device keeps its own copy after a transfer, so transfer again whenever you want to bring them back in line.
+## Firebase set-up summary
 
-## Optional: automatic cloud sync (Firebase)
-
-Only follow this if you want unique usernames across everyone and automatic syncing between devices. Fill in `firebase-config.js` and the site will use cloud accounts instead of device accounts.
+Fill in `firebase-config.js` and the site uses cloud accounts (unique usernames, automatic sync). Without it, the site falls back to device-only accounts.
 
 FinTrack works as a guest with no setup. To let people create accounts (unique usernames) and open their data on another device, add a free Firebase project. GitHub Pages only hosts static files, so Firebase provides the login and the saved data.
 

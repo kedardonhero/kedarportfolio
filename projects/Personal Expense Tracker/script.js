@@ -1136,20 +1136,40 @@ function authMessage(error) {
 
 // Cloud save: wait 0.8s after the last change, then write one document per user
 function scheduleCloudSave() { clearTimeout(saveTimer); saveTimer = setTimeout(cloudSaveNow, 800); }
+let lastSeen = 0, unsubLive = null;   // newest cloud save this device has seen
 function cloudSaveNow() {
   if (!cloudUser) return Promise.resolve();
+  const stamp = Date.now();
+  lastSeen = stamp;
   return db.collection("users").doc(cloudUser.uid).set({
     username: profile.username, country: profile.country, currency: profile.currency,
-    data: JSON.stringify(getState()), updatedAt: Date.now(),
+    data: JSON.stringify(getState()), updatedAt: stamp,
   }).catch(() => showToast("Could not sync. Check your connection."));
 }
+
+// Live sync: when another device saves, this one updates by itself (no refresh needed)
+function startLiveSync() {
+  if (!cloudUser || !db) return;
+  if (unsubLive) unsubLive();
+  unsubLive = db.collection("users").doc(cloudUser.uid).onSnapshot((snap) => {
+    if (!snap.exists || snap.metadata.hasPendingWrites) return;
+    const saved = snap.data();
+    if (!saved.updatedAt || saved.updatedAt <= lastSeen) return;   // our own save, or nothing new
+    lastSeen = saved.updatedAt;
+    clearTimeout(saveTimer);                                       // drop any older unsent change
+    loadState(JSON.parse(saved.data || "{}"));
+    localStorage.setItem(storeKey, JSON.stringify(getState()));
+    render();
+    showToast("Updated from your other device.");
+  }, () => {});
+}
+function stopLiveSync() { if (unsubLive) { unsubLive(); unsubLive = null; } }
 
 // Show the username and currency in the sidebar
 function applyProfile() {
   currentCurrency = profile.currency || "USD";
   const guest = profile.username === "Guest";
   $("profile-chip").textContent = guest ? "Guest mode (this device only)" : "@" + profile.username + " · " + currentCurrency;
-  $("transfer-btn").hidden = !localUser;
   $("logout-btn").querySelector("span").textContent = guest ? "Log in / Sign up" : "Log out";
   fillCategories();
 }
@@ -1192,6 +1212,7 @@ async function openAccount(user) {
     loadState({});
     applyProfile();
     await cloudSaveNow();
+    startLiveSync();
     $("welcome").hidden = true;
     startOnboarding();
     return;
@@ -1202,6 +1223,7 @@ async function openAccount(user) {
       const saved = snap.data();
       profile = { username: saved.username, country: saved.country, currency: saved.currency };
       loadState(JSON.parse(saved.data || "{}"));
+      lastSeen = saved.updatedAt || 0;
     } else {
       throw new Error("no cloud data");
     }
@@ -1214,12 +1236,13 @@ async function openAccount(user) {
   $("welcome").hidden = true;
   render();
   showView("dashboard");
+  startLiveSync();
 }
 
 function showWelcome() {
   $("welcome").hidden = false;
   showWelcomePanel("choice");
-  const note = cloudReady ? "" : "Accounts are saved on this device. Use \"Move to another device\" in the menu to open your data on another phone or computer.";
+  const note = cloudReady ? "" : "Accounts are saved on this device only.";
   $("cloud-note").textContent = note;
   $("signup-note").textContent = note;
   lucide.createIcons();
@@ -1239,7 +1262,7 @@ function startSession() {
 
 // Welcome screen buttons: login / signup / guest / back
 function showWelcomePanel(name) {
-  ["choice", "login", "signup", "restore"].forEach((p) => { $("welcome-" + p).hidden = p !== name; });
+  ["choice", "login", "signup"].forEach((p) => { $("welcome-" + p).hidden = p !== name; });
 }
 document.querySelectorAll("[data-welcome]").forEach((button) => {
   button.addEventListener("click", () => {
@@ -1287,6 +1310,7 @@ $("logout-btn").addEventListener("click", async () => {
   localStorage.removeItem("fintrack-mode");
   if (cloudUser) {
     await cloudSaveNow();
+    stopLiveSync();
     cloudUser = null;
     await auth.signOut();
   }
@@ -1342,44 +1366,6 @@ function openLocal(username, isNew) {
   render();
   showView("dashboard");
 }
-
-// ---------- Move data to another device with a transfer code ----------
-// The code is the account and all its data turned into one block of text
-function makeTransferCode() {
-  const json = JSON.stringify({ v: 1, username: localUser, user: localUsers()[localUser], state: getState() });
-  return btoa(unescape(encodeURIComponent(json)));
-}
-$("transfer-btn").addEventListener("click", () => {
-  $("transfer-code").value = makeTransferCode();
-  $("transfer-dialog").showModal();
-});
-$("transfer-close").addEventListener("click", () => $("transfer-dialog").close());
-$("transfer-copy").addEventListener("click", async () => {
-  $("transfer-code").select();
-  try { await navigator.clipboard.writeText($("transfer-code").value); }
-  catch (error) { document.execCommand("copy"); }
-  showToast("Code copied");
-});
-
-$("welcome-restore").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const error = $("rs-error");
-  let data = null;
-  try { data = JSON.parse(decodeURIComponent(escape(atob($("rs-code").value.trim())))); } catch (err) { data = null; }
-  if (!data || data.v !== 1 || !/^[a-z0-9_]{3,20}$/.test(data.username) || !data.user || !data.state) {
-    error.textContent = "That code doesn't look right. Copy the whole code again.";
-    return;
-  }
-  const users = localUsers();
-  if (users[data.username] && !confirm("An account named " + data.username + " already exists on this device. Replace it with this data?")) return;
-  users[data.username] = data.user;
-  localStorage.setItem("fintrack-local-users", JSON.stringify(users));
-  localStorage.setItem("fintrack-state-local-" + data.username, JSON.stringify(data.state));
-  error.textContent = "";
-  e.target.reset();
-  openLocal(data.username, false);
-  showToast("Data restored. Welcome back, " + data.username + "!");
-});
 
 // ---------- Set-up wizard: budget -> banking -> cash ----------
 let obStep = 1;

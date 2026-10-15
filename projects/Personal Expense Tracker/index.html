@@ -27,7 +27,6 @@
       <div id="profile-chip" class="profile-chip"></div>
       <button id="theme-toggle" class="ghost-btn"><i data-lucide="moon"></i> <span>Dark mode</span></button>
       <button id="clear-all" class="ghost-btn danger"><i data-lucide="trash-2"></i> <span>Clear all data</span></button>
-      <button id="transfer-btn" class="ghost-btn" hidden><i data-lucide="smartphone"></i> <span>Move to another device</span></button>
       <button id="logout-btn" class="ghost-btn"><i data-lucide="log-out"></i> <span>Log out</span></button>
       <p class="credit"><span>Designed &amp; made by</span><strong>Kedar</strong></p>
     </div>
@@ -307,7 +306,6 @@
       <div id="welcome-choice">
         <button class="primary-btn block" data-welcome="login">Log in</button>
         <button class="mini-btn block" data-welcome="signup">Create account</button>
-        <button class="filter-btn block" data-welcome="restore">Restore from a transfer code</button>
         <button class="filter-btn block" data-welcome="guest">Continue as guest</button>
         <p id="cloud-note" class="hint"></p>
       </div>
@@ -321,17 +319,11 @@
       <form id="welcome-signup" class="stack" hidden novalidate>
         <label>Choose a username<input type="text" id="su-username" maxlength="20" autocomplete="username" placeholder="letters, numbers, _"></label>
         <label>Password<input type="password" id="su-password" autocomplete="new-password" placeholder="at least 6 characters"></label>
+        <p class="hint"><strong>Remember your password.</strong> There is no "forgot password" option, so if you lose it you cannot get back into this account. Save it somewhere safe.</p>
         <label>Country (sets your currency)<select id="su-country"></select></label>
         <p id="signup-note" class="hint"></p>
         <p id="su-error" class="error" role="alert"></p>
         <button type="submit" class="primary-btn">Create account</button>
-        <button type="button" class="filter-btn" data-welcome="choice">Back</button>
-      </form>
-      <form id="welcome-restore" class="stack" hidden novalidate>
-        <p class="hint">On your other device, open the menu and tap "Move to another device", copy the code, then paste it here.</p>
-        <label>Transfer code<textarea id="rs-code" rows="5" placeholder="Paste the code here"></textarea></label>
-        <p id="rs-error" class="error" role="alert"></p>
-        <button type="submit" class="primary-btn">Restore my data</button>
         <button type="button" class="filter-btn" data-welcome="choice">Back</button>
       </form>
       <p class="credit-line">Designed &amp; made by <strong>Kedar</strong></p>
@@ -429,17 +421,6 @@
         <button type="submit" class="primary-btn">Confirm</button>
       </div>
     </form>
-  </dialog>
-
-  <!-- Transfer code: copy it, then paste it on your other device -->
-  <dialog id="transfer-dialog">
-    <h2>Move to another device</h2>
-    <p class="hint">Copy this code and send it to yourself (Notes, email, a message to yourself). On the other device choose "Restore from a transfer code" and paste it. Treat it like a password and delete the message afterwards.</p>
-    <textarea id="transfer-code" rows="6" readonly aria-label="Transfer code"></textarea>
-    <div class="dialog-actions">
-      <button id="transfer-close" class="filter-btn">Close</button>
-      <button id="transfer-copy" class="primary-btn">Copy code</button>
-    </div>
   </dialog>
 
   <!-- Where this month's savings are kept -->
