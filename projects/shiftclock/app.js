@@ -130,5 +130,5 @@ function remind(){if(!uid||window.Notification?.permission!=='granted'||!lsGet('
  for(const x of S){const j=jobs.find(j=>j.id===x.job);if(!j||x.date!==k)continue;const d=tm(x.start)-nm;if(d>0&&d<=15)once('n1'+x.id+k,'Shift starting soon',`${j.name} starts at ${x.start}`)}
  const a=E.find(x=>!x.end),j=a&&jobs.find(j=>j.id===a.job);if(j){const sh=S.find(x=>x.job===a.job&&x.date===k);if(sh&&nm-tm(sh.end)>=15)once('n2'+a.id,'Forgot to clock out?',`Your ${j.name} shift ended at ${sh.end} and you are still clocked in.`);else if(hr(a)>=12)once('n3'+a.id,'Still clocked in',`You have been clocked in at ${j.name} for ${fh(hr(a))}.`)}}
 setInterval(remind,30000);setTimeout(remind,4000);
-let dp;addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;TB.inst.hidden=false});TB.inst.onclick=async()=>{dp.prompt();await dp.userChoice;TB.inst.hidden=true};
+/* Install button: handled by pwa-install.js (any element with data-install) */
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});

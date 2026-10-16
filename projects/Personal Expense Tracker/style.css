@@ -442,3 +442,23 @@ dialog input[type="checkbox"], dialog input[type="radio"] { width: auto; margin:
   .money-hero { grid-template-columns: 1fr; padding: 22px; gap: 16px; }
   .money-hero .hero-main strong { font-size: 2.1rem; }
 }
+
+/* Install button: sidebar only on desktop; phones get it on the welcome screen */
+@media (max-width: 800px) { .sidebar-bottom [data-install] { display: none !important; } }
+
+/* ---------- Greeting, account page, forgot password ---------- */
+input[type="email"], input[type="password"] {
+  padding: 11px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg);
+}
+.greeting { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+.greet-icon { flex: none; width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; background: var(--accent); color: var(--accent-text); }
+.greet-icon svg { width: 26px; height: 26px; }
+.greet-text h2 { margin: 0; font-size: clamp(1.25rem, 4.5vw, 1.7rem); letter-spacing: -0.02em; }
+.greet-text .hint { margin: 2px 0 0; font-size: 0.9rem; }
+.nudge { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 16px; margin-bottom: 16px; border: 1px solid var(--accent); border-radius: 14px; background: var(--surface); }
+.nudge-actions { display: flex; align-items: center; gap: 4px; }
+.acct-card { max-width: 520px; margin-bottom: 16px; }
+.acct-card h2 { margin-top: 0; }
+.hint.small { font-size: 0.85rem; margin: 12px 0 0; }
+.hint.ok { color: var(--income); min-height: 1.2em; }
+

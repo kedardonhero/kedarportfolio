@@ -41,5 +41,7 @@ Keep the quotes and commas.
 
 ## Good to know
 - Guest mode does not sync. Users must create an account.
-- There is no password reset, so users must remember their password.
+- Password reset works for accounts that have an email. Firebase sends the reset and confirmation emails from `noreply@YOUR-PROJECT.firebaseapp.com`; they can land in spam. You can edit the wording under **Authentication > Templates**.
+- Older username-only accounts have no email on file. They log in with the username, then add an email on the Account page.
+- No new Firestore rules are needed.
 - If something fails, open the browser's developer console (F12) and check for errors that mention Firebase or "authorized domain".

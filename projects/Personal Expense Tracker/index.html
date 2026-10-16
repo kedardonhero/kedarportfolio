@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>FinTrack — Personal Expense Tracker</title>
   <meta name="author" content="Kedar">
+  <meta name="application-name" content="FinTrack">
+  <meta name="theme-color" content="#1553d6">
+  <meta name="apple-mobile-web-app-title" content="FinTrack">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script src="pwa-install.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
@@ -25,6 +35,8 @@
     </nav>
     <div class="sidebar-bottom">
       <div id="profile-chip" class="profile-chip"></div>
+      <button id="account-btn" class="ghost-btn" hidden><i data-lucide="user-cog"></i> <span>Account</span></button>
+      <button id="install-btn" class="ghost-btn" data-install hidden><i data-lucide="download"></i> <span>Install app</span></button>
       <button id="theme-toggle" class="ghost-btn"><i data-lucide="moon"></i> <span>Dark mode</span></button>
       <button id="clear-all" class="ghost-btn danger"><i data-lucide="trash-2"></i> <span>Clear all data</span></button>
       <button id="logout-btn" class="ghost-btn"><i data-lucide="log-out"></i> <span>Log out</span></button>
@@ -44,6 +56,14 @@
 
     <!-- HOME -->
     <section id="dashboard" class="view active">
+      <div class="greeting card" id="greeting">
+        <div class="greet-icon" id="greeting-icon"></div>
+        <div class="greet-text"><h2 id="greeting-text">Hello</h2><p id="greeting-meta" class="hint"></p></div>
+      </div>
+      <div id="email-nudge" class="nudge" hidden>
+        <span><strong>Add your email</strong> so you can reset your password if you ever forget it.</span>
+        <span class="nudge-actions"><button type="button" class="primary-btn" id="nudge-go">Add email</button><button type="button" class="link-btn" id="nudge-later">Later</button></span>
+      </div>
       <div class="page-head">
         <h1>Home</h1>
         <button class="primary-btn" data-go="add"><i data-lucide="plus"></i> Add transaction</button>
@@ -278,6 +298,42 @@
     </section>
 
     <!-- LOANS: simple, like Splitwise -->
+    <!-- ACCOUNT -->
+    <section id="account-page" class="view">
+      <div class="page-head"><h1>Account</h1></div>
+      <div class="card acct-card">
+        <h2>Your name</h2>
+        <p class="hint">This is the name shown in the app and in your greeting. Your data stays with your account.</p>
+        <form id="acct-name-form" class="stack" novalidate>
+          <label>Name<input type="text" id="acct-name" maxlength="30" autocomplete="name"></label>
+          <p id="acct-name-msg" class="error" role="alert"></p>
+          <button type="submit" class="primary-btn">Save name</button>
+        </form>
+      </div>
+      <div class="card acct-card">
+        <h2>Email</h2>
+        <p id="acct-email-now" class="hint"></p>
+        <form id="acct-email-form" class="stack" novalidate>
+          <label><span id="acct-email-label">New email</span><input type="email" id="acct-email" autocomplete="email"></label>
+          <label>Current password<input type="password" id="acct-email-pw" autocomplete="current-password"></label>
+          <p id="acct-email-msg" class="error" role="alert"></p>
+          <button type="submit" class="primary-btn" id="acct-email-btn">Add email</button>
+          <button type="button" class="link-btn" id="acct-resend" hidden>Send the verification link again</button>
+        </form>
+        <p class="hint small">We send a confirmation link to the new address. After you confirm it, log in with that email and your password.</p>
+      </div>
+      <div class="card acct-card">
+        <h2>Password</h2>
+        <form id="acct-pw-form" class="stack" novalidate>
+          <label>Current password<input type="password" id="acct-pw-old" autocomplete="current-password"></label>
+          <label>New password<input type="password" id="acct-pw-new" autocomplete="new-password" placeholder="at least 6 characters"></label>
+          <label>Repeat new password<input type="password" id="acct-pw-new2" autocomplete="new-password"></label>
+          <p id="acct-pw-msg" class="error" role="alert"></p>
+          <button type="submit" class="primary-btn">Update password</button>
+        </form>
+      </div>
+    </section>
+
     <section id="loans" class="view">
       <div class="page-head">
         <h1>Loans</h1>
@@ -307,24 +363,35 @@
         <button class="primary-btn block" data-welcome="login">Log in</button>
         <button class="mini-btn block" data-welcome="signup">Create account</button>
         <button class="filter-btn block" data-welcome="guest">Continue as guest</button>
+        <button class="filter-btn block" data-install hidden>Install app on this device</button>
         <p id="cloud-note" class="hint"></p>
       </div>
       <form id="welcome-login" class="stack" hidden novalidate>
-        <label>Username<input type="text" id="li-username" autocomplete="username"></label>
+        <label>Username or email<input type="text" id="li-username" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
         <label>Password<input type="password" id="li-password" autocomplete="current-password"></label>
         <p id="li-error" class="error" role="alert"></p>
+        <button type="button" class="link-btn" data-welcome="forgot">Forgot password?</button>
         <button type="submit" class="primary-btn">Log in</button>
         <button type="button" class="filter-btn" data-welcome="choice">Back</button>
       </form>
       <form id="welcome-signup" class="stack" hidden novalidate>
-        <label>Choose a username<input type="text" id="su-username" maxlength="20" autocomplete="username" placeholder="letters, numbers, _"></label>
+        <label>Your name<input type="text" id="su-username" maxlength="30" autocomplete="name" placeholder="shown in the app"></label>
+        <label>Email<input type="email" id="su-email" autocomplete="email" placeholder="used to log in and reset your password"></label>
         <label>Password<input type="password" id="su-password" autocomplete="new-password" placeholder="at least 6 characters"></label>
-        <p class="hint"><strong>Remember your password.</strong> There is no "forgot password" option, so if you lose it you cannot get back into this account. Save it somewhere safe.</p>
+        <p class="hint">Use a real email address. If you forget your password, we send a reset link there.</p>
         <label>Country (sets your currency)<select id="su-country"></select></label>
         <p id="signup-note" class="hint"></p>
         <p id="su-error" class="error" role="alert"></p>
         <button type="submit" class="primary-btn">Create account</button>
         <button type="button" class="filter-btn" data-welcome="choice">Back</button>
+      </form>
+      <form id="welcome-forgot" class="stack" hidden novalidate>
+        <p class="hint">Enter the email on your account and we will send you a link to choose a new password.</p>
+        <label>Email<input type="email" id="fp-email" autocomplete="email" autocapitalize="none" spellcheck="false"></label>
+        <p id="fp-error" class="error" role="alert"></p>
+        <p id="fp-ok" class="hint ok" role="status"></p>
+        <button type="submit" class="primary-btn">Send reset link</button>
+        <button type="button" class="filter-btn" data-welcome="login">Back to log in</button>
       </form>
       <p class="credit-line">Designed &amp; made by <strong>Kedar</strong></p>
     </div>

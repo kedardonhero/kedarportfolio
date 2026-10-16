@@ -89,7 +89,12 @@ Export to CSV, edit existing transactions, recurring transactions, per-category 
 
 ## Accounts and sync (Firebase)
 
-Open the site and choose **Create account**. Pick a username, a password and your country (this sets your currency), then finish the three set-up steps. Log in with the same username and password on any phone or computer and your data is there. Changes made on one device appear on your other devices within a few seconds. There is no password reset, so remember your password. Guest mode keeps data in that browser only and does not sync.
+Open the site and choose **Create account**. Enter your name, email, a password and your country (this sets your currency and the time shown in your greeting), then finish the three set-up steps. Log in with your email and password on any phone or computer and your data is there. Changes made on one device appear on your other devices within a few seconds. Guest mode keeps data in that browser only and does not sync.
+
+- **Forgot password:** on the log in screen, tap **Forgot password?**, enter your email, and Firebase sends a reset link.
+- **Account page:** change your name, add or change your email (a confirmation link is sent to the new address) and change your password. Your data is stored under your account, not under your email, so nothing is lost when you change these.
+- **Older accounts** that log in with only a username can still do so. They see a reminder on Home to add an email. After the new email is confirmed, log in with that email.
+- **Greeting:** Home shows Good morning / afternoon / evening with the date and time in your country. Countries with several time zones use this device's zone when it is one of them.
 
 Set-up for the site owner is in `SETUP-FIREBASE.md`.
 
@@ -118,4 +123,4 @@ service cloud.firestore {
 5. **Authentication → Settings → Authorized domains:** add `YOUR-USERNAME.github.io` and your own domain.
 6. Push the files to GitHub again. Log in with the same username and password on any device to load your data.
 
-How it works: a username is turned into a private pseudo-email (`name@fintrack.app`) for Firebase Authentication, which refuses duplicates. That keeps usernames unique. Your data is saved as one document per user. If you edit on two devices at once, the last change saved wins.
+How it works: new accounts use your real email for Firebase Authentication. Older accounts use a private pseudo-email (`name@fintrack.app`) made from the username until a real email is added. Your data is saved as one document per user, keyed by the account id. If you edit on two devices at once, the last change saved wins.

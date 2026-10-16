@@ -113,6 +113,7 @@ function showView(name) {
   document.querySelector(".month-bar").hidden = !MONTH_VIEWS.includes(name);
   if (name !== "add") stopEditing();
   if (name === "reports") renderReport();
+  if (name === "account-page") renderAccount();
   window.scrollTo(0, 0);
 }
 document.querySelectorAll(".nav-btn").forEach((button) => {
@@ -474,6 +475,8 @@ function renderCharts() {
 
 // Redraw everything. Called whenever the data or the month changes.
 function render() {
+  renderGreeting();
+  updateNudge();
   $("month-label").textContent = monthName(selectedMonth);
   $("month-pick").value = selectedMonth;
   fillAccountSelects();
@@ -1125,14 +1128,22 @@ if (cloudReady) {
 // Firebase refuses duplicate emails, which is what keeps usernames unique.
 const fakeEmail = (username) => username + "@fintrack.app";
 
-function authMessage(error) {
-  if (error.code === "auth/email-already-in-use") return "That username is already taken. Try another one.";
-  if (error.code === "auth/weak-password") return "Use a password with at least 6 characters.";
-  if (error.code === "auth/network-request-failed") return "No connection. Check your internet and try again.";
-  if (error.code === "auth/too-many-requests") return "Too many attempts. Please wait a moment.";
-  if (["auth/invalid-credential", "auth/user-not-found", "auth/wrong-password", "auth/invalid-login-credentials"].includes(error.code)) return "Wrong username or password.";
+// Friendly text for Firebase errors. "where" says which form the error came from.
+function authMessage(error, where) {
+  const c = error.code;
+  if (c === "auth/email-already-in-use") return where === "signup" ? "An account with that email already exists. Log in instead, or use \"Forgot password?\"." : "That email is already used by another account.";
+  if (c === "auth/invalid-email") return "That email address does not look right.";
+  if (c === "auth/weak-password") return "Use a password with at least 6 characters.";
+  if (c === "auth/network-request-failed") return "No connection. Check your internet and try again.";
+  if (c === "auth/too-many-requests") return "Too many attempts. Please wait a moment and try again.";
+  if (c === "auth/requires-recent-login") return "For safety, log out, log in again, then try once more.";
+  if (["auth/invalid-credential", "auth/user-not-found", "auth/wrong-password", "auth/invalid-login-credentials"].includes(c)) {
+    return where === "reauth" ? "Your current password is not correct." : "Wrong username/email or password. If you added an email to your account, log in with that email.";
+  }
   return "Something went wrong. Please try again.";
 }
+const validEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+const validName = (v) => /^[\p{L}\p{N} _.'-]{2,30}$/u.test(v) && v.toLowerCase() !== "guest";
 
 // Cloud save: wait 0.8s after the last change, then write one document per user
 function scheduleCloudSave() { clearTimeout(saveTimer); saveTimer = setTimeout(cloudSaveNow, 800); }
@@ -1169,7 +1180,9 @@ function stopLiveSync() { if (unsubLive) { unsubLive(); unsubLive = null; } }
 function applyProfile() {
   currentCurrency = profile.currency || "USD";
   const guest = profile.username === "Guest";
-  $("profile-chip").textContent = guest ? "Guest mode (this device only)" : "@" + profile.username + " · " + currentCurrency;
+  const handle = /^[a-z0-9_]+$/.test(profile.username) ? "@" : "";
+  $("profile-chip").textContent = guest ? "Guest mode (this device only)" : handle + profile.username + " · " + currentCurrency;
+  $("account-btn").hidden = !cloudUser;
   $("logout-btn").querySelector("span").textContent = guest ? "Log in / Sign up" : "Log out";
   fillCategories();
 }
@@ -1262,48 +1275,86 @@ function startSession() {
 
 // Welcome screen buttons: login / signup / guest / back
 function showWelcomePanel(name) {
-  ["choice", "login", "signup"].forEach((p) => { $("welcome-" + p).hidden = p !== name; });
+  ["choice", "login", "signup", "forgot"].forEach((p) => { $("welcome-" + p).hidden = p !== name; });
 }
 document.querySelectorAll("[data-welcome]").forEach((button) => {
   button.addEventListener("click", () => {
     const choice = button.dataset.welcome;
     if (choice === "guest") { openGuest(); return; }
+    if (choice === "forgot") {   // carry over an email typed on the log in form
+      const typed = $("li-username").value.trim();
+      $("fp-email").value = typed.includes("@") ? typed : "";
+      $("fp-error").textContent = ""; $("fp-ok").textContent = "";
+    }
     showWelcomePanel(choice);
   });
 });
 
 $("welcome-signup").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const username = $("su-username").value.trim().toLowerCase();
+  const name = $("su-username").value.trim().replace(/\s+/g, " ");
+  const email = $("su-email").value.trim().toLowerCase();
   const password = $("su-password").value;
-  const country = COUNTRIES.find(([name]) => name === $("su-country").value);
+  const country = COUNTRIES.find(([cname]) => cname === $("su-country").value);
   const error = $("su-error");
-  if (!/^[a-z0-9_]{3,20}$/.test(username)) { error.textContent = "Username must be 3–20 letters, numbers or underscores."; return; }
+  if (!cloudReady) {   // device-only accounts keep the simple username rules
+    const username = name.toLowerCase();
+    if (!/^[a-z0-9_]{3,20}$/.test(username)) { error.textContent = "Name must be 3–20 letters, numbers or underscores."; return; }
+    if (password.length < 6) { error.textContent = "Use a password with at least 6 characters."; return; }
+    if (!country) { error.textContent = "Choose your country."; return; }
+    error.textContent = "";
+    localSignup(username, password, country, error);
+    return;
+  }
+  if (!validName(name)) { error.textContent = "Use 2–30 letters, numbers or spaces for your name (\"Guest\" is reserved)."; return; }
+  if (!validEmail(email)) { error.textContent = "Enter a valid email address."; return; }
   if (password.length < 6) { error.textContent = "Use a password with at least 6 characters."; return; }
   if (!country) { error.textContent = "Choose your country."; return; }
   error.textContent = "";
-  if (!cloudReady) { localSignup(username, password, country, error); return; }
-  pendingProfile = { username: username, country: country[0], currency: country[1] };
+  pendingProfile = { username: name, country: country[0], currency: country[1] };
   try {
-    await auth.createUserWithEmailAndPassword(fakeEmail(username), password); // openAccount() continues from here
+    const cred = await auth.createUserWithEmailAndPassword(email, password); // openAccount() continues from here
+    cred.user.sendEmailVerification().catch(() => {});                       // lets you confirm the address is right
   } catch (err) {
     pendingProfile = null;
-    error.textContent = authMessage(err);
+    error.textContent = authMessage(err, "signup");
   }
 });
 
+// Log in with a username (older accounts) or an email
 $("welcome-login").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const username = $("li-username").value.trim().toLowerCase();
+  const id = $("li-username").value.trim().toLowerCase();
   const error = $("li-error");
-  if (username === "" || $("li-password").value === "") { error.textContent = "Enter your username and password."; return; }
+  if (id === "" || $("li-password").value === "") { error.textContent = "Enter your username or email, and your password."; return; }
   error.textContent = "";
-  if (!cloudReady) { localLogin(username, $("li-password").value, error); return; }
+  if (!cloudReady) { localLogin(id, $("li-password").value, error); return; }
   try {
-    await auth.signInWithEmailAndPassword(fakeEmail(username), $("li-password").value);
+    await auth.signInWithEmailAndPassword(id.includes("@") ? id : fakeEmail(id), $("li-password").value);
   } catch (err) {
-    error.textContent = authMessage(err);
+    error.textContent = authMessage(err, "login");
   }
+});
+
+// Forgot password: Firebase emails a reset link to the address on the account
+$("welcome-forgot").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = $("fp-email").value.trim().toLowerCase();
+  const error = $("fp-error"), ok = $("fp-ok");
+  error.textContent = ""; ok.textContent = "";
+  if (!cloudReady) { error.textContent = "Reset links need an online account. Accounts saved only on this device cannot be reset."; return; }
+  if (!email.includes("@")) {
+    error.textContent = "Enter the email on your account. Older accounts made with only a username have no email, so a link cannot be sent. If you remember your password, log in and add an email under Account.";
+    return;
+  }
+  if (!validEmail(email)) { error.textContent = "That email address does not look right."; return; }
+  try {
+    await auth.sendPasswordResetEmail(email);
+  } catch (err) {
+    if (err.code !== "auth/user-not-found") { error.textContent = authMessage(err, "forgot"); return; }
+  }
+  // Same message whether or not the email exists, so nobody can use this form to find out who has an account
+  ok.textContent = "If an account uses " + email + ", a reset link is on its way. Check your inbox and spam folder.";
 });
 
 $("logout-btn").addEventListener("click", async () => {
@@ -1317,8 +1368,147 @@ $("logout-btn").addEventListener("click", async () => {
   loadState({});
   $("welcome-login").reset();
   $("welcome-signup").reset();
+  $("welcome-forgot").reset();
+  $("fp-error").textContent = ""; $("fp-ok").textContent = "";
   showWelcome();
 });
+
+// ============================================================
+// Account page: change name, email and password (data stays with the account)
+// ============================================================
+// Older accounts log in with a private pseudo-email (username@fintrack.app) until a real email is added
+const isUsernameLogin = () => !!cloudUser && /@fintrack\.app$/i.test(cloudUser.email || "");
+
+async function renderAccount() {
+  if (!cloudUser) { showView("dashboard"); return; }
+  try { await cloudUser.reload(); } catch (e) {}   // pick up a freshly confirmed email
+  const legacy = isUsernameLogin();
+  $("acct-name").value = profile.username;
+  $("acct-email-now").innerHTML = legacy
+    ? "You log in with the username <strong>" + escapeHtml(cloudUser.email.split("@")[0]) + "</strong>. Add an email so you can reset your password if you forget it."
+    : "Your login email is <strong>" + escapeHtml(cloudUser.email) + "</strong> " + (cloudUser.emailVerified ? "(confirmed)." : "(not confirmed yet, check your inbox).");
+  $("acct-email-label").textContent = legacy ? "Your email" : "New email";
+  $("acct-email-btn").textContent = legacy ? "Add email" : "Change email";
+  $("acct-resend").hidden = legacy || cloudUser.emailVerified;
+  ["acct-name-msg", "acct-email-msg", "acct-pw-msg"].forEach((id) => { $(id).textContent = ""; });
+  ["acct-email", "acct-email-pw", "acct-pw-old", "acct-pw-new", "acct-pw-new2"].forEach((id) => { $(id).value = ""; });
+}
+$("account-btn").addEventListener("click", () => showView("account-page"));
+
+// Firebase asks for the current password before sensitive changes
+async function reauth(password) {
+  await cloudUser.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(cloudUser.email, password));
+}
+
+$("acct-name-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = $("acct-name").value.trim().replace(/\s+/g, " ");
+  if (!validName(name)) { $("acct-name-msg").textContent = "Use 2–30 letters, numbers or spaces. \"Guest\" is reserved."; return; }
+  $("acct-name-msg").textContent = "";
+  profile.username = name;
+  applyProfile();
+  renderGreeting();
+  cloudSaveNow();
+  showToast("Name saved.");
+});
+
+$("acct-email-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = $("acct-email").value.trim().toLowerCase(), password = $("acct-email-pw").value, msg = $("acct-email-msg");
+  if (!validEmail(email)) { msg.textContent = "Enter a valid email address."; return; }
+  if (email === (cloudUser.email || "").toLowerCase()) { msg.textContent = "That is already your login email."; return; }
+  if (!password) { msg.textContent = "Enter your current password to confirm."; return; }
+  msg.textContent = "";
+  try { await reauth(password); } catch (err) { msg.textContent = authMessage(err, "reauth"); return; }
+  try {
+    await cloudUser.verifyBeforeUpdateEmail(email);
+  } catch (err) { msg.textContent = authMessage(err, "email"); return; }
+  $("acct-email-now").textContent = "We sent a confirmation link to " + email + ". Open it, then log in with that email and your password. Until then you can keep using your current login. Check spam if you do not see it.";
+  $("acct-email").value = ""; $("acct-email-pw").value = "";
+  showToast("Confirmation link sent.");
+});
+
+$("acct-resend").addEventListener("click", async () => {
+  try { await cloudUser.sendEmailVerification(); showToast("Verification link sent."); }
+  catch (err) { $("acct-email-msg").textContent = authMessage(err, "email"); }
+});
+
+$("acct-pw-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const old = $("acct-pw-old").value, n1 = $("acct-pw-new").value, n2 = $("acct-pw-new2").value, msg = $("acct-pw-msg");
+  if (!old) { msg.textContent = "Enter your current password."; return; }
+  if (n1.length < 6) { msg.textContent = "Use a new password with at least 6 characters."; return; }
+  if (n1 !== n2) { msg.textContent = "The two new passwords do not match."; return; }
+  if (n1 === old) { msg.textContent = "Choose a password different from the current one."; return; }
+  msg.textContent = "";
+  try { await reauth(old); } catch (err) { msg.textContent = authMessage(err, "reauth"); return; }
+  try { await cloudUser.updatePassword(n1); } catch (err) { msg.textContent = authMessage(err, "password"); return; }
+  ["acct-pw-old", "acct-pw-new", "acct-pw-new2"].forEach((id) => { $(id).value = ""; });
+  showToast("Password updated.");
+});
+
+// Reminder on Home for older accounts that still have no email
+function updateNudge() {
+  const key = cloudUser ? "fintrack-nudge-" + cloudUser.uid : "";
+  const snoozed = key && Date.now() - Number(localStorage.getItem(key) || 0) < 3 * 86400000;
+  $("email-nudge").hidden = !(isUsernameLogin() && !snoozed);
+}
+$("nudge-go").addEventListener("click", () => showView("account-page"));
+$("nudge-later").addEventListener("click", () => {
+  if (cloudUser) localStorage.setItem("fintrack-nudge-" + cloudUser.uid, String(Date.now()));
+  updateNudge();
+});
+
+// ============================================================
+// Greeting with the time in your country
+// ============================================================
+const COUNTRY_ZONES = {
+  "United States": ["America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles", "America/Phoenix", "America/Anchorage", "Pacific/Honolulu", "America/Detroit", "America/Indiana/Indianapolis", "America/Kentucky/Louisville", "America/Boise", "America/Juneau"],
+  "Canada": ["America/Toronto", "America/Vancouver", "America/Edmonton", "America/Winnipeg", "America/Halifax", "America/St_Johns", "America/Regina"],
+  "United Kingdom": ["Europe/London"], "Germany": ["Europe/Berlin"], "France": ["Europe/Paris"], "Spain": ["Europe/Madrid", "Atlantic/Canary"],
+  "Italy": ["Europe/Rome"], "Netherlands": ["Europe/Amsterdam"], "Ireland": ["Europe/Dublin"], "India": ["Asia/Kolkata"], "Pakistan": ["Asia/Karachi"],
+  "Bangladesh": ["Asia/Dhaka"], "Nepal": ["Asia/Kathmandu"], "Sri Lanka": ["Asia/Colombo"], "Nigeria": ["Africa/Lagos"], "Ghana": ["Africa/Accra"],
+  "Kenya": ["Africa/Nairobi"], "South Africa": ["Africa/Johannesburg"], "Egypt": ["Africa/Cairo"], "United Arab Emirates": ["Asia/Dubai"],
+  "Saudi Arabia": ["Asia/Riyadh"], "Turkey": ["Europe/Istanbul"], "Japan": ["Asia/Tokyo"], "South Korea": ["Asia/Seoul"], "China": ["Asia/Shanghai"],
+  "Philippines": ["Asia/Manila"], "Indonesia": ["Asia/Jakarta", "Asia/Pontianak", "Asia/Makassar", "Asia/Jayapura"], "Malaysia": ["Asia/Kuala_Lumpur"],
+  "Singapore": ["Asia/Singapore"], "Thailand": ["Asia/Bangkok"], "Vietnam": ["Asia/Ho_Chi_Minh"],
+  "Australia": ["Australia/Sydney", "Australia/Melbourne", "Australia/Brisbane", "Australia/Perth", "Australia/Adelaide", "Australia/Darwin", "Australia/Hobart"],
+  "New Zealand": ["Pacific/Auckland"],
+  "Brazil": ["America/Sao_Paulo", "America/Manaus", "America/Fortaleza", "America/Bahia", "America/Recife", "America/Belem", "America/Cuiaba"],
+  "Mexico": ["America/Mexico_City", "America/Tijuana", "America/Monterrey", "America/Cancun", "America/Chihuahua", "America/Mazatlan", "America/Hermosillo"],
+  "Argentina": ["America/Argentina/Buenos_Aires"], "Colombia": ["America/Bogota"],
+};
+// A country with one time zone uses it. A country with several uses this device's zone if it is one of them.
+function timeZoneFor() {
+  const device = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  const list = profile && profile.username !== "Guest" ? COUNTRY_ZONES[profile.country] : null;
+  if (!list) return device;
+  return list.includes(device) ? device : list[0];
+}
+let greetIcon = "";
+function renderGreeting() {
+  if (!profile || !$("greeting-text")) return;
+  const zone = timeZoneFor(), now = new Date();
+  const fmt = (opts) => {
+    try { return new Intl.DateTimeFormat("en-US", { ...opts, timeZone: zone }).format(now); }
+    catch (e) { return new Intl.DateTimeFormat("en-US", opts).format(now); }
+  };
+  const hour = Number(fmt({ hour: "numeric", hourCycle: "h23" })) % 24;
+  let word = "Good evening", icon = hour >= 21 || hour < 5 ? "moon" : "sunset";
+  if (hour >= 5 && hour < 12) { word = "Good morning"; icon = "sunrise"; }
+  else if (hour >= 12 && hour < 17) { word = "Good afternoon"; icon = "sun"; }
+  const guest = profile.username === "Guest";
+  const name = guest ? "" : ", " + profile.username.charAt(0).toUpperCase() + profile.username.slice(1);
+  $("greeting-text").textContent = word + name;
+  const place = !guest && COUNTRY_ZONES[profile.country] ? " · " + profile.country : "";
+  $("greeting-meta").textContent = fmt({ weekday: "long", month: "long", day: "numeric" }) + " · " + fmt({ hour: "numeric", minute: "2-digit", timeZoneName: "short" }) + place;
+  if (icon !== greetIcon) {
+    greetIcon = icon;
+    $("greeting-icon").innerHTML = '<i data-lucide="' + icon + '"></i>';
+    lucide.createIcons();
+  }
+}
+setInterval(renderGreeting, 30000);
 
 // ============================================================
 // Simple accounts saved on this device (no Firebase needed)
@@ -1588,3 +1778,8 @@ $("date").value = today();
 applyTheme(localStorage.getItem("fintrack-theme") || "light");
 lucide.createIcons();
 startSession();
+
+// ---------- Installable app (PWA) ----------
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
