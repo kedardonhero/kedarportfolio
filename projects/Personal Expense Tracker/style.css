@@ -149,9 +149,6 @@ tbody tr:hover { background: var(--bg); }
 
 /* ---------- Month bar, budget plan, alerts ---------- */
 .month-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-.month-bar button:not(.filter-btn) { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px; display: flex; transition: border-color 0.2s; }
-.month-bar button:not(.filter-btn):hover { border-color: var(--accent); }
-.month-bar strong { min-width: 160px; text-align: center; font-size: 1.1rem; }
 .hint { color: var(--muted); margin-bottom: 16px; }
 #budget .card { max-width: 760px; margin-bottom: 16px; }
 .plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 16px; }
@@ -462,3 +459,57 @@ input[type="email"], input[type="password"] {
 .hint.small { font-size: 0.85rem; margin: 12px 0 0; }
 .hint.ok { color: var(--income); min-height: 1.2em; }
 
+
+/* ---------- Home redesign: small greeting, month chooser under the money card, phone top bar ---------- */
+.greeting { padding: 0; margin: 0 0 14px; gap: 10px; background: none; border: none; box-shadow: none; }
+.greet-icon { width: 34px; height: 34px; border-radius: 11px; }
+.greet-icon svg { width: 18px; height: 18px; }
+.greet-text { min-width: 0; }
+.greet-text h2 { font-size: 1.05rem; line-height: 1.25; letter-spacing: -0.01em; }
+.greet-text .hint { margin: 1px 0 0; font-size: 0.78rem; line-height: 1.3; }
+.greet-add { margin-left: auto; flex: none; }
+
+.month-bar { gap: 10px; margin: 14px 0 16px; }
+.month-chip { position: relative; }
+.month-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text); font: inherit; font-weight: 700; cursor: pointer; transition: border-color 0.2s; }
+.month-btn:hover, .month-btn[aria-expanded="true"] { border-color: var(--accent); }
+.month-btn svg { width: 18px; height: 18px; color: var(--accent); flex: none; }
+.month-btn .chev { width: 16px; height: 16px; color: var(--muted); }
+.month-bar .filter-btn { padding: 10px 14px; border-radius: 12px; }
+.month-pop { position: absolute; top: calc(100% + 8px); left: 0; z-index: 30; width: 272px; padding: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28); }
+.month-pop[hidden] { display: none; }
+.mp-year { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.mp-year strong { font-size: 1.05rem; }
+.mp-year button, .mp-grid button { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font: inherit; cursor: pointer; }
+.mp-year button { width: 34px; height: 34px; font-size: 1.3rem; line-height: 1; }
+.mp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.mp-grid button { padding: 10px 0; font-weight: 600; }
+.mp-grid button:hover, .mp-year button:hover { border-color: var(--accent); }
+.mp-grid button.now { border-color: var(--accent); }
+.mp-grid button.sel { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+
+/* Computers use the popup above; touch screens use the phone's own month picker, laid invisibly over the button */
+@media (hover: hover) and (pointer: fine) { #month-pick { display: none; } }
+@media (hover: none), (pointer: coarse) {
+  #month-pick { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font-size: 16px; padding: 0; border: 0; }
+  .month-pop { display: none !important; }
+}
+
+.top-brand { display: none; }
+
+@media (max-width: 800px) {
+  .credit { display: none; }
+  .top-brand { display: flex; flex-direction: column; gap: 1px; margin-right: auto; line-height: 1.1; min-width: 0; }
+  .tb-name { display: flex; align-items: center; gap: 6px; color: #fff; font-weight: 800; font-size: 1.05rem; }
+  .tb-name svg { width: 18px; height: 18px; color: #7ea6ff; }
+  .tb-by { color: #9fb0cc; font-size: 0.66rem; white-space: nowrap; }
+  .tb-by b { color: #fff; font-weight: 800; }
+  .greet-add { display: none; }
+  .month-bar { margin: 12px 0 14px; flex-wrap: nowrap; }
+  .month-chip { flex: 1; min-width: 0; }
+  .month-btn { width: 100%; justify-content: space-between; }
+  .month-btn span { flex: 1; text-align: left; }
+  .month-bar .filter-btn { flex: none; white-space: nowrap; }
+  .money-hero .hero-main strong { font-size: 2rem; }
+}
+@media (max-width: 360px) { .tb-by { font-size: 0.6rem; } .month-btn, .month-bar .filter-btn { padding: 9px 10px; font-size: 0.9rem; } }

@@ -34,6 +34,7 @@
       <button class="nav-btn" data-view="reports"><i data-lucide="bar-chart-3"></i> Reports</button>
     </nav>
     <div class="sidebar-bottom">
+      <div class="top-brand"><span class="tb-name"><i data-lucide="wallet"></i>FinTrack</span><span class="tb-by">Designed &amp; made by <b>Kedar</b></span></div>
       <div id="profile-chip" class="profile-chip"></div>
       <button id="account-btn" class="ghost-btn" hidden><i data-lucide="user-cog"></i> <span>Account</span></button>
       <button id="install-btn" class="ghost-btn" data-install hidden><i data-lucide="download"></i> <span>Install app</span></button>
@@ -45,30 +46,17 @@
   </aside>
 
   <main>
-    <!-- Month selector: only shown on Home, History and Budget -->
-    <div class="month-bar">
-      <button id="prev-month" aria-label="Previous month"><i data-lucide="chevron-left"></i></button>
-      <strong id="month-label"></strong>
-      <button id="next-month" aria-label="Next month"><i data-lucide="chevron-right"></i></button>
-      <input type="month" id="month-pick" aria-label="Pick any month and year">
-      <button id="this-month" class="filter-btn">This month</button>
-    </div>
-
     <!-- HOME -->
     <section id="dashboard" class="view active">
-      <div class="greeting card" id="greeting">
-        <div class="greet-icon" id="greeting-icon"></div>
+      <div class="greeting" id="greeting">
+        <span class="greet-icon" id="greeting-icon"></span>
         <div class="greet-text"><h2 id="greeting-text">Hello</h2><p id="greeting-meta" class="hint"></p></div>
+        <button class="primary-btn greet-add" data-go="add"><i data-lucide="plus"></i> Add transaction</button>
       </div>
       <div id="email-nudge" class="nudge" hidden>
         <span><strong>Add your email</strong> so you can reset your password if you ever forget it.</span>
         <span class="nudge-actions"><button type="button" class="primary-btn" id="nudge-go">Add email</button><button type="button" class="link-btn" id="nudge-later">Later</button></span>
       </div>
-      <div class="page-head">
-        <h1>Home</h1>
-        <button class="primary-btn" data-go="add"><i data-lucide="plus"></i> Add transaction</button>
-      </div>
-      <div id="alerts"></div>
       <div class="card hero money-hero">
         <div class="hero-main"><span class="label">Available money</span><strong id="d-avail">$0.00</strong><small>Cash + bank. Money friends owe you is not included.</small></div>
         <div class="hero-split">
@@ -76,7 +64,16 @@
           <div class="clickable" data-action="open-kind" data-id="checking" tabindex="0" role="button"><span class="label">Bank</span><strong id="d-bank">$0.00</strong></div>
         </div>
       </div>
-      <h2 class="section-title">This month</h2>
+      <!-- Month selector: shown on Home, History, Budget and Reports (moved by showView) -->
+      <div class="month-bar" id="month-bar">
+        <div class="month-chip">
+          <button type="button" id="month-btn" class="month-btn" aria-haspopup="dialog" aria-expanded="false"><i data-lucide="calendar"></i><span id="month-label"></span><i data-lucide="chevron-down" class="chev"></i></button>
+          <input type="month" id="month-pick" aria-label="Pick any month and year" tabindex="-1">
+          <div id="month-pop" class="month-pop" role="dialog" aria-label="Choose month" hidden></div>
+        </div>
+        <button type="button" id="this-month" class="filter-btn">This month</button>
+      </div>
+      <div id="alerts"></div>
       <div class="cards">
         <div class="card clickable" id="income-card" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Income</span><strong id="total-income" class="income">$0.00</strong></div>
         <div class="card clickable" id="expense-card" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Expenses</span><strong id="total-expenses" class="expense">$0.00</strong></div>

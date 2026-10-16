@@ -110,7 +110,11 @@ function showView(name) {
   const parent = { "account-detail": "networth", "contact-detail": "contacts" }[name] || name;
   document.querySelectorAll(".view").forEach((v) => v.classList.toggle("active", v.id === name));
   document.querySelectorAll(".nav-btn").forEach((b) => b.classList.toggle("active", b.dataset.view === parent));
-  document.querySelector(".month-bar").hidden = !MONTH_VIEWS.includes(name);
+  const bar = $("month-bar");
+  bar.hidden = !MONTH_VIEWS.includes(name);
+  if (name === "dashboard") document.querySelector("#dashboard .money-hero").after(bar); // Home: under the money card
+  else if (bar.parentElement !== document.querySelector("main")) document.querySelector("main").prepend(bar);
+  closeMonthPop();
   if (name !== "add") stopEditing();
   if (name === "reports") renderReport();
   if (name === "account-page") renderAccount();
@@ -130,10 +134,41 @@ function changeMonth(step) {
   selectedMonth = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
   render();
 }
-$("month-pick").addEventListener("change", (e) => { if (e.target.value) { selectedMonth = e.target.value; render(); } });
-$("prev-month").addEventListener("click", () => changeMonth(-1));
-$("next-month").addEventListener("click", () => changeMonth(1));
-$("this-month").addEventListener("click", () => { selectedMonth = today().slice(0, 7); render(); });
+$("month-pick").addEventListener("change", (e) => { if (e.target.value) { selectedMonth = e.target.value; render(); } }); // phones: native picker
+$("this-month").addEventListener("click", () => { selectedMonth = today().slice(0, 7); closeMonthPop(); render(); });
+
+// Computer: the button opens a small month + year chooser (phones use the native picker laid over the button)
+const MONTH_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+let popYear = new Date().getFullYear();
+function drawMonthPop() {
+  const [selYear, selNum] = selectedMonth.split("-").map(Number);
+  const [nowYear, nowNum] = today().slice(0, 7).split("-").map(Number);
+  $("month-pop").innerHTML =
+    '<div class="mp-year"><button type="button" data-year="-1" aria-label="Previous year">&#8249;</button><strong>' + popYear +
+    '</strong><button type="button" data-year="1" aria-label="Next year">&#8250;</button></div><div class="mp-grid">' +
+    MONTH_SHORT.map((m, i) => '<button type="button" data-month="' + (i + 1) + '" class="' +
+      (popYear === selYear && i + 1 === selNum ? "sel " : "") + (popYear === nowYear && i + 1 === nowNum ? "now" : "") + '">' + m + "</button>").join("") + "</div>";
+}
+function closeMonthPop() {
+  $("month-pop").hidden = true;
+  $("month-btn").setAttribute("aria-expanded", "false");
+}
+$("month-btn").addEventListener("click", () => {
+  if ($("month-pick").offsetParent !== null && getComputedStyle($("month-pick")).position === "absolute") return; // touch screen: native picker handles it
+  if (!$("month-pop").hidden) { closeMonthPop(); return; }
+  popYear = Number(selectedMonth.slice(0, 4));
+  drawMonthPop();
+  $("month-pop").hidden = false;
+  $("month-btn").setAttribute("aria-expanded", "true");
+});
+$("month-pop").addEventListener("click", (e) => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  if (b.dataset.year) { popYear += Number(b.dataset.year); drawMonthPop(); return; }
+  if (b.dataset.month) { selectedMonth = popYear + "-" + String(b.dataset.month).padStart(2, "0"); closeMonthPop(); render(); }
+});
+document.addEventListener("click", (e) => { if (!e.target.closest(".month-chip")) closeMonthPop(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeMonthPop(); });
 
 // ---------- 5. Adding a transaction ----------
 // The category list changes depending on Income / Expense
@@ -1500,8 +1535,7 @@ function renderGreeting() {
   const guest = profile.username === "Guest";
   const name = guest ? "" : ", " + profile.username.charAt(0).toUpperCase() + profile.username.slice(1);
   $("greeting-text").textContent = word + name;
-  const place = !guest && COUNTRY_ZONES[profile.country] ? " · " + profile.country : "";
-  $("greeting-meta").textContent = fmt({ weekday: "long", month: "long", day: "numeric" }) + " · " + fmt({ hour: "numeric", minute: "2-digit", timeZoneName: "short" }) + place;
+  $("greeting-meta").textContent = fmt({ weekday: "short", month: "short", day: "numeric" }) + " · " + fmt({ hour: "numeric", minute: "2-digit", timeZoneName: "short" });
   if (icon !== greetIcon) {
     greetIcon = icon;
     $("greeting-icon").innerHTML = '<i data-lucide="' + icon + '"></i>';
