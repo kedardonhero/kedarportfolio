@@ -1,785 +1,317 @@
+/* Smart Waste dashboard: portfolio demo
+   Runs fully in the browser. The sensor maths below mirrors the real Raspberry Pi script
+   (percent from height + weight, EMA smoothing, fusion rule). Network calls to the Flask
+   API are replaced by an in-memory simulation so the demo works on static hosting. */
+(() => {
+  "use strict";
 
-const ADD_BIN_PIN = "4321";
-const SERVER_URL = "http://192.168.1.56:5000"; // Flask server IP
-let lastAddedBinId = null;
-let alertInterval = null;
-let alertAcknowledged = false;
-let alertAcknowledgedUntil = 0; // timestamp (ms)
-let resumeAlertTimeout = null;
-let pickingLocation = false;
-let routingControl = null;
+  /* ---------- configuration (same values as the real system) ---------- */
+  const PIN = "4321";                       // demo PIN only
+  const CFG = {
+    EMPTY_CM: 55, FULL_CM: 8,               // ultrasonic calibration
+    EMPTY_KG: 0, FULL_KG: 10,               // load-cell calibration
+    ALPHA: 0.35,                            // EMA smoothing
+    STRONG_FULL: 85, NEAR_EMPTY: 10,        // fusion thresholds
+    FULL_AT: 80, HALF_AT: 40,               // status bands
+    OFFLINE_MS: 10000,                      // no data for 10 s = offline
+    ALERT_REPEAT_MS: 60000, ACK_MS: 120000  // sound every 60 s, silence 2 min after acknowledge
+  };
+  const BOUNDS = L.latLngBounds([32.5205, -92.6485], [32.5275, -92.6325]);
 
+  /* ---------- helpers ---------- */
+  const $ = (s) => document.querySelector(s);
+  const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const rnd = (a, b) => a + Math.random() * (b - a);
 
+  const pctHeight = (d) => clamp(((CFG.EMPTY_CM - clamp(d, CFG.FULL_CM, CFG.EMPTY_CM)) / (CFG.EMPTY_CM - CFG.FULL_CM)) * 100, 0, 100);
+  const pctWeight = (w) => clamp(((clamp(w, CFG.EMPTY_KG, CFG.FULL_KG) - CFG.EMPTY_KG) / (CFG.FULL_KG - CFG.EMPTY_KG)) * 100, 0, 100);
+  const ema = (prev, next) => (prev == null ? next : CFG.ALPHA * next + (1 - CFG.ALPHA) * prev);
 
-let pickMap = null;
-let pickMarker = null;
-let pickedLatLng = null;
-
-const mapPickOverlay = document.getElementById("mapPickOverlay");
-const mapPickModal   = document.getElementById("mapPickModal");
-
-
-// dom elements
-const username = document.getElementById("username");
-const password = document.getElementById("password");
-const loginPage = document.getElementById("loginPage");
-const dashboard = document.getElementById("dashboard");
-
-const rows = document.getElementById("rows");
-const total = document.getElementById("total");
-const full = document.getElementById("full");
-const half = document.getElementById("half");
-const empty = document.getElementById("empty");
-
-const overlay = document.getElementById("overlay");
-const binModal = document.getElementById("binModal");
-const modalId = document.getElementById("modalId");
-const modalLoc = document.getElementById("modalLoc");
-const modalFill = document.getElementById("modalFill");
-const modalStatus = document.getElementById("modalStatus");
-const modalHeight = document.getElementById("modalHeight");
-const modalWeight = document.getElementById("modalWeight");
-
-/* ADD BIN MODAL */
-const addOverlay = document.getElementById("addOverlay");
-const addBinModal = document.getElementById("addBinModal");
-const pinInput = document.getElementById("pinInput");
-const pinStep = document.getElementById("pinStep");
-const formStep = document.getElementById("formStep");
-
-const newId = document.getElementById("newId");
-const newLoc = document.getElementById("newLoc");
-const newLat = document.getElementById("newLat");
-const newLng = document.getElementById("newLng");
-
-/* DELETE MODAL */
-const deleteOverlay = document.getElementById("deleteOverlay");
-const deleteBinModal = document.getElementById("deleteBinModal");
-const deletePinInput = document.getElementById("deletePinInput");
-
-/* TOAST */
-const toast = document.getElementById("toast");
-const toastText = document.getElementById("toastText");
-const undoBtn = document.getElementById("undoBtn");
-
-
-
-
-
-
-const bounds = L.latLngBounds(
-  [32.5205, -92.6425],
-  [32.5265, -92.6325]
-);
-
-
-
-let map, markers = [];
-
-let activeBin = null;
-let binToDelete = null;
-let addAuthorized = false;
-
-let lastDeletedBin = null;
-let undoTimer = null;
-
-
-let bins = [];
-
-const OFFLINE_AFTER_MS = 10 * 1000;  // after 10 sec it shows offline
-
-function isOffline(bin){
-  if(!bin.last_seen) return false;
-  const t = new Date(bin.last_seen).getTime();
-  if(Number.isNaN(t)) return false;
-  return (Date.now() - t) > OFFLINE_AFTER_MS;
-}
-
-
-
-let alertSound = null;
-let fullBinAlert = null;
-let fullBinList = null;
-
-
-
-window.addEventListener("DOMContentLoaded", () => {
-  alertSound = document.getElementById("alertSound");
-});
-
-
-// login 
-function login(){
-  if(username.value && password.value){
-
-    // FORCE audio unlock on user click
-    alertSound?.play()
-      .then(() => {
-        alertSound.pause();
-        alertSound.currentTime = 0;
-      })
-      .catch(() => {});
-
-    loginPage.classList.add("hidden");
-    dashboard.classList.remove("hidden");
-    initMap();
-    loadBins();
-    setInterval(loadBins, 1000); // LIVE update every  seconds
-  }
-}
-
-
-
-// for the map 
-function initMap(){
-  if(map) return;
-
-  map = L.map("ltMap",{
-    center:[32.5236,-92.6379],
-    zoom:16,
-    minZoom:15,
-    maxZoom:18,
-    maxBounds: bounds,
-    maxBoundsViscosity:1
-  });
-
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
-
-  updateMarkers();
-}
-
-function updateMarkers(){
-  markers.forEach(m => map.removeLayer(m));
-  markers = [];
-
-  bins.forEach(b => {
-    const color =
-      isOffline(b) ? "#6b7280" :
-      b.v >= 80 ? "#ef4444" :
-      b.v >= 40 ? "#f59e0b" :
-      "#22c55e";
-
-    const marker = L.circleMarker([b.lat, b.lng],{
-      radius:8,
-      color,
-      fillOpacity:0.9
-    })
-    .addTo(map)
-    .on("click", () => openModal(b));
-
-    markers.push(marker);
-  });
-}
-
-// for the info
-function openModal(bin){
-  activeBin = bin;
-  overlay.classList.remove("hidden");
-  binModal.classList.remove("hidden");
-  updateModal();
-}
-
-function closeModal(){
-  overlay.classList.add("hidden");
-  binModal.classList.add("hidden");
-  activeBin = null;
-}
-
-function updateModal(){
-
-  if(!activeBin) return;
-
-  // ALWAYS GET FRESH BIN FROM bins[]
-  const latest = bins.find(
-    b => String(b.id) === String(activeBin.id)
-  );
-
-  if(!latest) return;
-
-  // update reference
-  activeBin = latest;
-
-  modalId.textContent = latest.id;
-  modalLoc.textContent = latest.loc;
-
-  const lastSeenEl = document.getElementById("modalLastSeen");
-  lastSeenEl.textContent =
-    latest.last_seen
-      ? new Date(latest.last_seen).toLocaleString()
-      : "—";
-
-  // HEIGHT
-  modalHeight.textContent =
-    (latest.height_cm == null || isOffline(latest))
-      ? "—"
-      : latest.height_cm;
-
-  // WEIGHT
-  modalWeight.textContent =
-    (latest.weight_kg == null || isOffline(latest))
-      ? "—"
-      : Number(latest.weight_kg).toFixed(2);
-
-  const color =
-    latest.v >= 80 ? "#ef4444" :
-    latest.v >= 40 ? "#f59e0b" :
-    "#22c55e";
-
-  if(isOffline(latest)){
-    modalFill.style.width = "100%";
-    modalFill.style.background = "#6b7280";
-    modalStatus.textContent = "OFFLINE";
-    modalStatus.style.color = "#cbd5e1";
-    return;
+  function fuse(h, w) {
+    const base = Math.min(h, w);
+    if (h >= CFG.STRONG_FULL || w >= CFG.STRONG_FULL) return { v: Math.max(base, 0.7 * Math.max(h, w)), rule: "Strong-full rule" };
+    if (h <= CFG.NEAR_EMPTY && w <= CFG.NEAR_EMPTY) return { v: base, rule: "Near-empty rule" };
+    return { v: base, rule: "Lower of both" };
   }
 
-  modalFill.style.width = Math.round(latest.v) + "%";
-  modalFill.style.background = color;
-
-  modalStatus.textContent = "LIVE";
-  modalStatus.style.color = "#22c55e";
-}
-
-
-
-
-// adding the new bin 
-function openAddBin(){
-  addAuthorized = false;
-  addOverlay.classList.remove("hidden");
-  addBinModal.classList.remove("hidden");
-  pinStep.classList.remove("hidden");
-  formStep.classList.add("hidden");
-  pinInput.value = "";
-  newLat.value = "";
-  newLng.value = "";
-}
-
-function closeAddBin(){
-  addOverlay.classList.add("hidden");
-  addBinModal.classList.add("hidden");
-
-  // close picker too (without restoring add modal)
-  mapPickOverlay.classList.add("hidden");
-  mapPickModal.classList.add("hidden");
-
-  if (pickMarker) {
-    pickMarker.remove();
-    pickMarker = null;
-  }
-  pickedLatLng = null;
-}
-
-function verifyPin(){
-  if(pinInput.value !== ADD_BIN_PIN){
-    pinInput.value = "";
-    pinInput.placeholder = "Wrong PIN";
-    return;
-  }
-
-  addAuthorized = true;
-  pinStep.classList.add("hidden");
-  formStep.classList.remove("hidden");
-}
-
-function confirmAddBin(){
-  if(!addAuthorized) return;
-
-  //  Required fields (trim removes spaces)
-  const id  = newId.value.trim();
-  const loc = newLoc.value.trim();
-  const latStr = newLat.value.trim();
-  const lngStr = newLng.value.trim();
-
-  //  Block if missing
-  if(!id){
-    showToast("Bin ID is required");
-    newId.focus();
-    return;
-  }
-
-  if(!loc){
-    showToast("Bin Name/Location is required");
-    newLoc.focus();
-    return;
-  }
-
-  if(!latStr || !lngStr){
-    showToast("Pick a location on the map first");
-    return;
-  }
-
-  //  Numbers check
-  const lat = Number(latStr);
-  const lng = Number(lngStr);
-
-  if(Number.isNaN(lat) || Number.isNaN(lng)){
-    showToast("Latitude/Longitude must be valid numbers");
-    return;
-  }
-
-  //  Campus bounds check
-  if (!bounds.contains(L.latLng(lat, lng))) {
-    showToast("Latitude/Longitude must be inside campus 🚫");
-    return;
-  }
-
-  const newBin = {
-    id,
-    loc,
-    lat,
-    lng,
-    v: 0
+  /* ---------- state ---------- */
+  const state = {
+    bins: [], rows: new Map(), markers: new Map(),
+    active: null, pipe: null, paused: false,
+    picking: false, authorized: false, deleting: null,
+    ackUntil: 0, alertLoop: null, soundOn: false, undo: null, toastTimer: null, pickMarker: null
   };
 
-  fetch(`${SERVER_URL}/api/bin`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(newBin)
-  })
-  .then(() => {
-    lastAddedBinId = newBin.id;
-
-    closeAddBin();
-    showToast("Bin added (Undo?)");
-    loadBins();
-
-    undoTimer = setTimeout(() => {
-      lastAddedBinId = null;
-      hideToast();
-    }, 5000);
-  });
-}
-
-
-// for deleting the bin
-function openDeleteBin(){
-  if(!activeBin) return;
-
-  binToDelete = activeBin;
-
-  overlay.classList.add("hidden");
-  binModal.classList.add("hidden");
-
-  deleteOverlay.classList.remove("hidden");
-  deleteBinModal.classList.remove("hidden");
-  deletePinInput.value = "";
-}
-
-
-function closeDeleteBin(){
-  deleteOverlay.classList.add("hidden");
-  deleteBinModal.classList.add("hidden");
-}
-
-function confirmDeleteBin(){
-  if(deletePinInput.value !== ADD_BIN_PIN){
-    deletePinInput.value = "";
-    deletePinInput.placeholder = "Wrong PIN";
-    return;
+  function makeBin(id, loc, lat, lng, pct, rate, online = true) {
+    const b = { id, loc, lat, lng, rate, truth: pct, distance: 0, weight: 0, hS: null, wS: null, v: 0, rule: "", last_seen: Date.now(), forceOffline: !online, hist: [], wBias: rnd(-0.06, 0.06) };
+    readSensors(b, true);
+    if (!online) b.last_seen = Date.now() - 60000;
+    return b;
   }
 
-  // SAVE FOR UNDO FIRST
-  lastDeletedBin = { ...binToDelete };
+  /* one sensor reading -> percent -> smoothing -> fusion (as in the Pi script) */
+  function readSensors(b, first = false) {
+    const noiseH = rnd(-0.03, 0.03), noiseW = rnd(-0.02, 0.02);
+    const hPct = clamp(b.truth / 100 + noiseH, 0, 1);
+    const wPct = clamp(b.truth / 100 + b.wBias + noiseW, 0, 1);
+    b.distance = Math.round(CFG.EMPTY_CM - hPct * (CFG.EMPTY_CM - CFG.FULL_CM));
+    b.weight = +(wPct * CFG.FULL_KG).toFixed(2);
+    const h = pctHeight(b.distance), w = pctWeight(b.weight);
+    b.hRaw = h; b.wRaw = w;
+    b.hS = first ? h : ema(b.hS, h);
+    b.wS = first ? w : ema(b.wS, w);
+    const f = fuse(b.hS, b.wS);
+    b.v = Math.round(clamp(f.v, 0, 100));
+    b.rule = f.rule;
+    b.hist.push(b.v);
+    if (b.hist.length > 40) b.hist.shift();
+  }
 
-  fetch(`${SERVER_URL}/api/bin/${binToDelete.id}`, {
-    method: "DELETE"
-  })
-  .then(() => {
-    closeDeleteBin();
-    showToast("Bin deleted (Undo?)");
-    loadBins();
+  const isOffline = (b) => Date.now() - b.last_seen > CFG.OFFLINE_MS;
+  const statusOf = (b) => (isOffline(b) ? "offline" : b.v >= CFG.FULL_AT ? "full" : b.v >= CFG.HALF_AT ? "half" : "empty");
 
-    undoTimer = setTimeout(() => {
-      lastDeletedBin = null;
-      binToDelete = null;   // clear AFTER timeout
-      hideToast();
-    }, 5000);
-  });
-}
+  function seed() {
+    state.bins = [
+      makeBin("B01", "IESB", 32.5257, -92.6465, 28, 0.12),
+      makeBin("B02", "Cafeteria", 32.5234, -92.639, 46, 0.18),
+      makeBin("B03", "Dorm", 32.522, -92.6355, 76, 0.35),
+      makeBin("B04", "Campus Quad", 32.5243, -92.641, 18, 0.1, false)
+    ];
+    state.pipe = "B03";
+  }
 
-
-
-let toastTimer = null;
-
-function showToast(msg, duration = 5000){
-  toastText.textContent = msg;
-  toast.classList.remove("hidden");
-
-  clearTimeout(toastTimer);
-
-  toastTimer = setTimeout(() => {
-    hideToast();
-  }, duration);
-}
-
-function hideToast(){
-  toast.classList.add("hidden");
-}
-
-
-undoBtn.onclick = function(){
-
-  // UNDO DELETE
-  if(lastDeletedBin){
-    fetch(`${SERVER_URL}/api/bin`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(lastDeletedBin)
-    })
-    .then(() => {
-      lastDeletedBin = null;
-      binToDelete = null;
-      clearTimeout(undoTimer);
-      hideToast();
-      loadBins();
+  /* ---------- simulation tick (1 s, like a sensor reporting) ---------- */
+  function tick() {
+    state.bins.forEach((b) => {
+      if (b.forceOffline) return;
+      if (!state.paused) b.truth = clamp(b.truth + b.rate * rnd(0.5, 1.5), 0, 100);
+      readSensors(b);
+      b.last_seen = Date.now();
     });
-    return;
+    refresh();
   }
 
-  //  UNDO ADD
-  if(lastAddedBinId){
-    fetch(`${SERVER_URL}/api/bin/${lastAddedBinId}`, {
-      method: "DELETE"
-    })
-    .then(() => {
-      lastAddedBinId = null;
-      clearTimeout(undoTimer);
-      hideToast();
-      loadBins();
+  /* ---------- map ---------- */
+  const map = L.map("map", {
+    center: [32.5238, -92.6395], zoom: 16, minZoom: 15, maxZoom: 18,
+    maxBounds: BOUNDS, maxBoundsViscosity: 1, scrollWheelZoom: false, dragging: !L.Browser.mobile, tap: false
+  });
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "&copy; OpenStreetMap contributors" }).addTo(map);
+  const iconFor = (s) => L.divIcon({ className: "pinWrap", html: `<span class="pin ${s}"></span>`, iconSize: [18, 18], iconAnchor: [9, 9] });
+
+  map.on("click", (e) => {
+    if (!state.picking) return;
+    if (!BOUNDS.contains(e.latlng)) { toast("Pick inside the campus area"); return; }
+    $("#newLat").value = e.latlng.lat.toFixed(6);
+    $("#newLng").value = e.latlng.lng.toFixed(6);
+    if (state.pickMarker) state.pickMarker.setLatLng(e.latlng);
+    else state.pickMarker = L.marker(e.latlng).addTo(map);
+    endPick();
+    toast("Location selected ✅");
+  });
+
+  /* ---------- rendering ---------- */
+  function syncStructure() {
+    const ids = new Set(state.bins.map((b) => b.id));
+    state.rows.forEach((el, id) => { if (!ids.has(id)) { el.remove(); state.rows.delete(id); } });
+    state.markers.forEach((m, id) => { if (!ids.has(id)) { map.removeLayer(m); state.markers.delete(id); } });
+    state.bins.forEach((b) => {
+      if (!state.rows.has(b.id)) {
+        const el = document.createElement("div");
+        el.className = "row"; el.tabIndex = 0; el.setAttribute("role", "button");
+        el.innerHTML = '<div class="rid"><b></b><span></span></div><div class="rstat"><em class="pct"></em><span class="pill2"><i class="dot"></i><span class="lbl"></span></span></div><div class="bar"><i></i></div>';
+        el.addEventListener("click", () => openBin(b.id));
+        el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openBin(b.id); } });
+        $("#binList").appendChild(el);
+        state.rows.set(b.id, el);
+      }
+      if (!state.markers.has(b.id)) {
+        const m = L.marker([b.lat, b.lng], { icon: iconFor("empty"), keyboard: true, title: b.id })
+          .addTo(map).on("click", () => openBin(b.id));
+        m.bindTooltip(b.id, { direction: "top", offset: [0, -8] });
+        m._s = "empty";
+        state.markers.set(b.id, m);
+      }
     });
-  }
-};
-
-
-function handleSoundAlert(){
-
-  if(!alertSound || !fullBinAlert || !fullBinList) return;
-
-  const now = Date.now();
-  const hasFullBins = bins.some(b => b.v >= 80 && !isOffline(b));
-
-  // ⏸ Respect acknowledge silence window
-  if(now < alertAcknowledgedUntil){
-    return;
+    const sel = $("#pipeSel");
+    sel.innerHTML = state.bins.map((b) => `<option value="${esc(b.id)}">${esc(b.id)} · ${esc(b.loc)}</option>`).join("");
+    if (!ids.has(state.pipe)) state.pipe = state.bins[0] ? state.bins[0].id : null;
+    sel.value = state.pipe || "";
   }
 
-  //  Start alerts
-  if(hasFullBins){
-    startAlertLoop();
+  function refresh() {
+    let f = 0, h = 0, e = 0, o = 0;
+    state.bins.forEach((b) => {
+      const s = statusOf(b);
+      if (s === "full") f++; else if (s === "half") h++; else if (s === "offline") o++; else e++;
+      const row = state.rows.get(b.id);
+      if (row) {
+        row.className = "row " + s;
+        row.querySelector("b").textContent = b.id;
+        row.querySelector(".rid span").textContent = b.loc;
+        row.querySelector(".pct").textContent = s === "offline" ? "—" : b.v + "%";
+        row.querySelector(".lbl").textContent = s.toUpperCase();
+        row.querySelector(".bar i").style.width = (s === "offline" ? 100 : b.v) + "%";
+        row.setAttribute("aria-label", `${b.id}, ${b.loc}, ${s === "offline" ? "offline" : b.v + " percent"}, ${s}`);
+      }
+      const m = state.markers.get(b.id);
+      if (m && m._s !== s) { m.setIcon(iconFor(s)); m._s = s; }
+    });
+    $("#mTotal").textContent = state.bins.length;
+    $("#mFull").textContent = f; $("#mHalf").textContent = h; $("#mEmpty").textContent = e; $("#mOffline").textContent = o;
+    $("#liveText").textContent = state.paused ? "Filling paused" : "Live · " + new Date().toLocaleTimeString();
+    $("#live").classList.toggle("paused", state.paused);
+    updatePipeline(); updateDialog(); checkAlert();
   }
-  // ✅ Stop alerts when no bins are full
-  else{
-    stopAlertLoop();
-    alertAcknowledgedUntil = 0;
-    fullBinAlert.classList.add("hidden");
+
+  function updatePipeline() {
+    const b = state.bins.find((x) => x.id === state.pipe);
+    const off = !b || isOffline(b);
+    const set = (id, t) => ($(id).textContent = t);
+    if (!b || off) {
+      ["#pDist", "#pWeight", "#pSmooth", "#pFill"].forEach((i) => set(i, "—"));
+      set("#pH", b ? "sensor offline" : "—"); set("#pW", b ? "sensor offline" : "—"); set("#pRule", b ? "no data" : "—");
+    } else {
+      set("#pDist", b.distance + " cm"); set("#pH", "= " + Math.round(b.hRaw) + "% by height");
+      set("#pWeight", b.weight.toFixed(2) + " kg"); set("#pW", "= " + Math.round(b.wRaw) + "% by weight");
+      set("#pSmooth", Math.round(b.hS) + "% / " + Math.round(b.wS) + "%");
+      set("#pFill", b.v + "%"); set("#pRule", b.rule);
+    }
+    const pts = b ? b.hist.map((v, i, a) => `${(i / Math.max(a.length - 1, 1)) * 300},${62 - (v / 100) * 56}`).join(" ") : "";
+    $("#sparkLine").setAttribute("points", pts);
   }
-}
 
-//to resume the sound after one minute 
-function startAlertLoop(){
-  if(alertInterval) return; // already running
-
-  playAlert();
-  alertInterval = setInterval(playAlert, 60000); //this line sets the value of alret sound for every 60 seconds
-}
-
-function stopAlertLoop(){
-  clearInterval(alertInterval);
-  alertInterval = null;
-}
-
-function playAlert(){
-  const fullBins = bins.filter(b => b.v >= 80 && !isOffline(b));
-  if(fullBins.length === 0) return;
-
-  //  Reset & play sound
-  alertSound.pause();
-  alertSound.currentTime = 0;
-  alertSound.play().catch(() => {});
-
-  //  Update popup
-  fullBinList.innerHTML = "";
-  fullBins.forEach(b => {
-    fullBinList.innerHTML += `
-      <li>🗑 ${b.id} — ${b.loc} (${b.v}%)</li>
-    `;
+  /* ---------- bin dialog ---------- */
+  function openBin(id) {
+    state.active = id; state.pipe = id; $("#pipeSel").value = id;
+    $("#binDialog").showModal(); updateDialog();
+  }
+  function updateDialog() {
+    const dlg = $("#binDialog");
+    if (!dlg.open) return;
+    const b = state.bins.find((x) => x.id === state.active);
+    if (!b) { dlg.close(); return; }
+    const s = statusOf(b), off = s === "offline";
+    $("#dId").textContent = b.id; $("#dLoc").textContent = b.loc;
+    $("#dSeen").textContent = new Date(b.last_seen).toLocaleTimeString();
+    $("#dDist").textContent = off ? "—" : b.distance;
+    $("#dWeight").textContent = off ? "—" : b.weight.toFixed(2);
+    const colors = { empty: "#22c55e", half: "#f59e0b", full: "#ef4444", offline: "#94a3b8" };
+    $("#dFill").style.width = (off ? 100 : b.v) + "%"; $("#dFill").style.background = colors[s];
+    const st = $("#dStatus"); st.textContent = off ? "OFFLINE" : s.toUpperCase() + " · " + b.v + "%"; st.style.color = colors[s];
+  }
+  $("#dDir").addEventListener("click", () => {
+    const b = state.bins.find((x) => x.id === state.active);
+    if (!b) return;
+    if (isOffline(b)) { toast("This bin is OFFLINE 🚫"); return; }
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${b.lat},${b.lng}&travelmode=walking`, "_blank", "noopener");
+  });
+  $("#dDel").addEventListener("click", () => {
+    state.deleting = state.active; $("#binDialog").close();
+    $("#delPin").value = ""; $("#delPin").placeholder = "Enter PIN (4321)"; $("#delDialog").showModal();
   });
 
-  fullBinAlert.classList.remove("hidden");
-}
+  /* close any dialog when the backdrop is clicked */
+  document.querySelectorAll("dialog").forEach((d) => d.addEventListener("click", (e) => { if (e.target === d) d.close(); }));
 
-
-
-
-
-function acknowledgeAlert(){
-
-  const silenceDuration = 2 * 60 * 1000; // 2 minutes 
-
-  alertAcknowledgedUntil = Date.now() + silenceDuration;
-
-  // Stop alerts immediately
-  stopAlertLoop();
-  fullBinAlert.classList.add("hidden");
-
-  // Clear any old resume timers
-  clearTimeout(resumeAlertTimeout);
-
-  // HARD RESUME after silence ends
-  resumeAlertTimeout = setTimeout(() => {
-    alertAcknowledgedUntil = 0; 
-
-    if(bins.some(b => b.v >= 80)){
-      startAlertLoop(); // 
-    }
-  }, silenceDuration);
-}
-
-
-
-
-function loadBins(){
-  fetch(`${SERVER_URL}/api/bins`)
-    .then(res => res.json())
-    .then(data => {
-    bins = data;
-    render();
-    handleSoundAlert();
-
-    // LIVE MODAL UPDATE
-    if(activeBin){
-      updateModal();
-    }
+  /* ---------- delete / add with undo ---------- */
+  $("#delGo").addEventListener("click", () => {
+    if ($("#delPin").value !== PIN) { $("#delPin").value = ""; $("#delPin").placeholder = "Wrong PIN"; return; }
+    const i = state.bins.findIndex((b) => b.id === state.deleting);
+    if (i < 0) return;
+    const removed = state.bins.splice(i, 1)[0];
+    $("#delDialog").close(); syncStructure(); refresh();
+    toast("Bin deleted", () => { state.bins.splice(i, 0, removed); syncStructure(); refresh(); });
   });
 
-}
-
-
-
-/**********************
- * TABLE + METRICS
- **********************/
-function render(){
-  rows.innerHTML = "";
-
-  let f=0, h=0, e=0;
-
-  bins.forEach(b => {
-
-    const s = isOffline(b) ? "offline" : (b.v>=80 ? "full" : b.v>=40 ? "half" : "empty");
-
-    if(s==="full") f++;
-    else if(s==="half") h++;
-    else e++;
-
-    const rowClass = (s === "offline") ? "offline-row" : "";
-
-    rows.innerHTML += `
-      <tr class="${rowClass}">
-        <td>${b.id}</td>
-        <td>${b.loc}</td>
-        <td>${isOffline(b) ? "—" : (Math.round(b.v) + "%")}</td>
-
-        <td>
-          <span class="status-pill ${s}">
-            <span class="dot"></span>
-            ${s.toUpperCase()}
-          </span>
-        </td>
-
-        <td>
-          <button class="delete-btn" onclick="deleteFromRow('${b.id}')">
-            🗑
-          </button>
-        </td>
-      </tr>
-    `;
-});
-
-
-
-
-
-  total.textContent = bins.length;
-  full.textContent = f;
-  half.textContent = h;
-  empty.textContent = e;
-
-  document.getElementById("lastUpdate").textContent =
-    "🟢 Live • Updated " + new Date().toLocaleTimeString();
-
-  updateMarkers();
-  // saveBins();
-}
-function deleteFromRow(binId){
-  const bin = bins.find(b => b.id === binId);
-  if(!bin) return;
-
-  // Make sure info modal is CLOSED
-  overlay.classList.add("hidden");
-  binModal.classList.add("hidden");
-
-  // Set delete target directly
-  activeBin = bin;
-  binToDelete = bin;
-
-  // Open delete PIN modal ONLY
-  deleteOverlay.classList.remove("hidden");
-  deleteBinModal.classList.remove("hidden");
-  deletePinInput.value = "";
-}
-
-
-
-window.addEventListener("DOMContentLoaded", () => {
-  alertSound = document.getElementById("alertSound");
-  fullBinAlert = document.getElementById("fullBinAlert");
-  fullBinList = document.getElementById("fullBinList");
-});
-
-function closeFullAlert(){
-  // Just close the popup
-  fullBinAlert.classList.add("hidden");
-
-
-}
-
-
-function startPickLocation(){
-  // hide Add Bin modal while picking
-  addOverlay.classList.add("hidden");
-  addBinModal.classList.add("hidden");
-
-  // show picker modal
-  mapPickOverlay.classList.remove("hidden");
-  mapPickModal.classList.remove("hidden");
-
-  pickedLatLng = null;
-
-  setTimeout(() => {
-    if(!pickMap){
-      const center = map ? map.getCenter() : {lat: 32.5236, lng: -92.6379};
-      const zoom   = map ? map.getZoom() : 16;
-
-      pickMap = L.map("pickMap", {
-        center: [center.lat, center.lng],
-        zoom,
-        minZoom: 15,
-        maxZoom: 18,
-        maxBounds: bounds,
-        maxBoundsViscosity: 1
-      });
-
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png")
-        .addTo(pickMap);
-
-      //  click inside bounds only
-      pickMap.on("click", (e) => {
-        if(!bounds.contains(e.latlng)){
-          showToast("Pick inside campus only 🚫");
-          return;
-        }
-
-        pickedLatLng = e.latlng;
-
-        if(!pickMarker){
-          pickMarker = L.marker(e.latlng, { draggable: true }).addTo(pickMap);
-
-          let lastValid = e.latlng;
-
-          pickMarker.on("drag", () => {
-            const p = pickMarker.getLatLng();
-            if(bounds.contains(p)) lastValid = p;
-          });
-
-          pickMarker.on("dragend", () => {
-            const p = pickMarker.getLatLng();
-            if(!bounds.contains(p)){
-              pickMarker.setLatLng(lastValid);
-              showToast("Stay inside campus 🚫");
-              return;
-            }
-            pickedLatLng = p;
-          });
-        } else {
-          pickMarker.setLatLng(e.latlng);
-        }
-      });
-    }
-
-    // always after visible
-    pickMap.invalidateSize();
-    // optional: keep view in bounds
-    pickMap.fitBounds(bounds);
-  }, 120);
-
-  showToast("Select location on the popup map");
-}
-
-function closeMapPicker(){
-  mapPickOverlay.classList.add("hidden");
-  mapPickModal.classList.add("hidden");
-
-  // bring Add Bin modal back (form step)
-  addOverlay.classList.remove("hidden");
-  addBinModal.classList.remove("hidden");
-  pinStep.classList.add("hidden");
-  formStep.classList.remove("hidden");
-}
-
-function confirmPickedLocation(){
-  if(!pickedLatLng){
-    showToast("Click on the map first");
-    return;
+  $("#addBtn").addEventListener("click", () => {
+    state.authorized = false; $("#pinInput").value = ""; $("#pinInput").placeholder = "Enter PIN";
+    $("#pinStep").hidden = false; $("#formStep").hidden = true; $("#addDialog").showModal();
+  });
+  $("#pinGo").addEventListener("click", verifyPin);
+  $("#pinInput").addEventListener("keydown", (e) => { if (e.key === "Enter") verifyPin(); });
+  function verifyPin() {
+    if ($("#pinInput").value !== PIN) { $("#pinInput").value = ""; $("#pinInput").placeholder = "Wrong PIN"; return; }
+    state.authorized = true; $("#pinStep").hidden = true; $("#formStep").hidden = false;
+    if (!$("#newId").value) $("#newId").value = "B" + String(state.bins.length + 1).padStart(2, "0");
   }
-
-  newLat.value = pickedLatLng.lat.toFixed(6);
-  newLng.value = pickedLatLng.lng.toFixed(6);
-
-  //  close picker + restore add modal
-  closeMapPicker();
-  showToast("Location selected ✅");
-}
-
-function stopPickLocation(){
-  pickingLocation = false;
-  document.getElementById("ltMap").style.cursor = "";
-}
-
-function getMyLocation(){
-  return new Promise((resolve, reject) => {
-    if(!navigator.geolocation) return reject("No GPS");
-    navigator.geolocation.getCurrentPosition(
-      (pos) => resolve(L.latLng(pos.coords.latitude, pos.coords.longitude)),
-      () => reject("Location denied"),
-      { enableHighAccuracy: true, timeout: 8000 }
-    );
+  $("#pickBtn").addEventListener("click", () => {
+    $("#addDialog").close(); state.picking = true; $("#pickHint").hidden = false;
+    $("#map").scrollIntoView({ behavior: "smooth", block: "center" });
   });
-}
+  $("#pickCancel").addEventListener("click", () => { endPick(); });
+  function endPick() {
+    state.picking = false; $("#pickHint").hidden = true;
+    $("#addDialog").showModal(); $("#pinStep").hidden = true; $("#formStep").hidden = false;
+  }
+  $("#addGo").addEventListener("click", () => {
+    if (!state.authorized) return;
+    const id = $("#newId").value.trim(), loc = $("#newLoc").value.trim();
+    const lat = Number($("#newLat").value), lng = Number($("#newLng").value);
+    if (!id) return toast("Bin ID is required");
+    if (!loc) return toast("Location is required");
+    if (!$("#newLat").value || !$("#newLng").value) return toast("Pick a location on the map first");
+    if (state.bins.some((b) => b.id === id)) return toast("Bin ID already exists");
+    if (!BOUNDS.contains(L.latLng(lat, lng))) return toast("Location must be inside campus 🚫");
+    state.bins.push(makeBin(id, loc, lat, lng, rnd(0, 6), rnd(0.15, 0.35)));
+    if (state.pickMarker) { map.removeLayer(state.pickMarker); state.pickMarker = null; }
+    ["#newId", "#newLoc", "#newLat", "#newLng"].forEach((s) => ($(s).value = ""));
+    $("#addDialog").close(); syncStructure(); refresh();
+    toast("Bin added", () => { state.bins = state.bins.filter((b) => b.id !== id); syncStructure(); refresh(); });
+  });
 
+  /* ---------- alerts (full bins) ---------- */
+  function checkAlert() {
+    const fulls = state.bins.filter((b) => statusOf(b) === "full");
+    const card = $("#alertCard");
+    if (!fulls.length) { card.hidden = true; stopLoop(); state.ackUntil = 0; return; }
+    if (Date.now() < state.ackUntil) return;
+    $("#alertList").innerHTML = fulls.map((b) => `<li>🗑 ${esc(b.id)} — ${esc(b.loc)} (${b.v}%)</li>`).join("");
+    if (card.hidden) card.hidden = false;
+    if (!state.alertLoop) { playSound(); state.alertLoop = setInterval(playSound, CFG.ALERT_REPEAT_MS); }
+  }
+  function stopLoop() { clearInterval(state.alertLoop); state.alertLoop = null; }
+  function playSound() {
+    if (!state.soundOn) return;
+    const a = $("#alertSound"); a.currentTime = 0; a.play().catch(() => {});
+  }
+  $("#alertAck").addEventListener("click", () => { state.ackUntil = Date.now() + CFG.ACK_MS; stopLoop(); $("#alertCard").hidden = true; });
+  $("#alertClose").addEventListener("click", () => { $("#alertCard").hidden = true; });
+  $("#soundBtn").addEventListener("click", (e) => {
+    state.soundOn = !state.soundOn;
+    e.currentTarget.setAttribute("aria-pressed", state.soundOn);
+    e.currentTarget.setAttribute("aria-label", state.soundOn ? "Turn alert sound off" : "Turn alert sound on");
+    e.currentTarget.textContent = state.soundOn ? "🔔" : "🔕";
+    if (state.soundOn) playSound();
+  });
 
+  /* ---------- toast ---------- */
+  function toast(msg, undoFn) {
+    $("#toastText").textContent = msg; state.undo = undoFn || null;
+    $("#toastUndo").hidden = !undoFn; $("#toast").hidden = false;
+    clearTimeout(state.toastTimer); state.toastTimer = setTimeout(() => ($("#toast").hidden = true), 6000);
+  }
+  $("#toastUndo").addEventListener("click", () => { if (state.undo) state.undo(); state.undo = null; $("#toast").hidden = true; });
 
-function openProDirections(){
-  const id = document.getElementById("modalId")?.textContent?.trim();
-  if(!id) return showToast("No bin selected");
+  /* ---------- simulation controls ---------- */
+  const pipeBin = () => state.bins.find((b) => b.id === state.pipe);
+  $("#pipeSel").addEventListener("change", (e) => { state.pipe = e.target.value; updatePipeline(); });
+  $("#simTrash").addEventListener("click", () => { const b = pipeBin(); if (b) { b.truth = clamp(b.truth + 20, 0, 100); toast(`Added trash to ${b.id}. Watch the pipeline smooth it in.`); } });
+  $("#simEmpty").addEventListener("click", () => { const b = pipeBin(); if (b) { b.truth = rnd(1, 5); toast(`${b.id} emptied by collection crew.`); } });
+  $("#simOffline").addEventListener("click", () => {
+    const b = pipeBin(); if (!b) return;
+    b.forceOffline = !b.forceOffline;
+    if (b.forceOffline) toast(`${b.id} sensor disconnected. It shows OFFLINE after 10 s with no data, like the real system.`);
+    else { b.last_seen = Date.now(); toast(`${b.id} sensor reconnected.`); }
+  });
+  $("#simPause").addEventListener("click", (e) => { state.paused = !state.paused; e.currentTarget.textContent = state.paused ? "▶ Resume filling" : "⏸ Pause filling"; refresh(); });
+  $("#simReset").addEventListener("click", () => { seed(); syncStructure(); refresh(); toast("Demo reset"); });
 
-  const bin = bins.find(b => String(b.id) === String(id));
-  if(!bin) return showToast("Bin not found");
+  $("#bannerClose").addEventListener("click", () => ($("#banner").hidden = true));
+  $("#year").textContent = new Date().getFullYear();
 
-  if(isOffline(bin)) return showToast("This bin is OFFLINE 🚫");
-
-  const url =
-    `https://www.google.com/maps/dir/?api=1` +
-    `&destination=${bin.lat},${bin.lng}` +
-    `&travelmode=walking`;
-
-  window.open(url, "_blank");
-  closeModal();
-}
-
-
-
-
-
-
+  /* ---------- start ---------- */
+  seed(); syncStructure(); refresh();
+  setInterval(tick, 1000);
+})();

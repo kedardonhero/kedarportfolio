@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f7f8fb" />
+    <title>Shift Time Tracker (case study) | Kedar Nath Sapkota</title>
+    <meta name="description" content="A clock-in, clock-out tool that records work shifts and totals the hours worked." />
+    <script src="../js/theme.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/pages.css" />
+    <link rel="icon" type="image/png" href="../images/apple-touch-icon.png" />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg siteNav scrolled position-fixed start-0 end-0 top-0" aria-label="Main">
+      <div class="container">
+        <a class="navbar-brand" href="../index.html" aria-label="Kedar, go to home">Kedar<span>.</span></a>
+        <div class="d-flex align-items-center gap-2 ms-auto ms-lg-3 me-2 me-lg-0 order-lg-last">
+          <button type="button" class="navBtn" id="themeToggle" aria-label="Switch to dark theme"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i></button>
+        </div>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation"><i class="bi bi-list" aria-hidden="true"></i></button>
+        <div class="collapse navbar-collapse" id="navMenu">
+          <ul class="navbar-nav ms-lg-auto mb-0">
+            <li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#work">Work</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#blog">Tech Journey</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#contact">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <main class="pageMain"><div class="container">
+
+<article class="article">
+  <div class="crumbs"><a href="../index.html">Home</a><span>/</span><a href="../index.html#work">Work</a><span>/</span>Shift Time Tracker</div>
+  <span class="chip">Web Design</span>
+  <h1>Shift Time Tracker</h1>
+  <p class="lead">A clock-in, clock-out tool that records work shifts and totals the hours worked.</p>
+  <p class="metaRow"><span><i class="bi bi-calendar3"></i>1 Oct 2026</span><span><i class="bi bi-person"></i>Solo project: design and development</span></p>
+  <div class="chipRow" aria-label="Technologies used"><span class="chip">HTML5</span><span class="chip">CSS3</span><span class="chip">Vanilla JavaScript</span><span class="chip">localStorage</span></div>
+  <div class="btnRow">
+    <a class="btn btn-primary rounded-pill px-4" href="../projects/shiftclock/index.html" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> Open live demo</a>
+    <a class="btn btn-outline-secondary rounded-pill px-4" href="../index.html#work">All projects</a>
+  </div>
+  <figure><img src="../images/shiftclock-picture.jpg" alt="Shift Time Tracker interface" /><figcaption>Shift Time Tracker interface</figcaption></figure>
+
+  <h2>Why I built it</h2>
+  <p>People who work hourly or shift jobs often reconstruct their hours from memory when payday comes. The Shift Time Tracker lets someone clock in, clock out and see their total hours without a spreadsheet.</p><p>It was also a good excuse to learn how browsers handle time, which turns out to be more subtle than it looks.</p>
+
+  <h2>What it does</h2>
+  <ul><li>Clock in and clock out with a running timer</li><li>A history of completed shifts</li><li>Totals for hours worked</li><li>A responsive layout designed for quick use on a phone</li></ul>
+
+  <h2>How it works</h2>
+  <p><strong>Store timestamps, not counters.</strong> The first version of a timer usually adds one to a number every second. That breaks as soon as the tab is closed, the laptop sleeps or the browser throttles background tabs. Instead the app saves the moment the shift started and, on every tick, calculates the elapsed time as the current time minus that start time. The display can be wrong for a second, but the real value never is.</p><p><strong>An active shift survives a refresh.</strong> The start time of a shift in progress is saved to localStorage. When the page loads, the app checks for it and resumes the timer.</p><p><strong>Formatting durations.</strong> Shift lengths are stored in milliseconds and only converted to hours and minutes when they are displayed.</p><pre class="codeBlock"><code>function formatDuration(ms) {
+  const totalMinutes = Math.floor(ms / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours}h ${String(minutes).padStart(2, &quot;0&quot;)}m`;
+}</code></pre>
+
+  <div class="shotsWrap"><h2>Screenshots</h2><div class="shots"><figure><img src="../images/case-studies/shift-time-tracker-1.png" alt="Shift tracker with an active timer" loading="lazy" onerror="var s=this.closest('.shotsWrap');this.closest('figure').remove();if(s&&!s.querySelector('figure'))s.remove()" /><figcaption>An active shift with the running timer</figcaption></figure><figure><img src="../images/case-studies/shift-time-tracker-2.png" alt="Shift tracker history list" loading="lazy" onerror="var s=this.closest('.shotsWrap');this.closest('figure').remove();if(s&&!s.querySelector('figure'))s.remove()" /><figcaption>Shift history and totals</figcaption></figure></div></div>
+
+  <h2>Technical lessons</h2>
+  <ul><li><strong>Derive values instead of storing them.</strong> Elapsed time and totals are calculated from timestamps, which keeps them consistent.</li><li><strong>setInterval is not a clock.</strong> It drifts and pauses in background tabs, so it should only trigger redraws.</li><li><strong>Edge cases are the real work.</strong> A shift that crosses midnight or a daylight saving change cannot be handled by subtracting two clock times as strings.</li><li><strong>Small interfaces need big tap targets.</strong> A tool used between tasks has to work with one thumb.</li></ul>
+
+  <h2>What I would improve next</h2>
+  <ul><li>Add break tracking that is subtracted from the shift total</li><li>Add an hourly rate and an estimated pay total</li><li>Let the user edit a shift when they forgot to clock out</li><li>Make the app installable and usable offline as a progressive web app</li></ul>
+<div class="pager"><a href="expense-tracker.html"><small>&larr; Previous project</small>Personal Expense Tracker</a><a class="next" href="samb-clone.html"><small>Next project &rarr;</small>SAMB Clone Website</a></div>
+</article>
+    </div></main>
+    <footer class="footer">
+      <p>&copy; <span id="year">2026</span> Kedar Nath Sapkota. All rights reserved.</p>
+      <p><a href="../privacy.html">Privacy Policy</a> &middot; <a href="../index.html#contact">Contact</a></p>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  </body>
+</html>

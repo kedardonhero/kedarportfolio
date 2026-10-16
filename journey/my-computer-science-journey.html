@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f7f8fb" />
+    <title>My Computer Science journey | Kedar Nath Sapkota</title>
+    <meta name="description" content="What studying Computer Science at Louisiana Tech has taught me about programming, problem solving and turning coursework into projects." />
+    <script src="../js/theme.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/pages.css" />
+    <link rel="icon" type="image/png" href="../images/apple-touch-icon.png" />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg siteNav scrolled position-fixed start-0 end-0 top-0" aria-label="Main">
+      <div class="container">
+        <a class="navbar-brand" href="../index.html" aria-label="Kedar, go to home">Kedar<span>.</span></a>
+        <div class="d-flex align-items-center gap-2 ms-auto ms-lg-3 me-2 me-lg-0 order-lg-last">
+          <button type="button" class="navBtn" id="themeToggle" aria-label="Switch to dark theme"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i></button>
+        </div>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation"><i class="bi bi-list" aria-hidden="true"></i></button>
+        <div class="collapse navbar-collapse" id="navMenu">
+          <ul class="navbar-nav ms-lg-auto mb-0">
+            <li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#work">Work</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#blog">Tech Journey</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#contact">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <main class="pageMain"><div class="container">
+
+<article class="article">
+  <div class="crumbs"><a href="../index.html">Home</a><span>/</span><a href="../index.html#blog">Tech Journey</a><span>/</span>My Computer Science journey</div>
+  <span class="chip"><i class="bi bi-mortarboard" aria-hidden="true"></i>Education</span>
+  <h1>My Computer Science journey</h1>
+  <p class="metaRow"><span><i class="bi bi-person"></i>Kedar Nath Sapkota</span><span><i class="bi bi-calendar3"></i>2026</span><span><i class="bi bi-clock"></i>6 min read</span></p>
+  <figure><img src="../images/cs_building.jpg" alt="Computer Science building at Louisiana Tech" /></figure>
+
+<p class="lead">Studying Computer Science at Louisiana Tech University in Ruston has changed how I think about problems. Before, I looked for the answer. Now I look for the structure of the problem first, and the answer usually follows. This article is about the habits and ideas that made the biggest difference, and how I try to turn classroom concepts into things I can actually run.</p>
+
+<h2>Programming is mostly problem solving</h2>
+<p>When I started, I believed programming was about memorising syntax. It is not. Syntax is the easy part and you can look it up in seconds. The hard part is breaking a vague goal into steps small enough that a computer can follow them.</p>
+<p>The routine I now use on almost every problem is:</p>
+<ol>
+  <li>Write the problem in plain language, including what goes in and what should come out.</li>
+  <li>Solve a tiny example by hand.</li>
+  <li>Write the steps as comments or pseudocode.</li>
+  <li>Turn each step into code and test it before moving on.</li>
+</ol>
+<p>Doing the small example by hand is the step I used to skip, and it is the one that catches the most misunderstandings.</p>
+
+<h2>Turning concepts into projects</h2>
+<p>Lectures explain an idea; a project forces me to find out whether I really understood it. Many of the projects on my portfolio began as a way to practise a specific concept:</p>
+<div class="tableWrap"><table class="table cmpTable">
+  <thead><tr><th>Concept</th><th>Where I practised it</th></tr></thead>
+  <tbody>
+    <tr><td>Arrays and indexing</td><td><a href="../case-studies/tic-tac-toe.html">Tic Tac Toe</a>: the board is an array of nine cells</td></tr>
+    <tr><td>Randomness and input validation</td><td><a href="../case-studies/number-guessing-game.html">Number Guessing Game</a></td></tr>
+    <tr><td>Lookup tables and conditionals</td><td><a href="../case-studies/rock-paper-scissors.html">Rock Paper Scissors</a></td></tr>
+    <tr><td>Program state</td><td><a href="../case-studies/calculator.html">Calculator</a></td></tr>
+    <tr><td>Data persistence and aggregation</td><td><a href="../case-studies/expense-tracker.html">Personal Expense Tracker</a></td></tr>
+    <tr><td>Modelling a real-world system</td><td><a href="../case-studies/smart-trash-bin.html">Smart Trash Bin</a></td></tr>
+  </tbody>
+</table></div>
+
+<h2>Habits that made me better</h2>
+<h3>Read the error message first</h3>
+<p>Early on, I would see a red error and immediately search the internet. Now I read the message slowly. It almost always names the file, the line and the kind of mistake. Reading it fully solves most bugs in under a minute.</p>
+<h3>Change one thing at a time</h3>
+<p>If I change five things and the program works, I do not know which change fixed it. If I change five things and it breaks, I do not know which one broke it. Small steps keep the cause visible.</p>
+<h3>Use version control from the start</h3>
+<p>Git gives me a safe way to experiment. If an idea fails, I go back to the last working commit. Clear commit messages also leave a record of how a project developed, which I find useful when I return to old code.</p>
+<h3>Explain it out loud</h3>
+<p>If I cannot explain a piece of code in simple words, I do not understand it yet. Writing the explanation, as I do in the case studies on this site, exposes the gaps faster than rereading notes.</p>
+
+<h2>Choosing several languages on purpose</h2>
+<p>I work with Python, Java, JavaScript, HTML and CSS, and each one teaches something different. Python lets me test an idea quickly. Java forces me to think about types and structure. JavaScript, HTML and CSS let me put the result in front of someone in a browser. Moving between them separated the concepts that are universal, such as loops, functions and data structures, from the details that belong to one language.</p>
+
+<h2>What I found difficult</h2>
+<p>Progress was not a straight line. Debugging code I did not understand, getting stuck on a project for hours and comparing my progress with other people were all part of it. What helped was treating every bug as information and keeping a list of what I had solved, so that I could see the progress that was easy to forget.</p>
+
+<h2>Advice for new Computer Science students</h2>
+<ul>
+  <li>Build something small every few weeks, even if it is a game or a calculator. Small finished projects teach more than large unfinished ones.</li>
+  <li>Type code yourself instead of copying it; the typing is part of learning.</li>
+  <li>Ask questions early. Professors and classmates have usually seen your problem before.</li>
+  <li>Keep your projects somewhere public, such as GitHub, so you can see how far you have come.</li>
+</ul>
+
+<h2>Where I am heading</h2>
+<p>I am looking for a software engineering internship where I can work on real code with experienced engineers, learn how teams build and ship software, and contribute what I have learned. If you would like to talk, you can <a href="../index.html#contact">contact me here</a>.</p>
+
+<div class="pager"><a href="smart-waste-management-system.html"><small>&larr; Previous article</small>Building a Smart Waste Management System</a><a class="next" href="from-learning-to-building.html"><small>Next article &rarr;</small>From learning to building</a></div>
+</article>
+    </div></main>
+    <footer class="footer">
+      <p>&copy; <span id="year">2026</span> Kedar Nath Sapkota. All rights reserved.</p>
+      <p><a href="../privacy.html">Privacy Policy</a> &middot; <a href="../index.html#contact">Contact</a></p>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  </body>
+</html>

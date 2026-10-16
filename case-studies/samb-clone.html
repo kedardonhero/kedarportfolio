@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f7f8fb" />
+    <title>SAMB Clone Website (case study) | Kedar Nath Sapkota</title>
+    <meta name="description" content="A responsive front-end recreation of an existing business website, built to practise real-world page layout." />
+    <script src="../js/theme.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/pages.css" />
+    <link rel="icon" type="image/png" href="../images/apple-touch-icon.png" />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg siteNav scrolled position-fixed start-0 end-0 top-0" aria-label="Main">
+      <div class="container">
+        <a class="navbar-brand" href="../index.html" aria-label="Kedar, go to home">Kedar<span>.</span></a>
+        <div class="d-flex align-items-center gap-2 ms-auto ms-lg-3 me-2 me-lg-0 order-lg-last">
+          <button type="button" class="navBtn" id="themeToggle" aria-label="Switch to dark theme"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i></button>
+        </div>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation"><i class="bi bi-list" aria-hidden="true"></i></button>
+        <div class="collapse navbar-collapse" id="navMenu">
+          <ul class="navbar-nav ms-lg-auto mb-0">
+            <li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#work">Work</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#blog">Tech Journey</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#contact">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <main class="pageMain"><div class="container">
+
+<article class="article">
+  <div class="crumbs"><a href="../index.html">Home</a><span>/</span><a href="../index.html#work">Work</a><span>/</span>SAMB Clone Website</div>
+  <span class="chip">Web Design</span>
+  <h1>SAMB Clone Website</h1>
+  <p class="lead">A responsive front-end recreation of an existing business website, built to practise real-world page layout.</p>
+  <p class="metaRow"><span><i class="bi bi-calendar3"></i>21 May 2024</span><span><i class="bi bi-person"></i>Solo project: design and development</span></p>
+  <div class="chipRow" aria-label="Technologies used"><span class="chip">HTML5</span><span class="chip">CSS3</span></div>
+  <div class="btnRow">
+    <a class="btn btn-primary rounded-pill px-4" href="../projects/Samb%20Website%20project/index.html" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> Open live demo</a>
+    <a class="btn btn-outline-secondary rounded-pill px-4" href="../index.html#work">All projects</a>
+  </div>
+  <figure><img src="../images/hero.jpg" alt="SAMB clone website home page" /><figcaption>SAMB clone website home page</figcaption></figure>
+
+  <h2>Why I built it</h2>
+  <p>Copying a finished design is one of the fastest ways to learn why professional layouts work. In this project I recreated the SAMB website from the screen alone: no template, no starter code, just the finished page and my own markup and styles.</p><p>This is a front-end practice project. It is not the real company's site and has no backend.</p>
+
+  <h2>What it does</h2>
+  <ul><li>A full page layout: header and navigation, hero section, content sections and footer</li><li>A layout that adapts from desktop to phone widths</li><li>Consistent spacing, colours and typography reused across sections</li></ul>
+
+  <h2>How it works</h2>
+  <p><strong>Structure before style.</strong> I started with semantic HTML (header, nav, main, section, footer) so the page made sense without any CSS.</p><p><strong>Flexbox and Grid for layout.</strong> Rows of items such as navigation links use Flexbox. Two-dimensional sections such as card grids use CSS Grid.</p><p><strong>Responsive with media queries.</strong> The layout is checked at narrow widths, and breakpoints are added where the design actually breaks, for example when a three-column row needs to become one column.</p><pre class="codeBlock"><code>.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .cards { grid-template-columns: 1fr; }
+}</code></pre>
+
+  <div class="shotsWrap"><h2>Screenshots</h2><div class="shots"><figure><img src="../images/case-studies/samb-clone-1.png" alt="SAMB clone desktop view" loading="lazy" onerror="var s=this.closest('.shotsWrap');this.closest('figure').remove();if(s&&!s.querySelector('figure'))s.remove()" /><figcaption>Desktop view of the home page</figcaption></figure><figure><img src="../images/case-studies/samb-clone-2.png" alt="SAMB clone mobile view" loading="lazy" onerror="var s=this.closest('.shotsWrap');this.closest('figure').remove();if(s&&!s.querySelector('figure'))s.remove()" /><figcaption>Mobile view of the same page</figcaption></figure></div></div>
+
+  <h2>Technical lessons</h2>
+  <ul><li><strong>Browser dev tools are a teacher.</strong> Inspecting how an existing page spaces and sizes elements taught me more than most tutorials.</li><li><strong>Reuse beats repetition.</strong> Defining colours and spacing once and reusing them keeps a page consistent and easy to change.</li><li><strong>Responsive design is a habit.</strong> It is much easier to check small screens throughout than to fix them at the end.</li><li><strong>Recreating a design is not the same as designing.</strong> It showed me where I still needed to practise original design decisions.</li></ul>
+
+  <h2>What I would improve next</h2>
+  <ul><li>Use CSS custom properties for the colour and spacing system</li><li>Optimise and properly size the images</li><li>Improve accessibility: contrast, focus states and alt text review</li></ul>
+<div class="pager"><a href="shift-time-tracker.html"><small>&larr; Previous project</small>Shift Time Tracker</a><a class="next" href="amazon-clone.html"><small>Next project &rarr;</small>Amazon Clone Website</a></div>
+</article>
+    </div></main>
+    <footer class="footer">
+      <p>&copy; <span id="year">2026</span> Kedar Nath Sapkota. All rights reserved.</p>
+      <p><a href="../privacy.html">Privacy Policy</a> &middot; <a href="../index.html#contact">Contact</a></p>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  </body>
+</html>

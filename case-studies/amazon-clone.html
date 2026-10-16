@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f7f8fb" />
+    <title>Amazon Clone Website (case study) | Kedar Nath Sapkota</title>
+    <meta name="description" content="A front-end study of a large e-commerce layout, focused on the header, product grid and responsive behaviour." />
+    <script src="../js/theme.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/pages.css" />
+    <link rel="icon" type="image/png" href="../images/apple-touch-icon.png" />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg siteNav scrolled position-fixed start-0 end-0 top-0" aria-label="Main">
+      <div class="container">
+        <a class="navbar-brand" href="../index.html" aria-label="Kedar, go to home">Kedar<span>.</span></a>
+        <div class="d-flex align-items-center gap-2 ms-auto ms-lg-3 me-2 me-lg-0 order-lg-last">
+          <button type="button" class="navBtn" id="themeToggle" aria-label="Switch to dark theme"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i></button>
+        </div>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation"><i class="bi bi-list" aria-hidden="true"></i></button>
+        <div class="collapse navbar-collapse" id="navMenu">
+          <ul class="navbar-nav ms-lg-auto mb-0">
+            <li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#work">Work</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#blog">Tech Journey</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#contact">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <main class="pageMain"><div class="container">
+
+<article class="article">
+  <div class="crumbs"><a href="../index.html">Home</a><span>/</span><a href="../index.html#work">Work</a><span>/</span>Amazon Clone Website</div>
+  <span class="chip">Web Design</span>
+  <h1>Amazon Clone Website</h1>
+  <p class="lead">A front-end study of a large e-commerce layout, focused on the header, product grid and responsive behaviour.</p>
+  <p class="metaRow"><span><i class="bi bi-calendar3"></i>24 May 2024</span><span><i class="bi bi-person"></i>Solo project: design and development</span></p>
+  <div class="chipRow" aria-label="Technologies used"><span class="chip">HTML5</span><span class="chip">CSS3</span></div>
+  <div class="btnRow">
+    <a class="btn btn-primary rounded-pill px-4" href="../projects/Amazon/index.html" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> Open live demo</a>
+    <a class="btn btn-outline-secondary rounded-pill px-4" href="../index.html#work">All projects</a>
+  </div>
+  <figure><img src="../images/Amazon-1.jpg" alt="Amazon clone home page" /><figcaption>Amazon clone home page</figcaption></figure>
+
+  <h2>Why I built it</h2>
+  <p>E-commerce sites are some of the densest layouts on the web: a search-heavy header, category navigation, rows of product cards and a large footer. I recreated this style of page to practise building a complex layout out of small reusable pieces.</p><p>To be clear about its scope: this is a front-end study. It uses no real products, has no checkout and is not affiliated with Amazon.</p>
+
+  <h2>What it does</h2>
+  <ul><li>A header with logo, search bar and navigation</li><li>A grid of product cards with image, title and price areas</li><li>Hover states on cards and buttons</li><li>A multi-column footer</li><li>A layout that adjusts to smaller screens</li></ul>
+
+  <h2>How it works</h2>
+  <p><strong>Components in HTML and CSS.</strong> A product card is built once as a block of markup with its own class names, then repeated. Changing the card style in one place updates every card.</p><p><strong>Header with Flexbox.</strong> The logo, a search bar that stretches to fill the available space, and the navigation items sit in a single flex row.</p><pre class="codeBlock"><code>.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.search {
+  flex: 1;
+}</code></pre><p><strong>Product grid with auto-fit.</strong> Using repeat(auto-fit, minmax(...)) lets the number of columns change by itself as the screen gets narrower, with fewer media queries.</p>
+
+  <div class="shotsWrap"><h2>Screenshots</h2><div class="shots"><figure><img src="../images/case-studies/amazon-clone-1.png" alt="Amazon clone home page" loading="lazy" onerror="var s=this.closest('.shotsWrap');this.closest('figure').remove();if(s&&!s.querySelector('figure'))s.remove()" /><figcaption>Home page with the product grid</figcaption></figure><figure><img src="../images/case-studies/amazon-clone-2.png" alt="Amazon clone mobile layout" loading="lazy" onerror="var s=this.closest('.shotsWrap');this.closest('figure').remove();if(s&&!s.querySelector('figure'))s.remove()" /><figcaption>Layout on a phone-sized screen</figcaption></figure></div></div>
+
+  <h2>Technical lessons</h2>
+  <ul><li><strong>Dense layouts need a system.</strong> Without consistent spacing and sizing the page looks cluttered very quickly.</li><li><strong>Naming matters.</strong> Clear class names made a long stylesheet easier to navigate.</li><li><strong>Static is not the same as an application.</strong> Building this showed me what a real store would also need: a database, search, a cart, user accounts and secure payments.</li></ul>
+
+  <h2>What I would improve next</h2>
+  <ul><li>Load products from a JSON file or API and render them with JavaScript</li><li>Add a working cart using localStorage</li><li>Add search and category filtering</li></ul>
+<div class="pager"><a href="samb-clone.html"><small>&larr; Previous project</small>SAMB Clone Website</a><a class="next" href="number-guessing-game.html"><small>Next project &rarr;</small>Number Guessing Game</a></div>
+</article>
+    </div></main>
+    <footer class="footer">
+      <p>&copy; <span id="year">2026</span> Kedar Nath Sapkota. All rights reserved.</p>
+      <p><a href="../privacy.html">Privacy Policy</a> &middot; <a href="../index.html#contact">Contact</a></p>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  </body>
+</html>

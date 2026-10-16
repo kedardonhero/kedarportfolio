@@ -1,213 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Smart Waste | Louisiana Tech</title>
-<link rel="icon" type="image/png" href="fabicon.png">
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-<link rel="stylesheet" href="style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#020617" />
+<title>Smart Waste Dashboard (Live Demo) | Kedar Nath Sapkota</title>
+<meta name="description" content="Interactive demo of the Smart Waste dashboard: live fill levels, campus map, alerts and the sensor-fusion pipeline behind the Smart Trash Bin project." />
+<link rel="icon" type="image/png" href="fabicon.png" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
 
-<!-- LOGIN -->
-<section id="loginPage" class="auth">
-  <div class="auth-glass">
-    <div class="logo">♻</div>
-    <h1>Smart Waste</h1>
-    <p>Louisiana Tech University</p>
-
-    <div class="field">
-      <input id="username" required>
-      <label>Username</label>
+<header class="top">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">♻</span>
+    <div>
+      <h1>Smart Waste</h1>
+      <p>Louisiana Tech University &bull; Campus Operations</p>
     </div>
-
-    <div class="field">
-      <input id="password" type="password" required>
-      <label>Password</label>
-    </div>
-
-    <button class="primary full" onclick="login()">Sign In</button>
   </div>
-</section>
-
-<!-- DASHBOARD -->
-<section id="dashboard" class="hidden">
-
-<header class="topbar">
-  <h2>Smart Waste Dashboard</h2>
-
-  <!-- CONTEXT ROW -->
-  <div class="dashboard-subrow">
-    <span class="context">
-      Louisiana Tech University • Campus Operations
-    </span>
-
-    <span id="lastUpdate" class="live-status">
-      🟢 Live
-    </span>
+  <div class="topActions">
+    <span class="pill demoPill">Demo mode</span>
+    <span id="live" class="pill livePill" role="status"><i></i><span id="liveText">Live</span></span>
+    <button id="soundBtn" class="iconBtn" type="button" aria-pressed="false" aria-label="Turn alert sound on" title="Alert sound">🔕</button>
+    <a class="linkBtn" href="../../case-studies/smart-trash-bin.html">Case study</a>
+    <a class="linkBtn" href="../../index.html#work">&larr; Portfolio</a>
   </div>
 </header>
 
-<!-- METRICS -->
-<section class="metrics">
-  <div class="metric"><span>Total</span><h3 id="total">0</h3></div>
-  <div class="metric danger"><span>Full</span><h3 id="full">0</h3></div>
-  <div class="metric warning"><span>Half</span><h3 id="half">0</h3></div>
-  <div class="metric success"><span>Empty</span><h3 id="empty">0</h3></div>
-</section>
-
-<!-- CONTENT -->
-<section class="content">
-  <div class="card">
-    <h3>Campus Map</h3>
-    <div id="ltMap"></div>
-  </div>
-
-  <div class="card">
-    <button class="primary" onclick="openAddBin()">➕ Add Bin</button>
-
-    <h3>Bin Status</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Location</th>
-          <th>Fill</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="rows"></tbody>
-    </table>
-  </div>
-</section>
-
-<footer>© 2025 Louisiana Tech University</footer>
-</section>
-
-<!-- OVERLAYS + MODALS -->
-<div id="overlay" class="overlay hidden" onclick="closeModal()"></div>
-
-<div id="binModal" class="bin-modal hidden">
-  <button class="close-btn" onclick="closeModal()">✕</button>
-
-  <h2 id="modalId"></h2>
-  <p id="modalLoc"></p>
-
-  <p class="modal-loc">Last seen: <span id="modalLastSeen">—</span></p>
-  <p class="modal-loc">Height: <span id="modalHeight">—</span> cm</p>
-  <p class="modal-loc">Weight: <span id="modalWeight">—</span> kg</p>
-
-  <!-- ✅ Progress bar ABOVE buttons -->
-  <div class="modal-bar">
-    <div id="modalFill" class="modal-fill"></div>
-  </div>
-
-  <p id="modalStatus"></p>
-
-  <!-- ✅ Buttons SIDE BY SIDE -->
-  <div class="modal-actions">
-    <button class="primary" onclick="openProDirections()"> Direction</button>
-    <button class="danger-btn" onclick="openDeleteBin()">🗑 Delete</button>
-  </div>
+<div class="banner" id="banner" role="note">
+  <p><strong>This is a live demo.</strong> The readings below are simulated in your browser using the same calculations as the real system: ultrasonic distance + load-cell weight &rarr; smoothing &rarr; fusion. The real version runs on Arduino sensors, a Raspberry Pi and a Flask API. Try the simulation controls to trigger an alert.</p>
+  <button id="bannerClose" type="button" aria-label="Dismiss message">✕</button>
 </div>
 
+<main>
+  <noscript><p class="banner">This demo needs JavaScript to run.</p></noscript>
 
-<div id="addOverlay" class="overlay hidden"></div>
+  <section class="metrics" aria-label="Summary">
+    <div class="metric"><span>Total bins</span><h2 id="mTotal">0</h2></div>
+    <div class="metric danger"><span>Full</span><h2 id="mFull">0</h2></div>
+    <div class="metric warning"><span>Half</span><h2 id="mHalf">0</h2></div>
+    <div class="metric success"><span>Empty</span><h2 id="mEmpty">0</h2></div>
+    <div class="metric muted"><span>Offline</span><h2 id="mOffline">0</h2></div>
+  </section>
 
-<div id="addBinModal" class="bin-modal hidden">
-  <button class="close-btn" onclick="closeAddBin()">✕</button>
+  <section class="grid">
+    <article class="card mapCard">
+      <div class="cardHead">
+        <h2>Campus map</h2>
+        <ul class="legend" aria-label="Map legend">
+          <li><i class="d empty"></i>Empty</li><li><i class="d half"></i>Half</li><li><i class="d full"></i>Full</li><li><i class="d offline"></i>Offline</li>
+        </ul>
+      </div>
+      <div class="mapBox">
+        <div id="map" aria-label="Map of bins on campus"></div>
+        <div id="pickHint" class="pickHint" hidden>
+          <span>Tap the map to place the new bin</span>
+          <button id="pickCancel" type="button">Cancel</button>
+        </div>
+      </div>
+    </article>
 
+    <article class="card listCard">
+      <div class="cardHead">
+        <h2>Bin status</h2>
+        <button id="addBtn" class="primary" type="button">+ Add bin</button>
+      </div>
+      <div id="binList" class="binList" role="list"></div>
+    </article>
+
+    <article class="card pipeCard">
+      <div class="cardHead">
+        <h2>Sensor pipeline</h2>
+        <label class="sel"><span class="sr">Choose a bin</span><select id="pipeSel"></select></label>
+      </div>
+      <div class="flow" aria-live="off">
+        <div class="step"><span>Ultrasonic distance</span><b id="pDist">&ndash;</b><small id="pH">&ndash;</small></div>
+        <div class="arrow" aria-hidden="true">&rarr;</div>
+        <div class="step"><span>Load cell weight</span><b id="pWeight">&ndash;</b><small id="pW">&ndash;</small></div>
+        <div class="arrow" aria-hidden="true">&rarr;</div>
+        <div class="step"><span>Smoothed (EMA)</span><b id="pSmooth">&ndash;</b><small>&alpha; = 0.35</small></div>
+        <div class="arrow" aria-hidden="true">&rarr;</div>
+        <div class="step out"><span>Fused fill level</span><b id="pFill">&ndash;</b><small id="pRule">&ndash;</small></div>
+      </div>
+      <div class="sparkWrap">
+        <svg id="spark" viewBox="0 0 300 64" preserveAspectRatio="none" role="img" aria-label="Recent fill level history">
+          <line x1="0" y1="14" x2="300" y2="14" class="thr"></line>
+          <polyline id="sparkLine" points=""></polyline>
+        </svg>
+        <small>Recent fill level &bull; dashed line = full threshold (80%)</small>
+      </div>
+      <p class="explain">Each sensor is converted to a percentage, smoothed with an exponential moving average, then fused. If either sensor reads 85% or more, the result is lifted so a full bin is never under-reported. If both are near empty, it stays low. Otherwise the lower reading wins. <strong>80%+ is Full, 40%+ is Half.</strong></p>
+    </article>
+
+    <article class="card simCard">
+      <div class="cardHead"><h2>Simulation controls</h2></div>
+      <p class="muted small">Acts on the bin selected in the pipeline panel.</p>
+      <div class="simBtns">
+        <button id="simTrash" type="button" class="ghost">🗑 Add trash (+20%)</button>
+        <button id="simEmpty" type="button" class="ghost">🚛 Empty bin</button>
+        <button id="simOffline" type="button" class="ghost">📡 Toggle sensor offline</button>
+        <button id="simPause" type="button" class="ghost">⏸ Pause filling</button>
+        <button id="simReset" type="button" class="ghost">↺ Reset demo</button>
+      </div>
+    </article>
+  </section>
+</main>
+
+<footer>
+  <p>&copy; <span id="year">2026</span> Kedar Nath Sapkota &bull; Demo uses simulated data &bull; Map &copy; OpenStreetMap contributors &bull; <a href="../../privacy.html">Privacy Policy</a></p>
+</footer>
+
+<!-- Bin details -->
+<dialog id="binDialog" class="sheet" aria-labelledby="dId">
+  <form method="dialog"><button class="x" aria-label="Close">✕</button></form>
+  <h2 id="dId"></h2>
+  <p id="dLoc" class="muted"></p>
+  <dl class="facts">
+    <div><dt>Last seen</dt><dd id="dSeen">&ndash;</dd></div>
+    <div><dt>Sensor distance</dt><dd><span id="dDist">&ndash;</span> cm</dd></div>
+    <div><dt>Weight</dt><dd><span id="dWeight">&ndash;</span> kg</dd></div>
+  </dl>
+  <div class="bar big"><i id="dFill"></i></div>
+  <p id="dStatus" class="statusLine"></p>
+  <div class="actions">
+    <button id="dDir" class="primary" type="button">Directions</button>
+    <button id="dDel" class="danger" type="button">🗑 Delete</button>
+  </div>
+</dialog>
+
+<!-- Add bin -->
+<dialog id="addDialog" class="sheet" aria-labelledby="addTitle">
+  <form method="dialog"><button class="x" aria-label="Close">✕</button></form>
   <div id="pinStep">
-    <h2>Verify PIN</h2>
-    <input id="pinInput" class="modal-input" type="password" placeholder="Enter PIN">
-    <button class="primary full" onclick="verifyPin()">Continue</button>
+    <h2 id="addTitle">Verify PIN</h2>
+    <p class="muted small">Adding and deleting bins is protected. Demo PIN: <strong>4321</strong></p>
+    <input id="pinInput" class="field" type="password" inputmode="numeric" autocomplete="off" placeholder="Enter PIN" />
+    <button id="pinGo" class="primary full" type="button">Continue</button>
   </div>
-
-  <div id="formStep" class="hidden">
-    <h2>Add New Bin</h2>
-
-    <button class="ghost full" onclick="startPickLocation()">📍 Pick Location From Map</button>
-
-    <div class="modal-grid">
-      <input id="newId" placeholder="Bin ID">
-      <input id="newLoc" placeholder="Location">
-      <input id="newLat" placeholder="Latitude">
-      <input id="newLng" placeholder="Longitude">
+  <div id="formStep" hidden>
+    <h2>Add new bin</h2>
+    <button id="pickBtn" class="ghost full" type="button">📍 Pick location on map</button>
+    <div class="twoCol">
+      <input id="newId" class="field" placeholder="Bin ID" maxlength="12" />
+      <input id="newLoc" class="field" placeholder="Location" maxlength="40" />
+      <input id="newLat" class="field" placeholder="Latitude" readonly />
+      <input id="newLng" class="field" placeholder="Longitude" readonly />
     </div>
-
-    <button class="primary full" onclick="confirmAddBin()">Add Bin</button>
+    <button id="addGo" class="primary full" type="button">Add bin</button>
   </div>
-</div>
+</dialog>
 
+<!-- Delete -->
+<dialog id="delDialog" class="sheet" aria-labelledby="delTitle">
+  <form method="dialog"><button class="x" aria-label="Close">✕</button></form>
+  <h2 id="delTitle">Confirm delete</h2>
+  <p class="warn">You can undo this for a few seconds after deleting.</p>
+  <input id="delPin" class="field" type="password" inputmode="numeric" autocomplete="off" placeholder="Enter PIN (4321)" />
+  <button id="delGo" class="danger full" type="button">Delete bin</button>
+</dialog>
 
+<!-- Full bin alert -->
+<aside id="alertCard" class="alertCard" role="alert" hidden>
+  <div class="alertHead"><span aria-hidden="true">⚠</span><strong>Full bin alert</strong><button id="alertClose" type="button" aria-label="Close alert">✕</button></div>
+  <p>These bins need attention now:</p>
+  <ul id="alertList"></ul>
+  <button id="alertAck" class="danger full" type="button">Acknowledge (silence 2 min)</button>
+</aside>
 
-<!-- map picker model -->
-<div id="mapPickOverlay" class="overlay hidden" onclick="closeMapPicker()"></div>
-
-<div id="mapPickModal" class="bin-modal map-pick hidden">
-  <button class="close-btn" onclick="closeMapPicker()">✕</button>
-
-  <h2>Pick Bin Location</h2>
-  <p class="modal-loc">Click on the map to choose a location (drag the pin to adjust).</p>
-
-  <div id="pickMap" class="pick-map"></div>
-
-  <div class="map-pick-actions">
-    <button class="ghost full" onclick="closeMapPicker()">Cancel</button>
-    <button class="primary full" onclick="confirmPickedLocation()">Use This Location</button>
-  </div>
-</div>
-
-<div id="deleteOverlay" class="overlay hidden"></div>
-
-<div id="deleteBinModal" class="bin-modal hidden">
-  <button class="close-btn" onclick="closeDeleteBin()">✕</button>
-  <h2>Confirm Delete</h2>
-  <p class="modal-warning">This action cannot be undone.</p>
-  <input id="deletePinInput" class="modal-input" type="password" placeholder="Enter PIN">
-  <button class="danger-btn full" onclick="confirmDeleteBin()">Delete Permanently</button>
-</div>
-
-<!-- TOAST -->
-<div id="toast" class="toast hidden">
-  <span id="toastText"></span>
-  <button id="undoBtn" class="toast-btn">Undo</button>
-</div>
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-
-<script src="script.js"></script>
-
-
-<!-- FULL BIN ALERT -->
-<div id="fullBinAlert" class="alert-card hidden">
-  <div class="alert-header">
-    <span class="alert-icon">⚠</span>
-    <span class="alert-title">Full Bin Alert</span>
-    <button class="alert-close" onclick="closeFullAlert()">✕</button>
-  </div>
-
-  <p class="alert-subtitle">
-    The following bins require immediate attention:
-  </p>
-
-  <ul id="fullBinList" class="alert-list"></ul>
-
-  <button class="alert-action" onclick="acknowledgeAlert()">
-    Acknowledge
-  </button>
-</div>
-
-
+<div id="toast" class="toast" role="status" hidden><span id="toastText"></span><button id="toastUndo" type="button">Undo</button></div>
 
 <audio id="alertSound" src="alert.mp3" preload="auto"></audio>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="script.js"></script>
 </body>
 </html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f7f8fb" />
+    <title>Personal Expense Tracker (case study) | Kedar Nath Sapkota</title>
+    <meta name="description" content="A personal finance tracker that records income and expenses, totals them instantly and charts where the money goes." />
+    <script src="../js/theme.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/pages.css" />
+    <link rel="icon" type="image/png" href="../images/apple-touch-icon.png" />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg siteNav scrolled position-fixed start-0 end-0 top-0" aria-label="Main">
+      <div class="container">
+        <a class="navbar-brand" href="../index.html" aria-label="Kedar, go to home">Kedar<span>.</span></a>
+        <div class="d-flex align-items-center gap-2 ms-auto ms-lg-3 me-2 me-lg-0 order-lg-last">
+          <button type="button" class="navBtn" id="themeToggle" aria-label="Switch to dark theme"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i></button>
+        </div>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation"><i class="bi bi-list" aria-hidden="true"></i></button>
+        <div class="collapse navbar-collapse" id="navMenu">
+          <ul class="navbar-nav ms-lg-auto mb-0">
+            <li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#work">Work</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#blog">Tech Journey</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#contact">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <main class="pageMain"><div class="container">
+
+<article class="article">
+  <div class="crumbs"><a href="../index.html">Home</a><span>/</span><a href="../index.html#work">Work</a><span>/</span>Personal Expense Tracker</div>
+  <span class="chip">Web Design</span>
+  <h1>Personal Expense Tracker</h1>
+  <p class="lead">A personal finance tracker that records income and expenses, totals them instantly and charts where the money goes.</p>
+  <p class="metaRow"><span><i class="bi bi-calendar3"></i>1 Oct 2026</span><span><i class="bi bi-person"></i>Solo project: design and development</span></p>
+  <div class="chipRow" aria-label="Technologies used"><span class="chip">HTML5</span><span class="chip">CSS3</span><span class="chip">Vanilla JavaScript</span><span class="chip">Chart.js</span><span class="chip">localStorage</span></div>
+  <div class="btnRow">
+    <a class="btn btn-primary rounded-pill px-4" href="../projects/Personal%20Expense%20Tracker/index.html" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> Open live demo</a>
+    <a class="btn btn-outline-secondary rounded-pill px-4" href="../index.html#work">All projects</a>
+  </div>
+  <figure><img src="../images/personal_expense.png" alt="Personal Expense Tracker dashboard" /><figcaption>Personal Expense Tracker dashboard</figcaption></figure>
+
+  <h2>Why I built it</h2>
+  <p>Many people only find out where their money went at the end of the month, when it is too late to change anything. I built the Personal Expense Tracker to make spending visible at the moment it happens: add a transaction, and the balance, the list and the chart all update straight away.</p><p>I deliberately built it with plain HTML, CSS and JavaScript and no framework or backend. I wanted to understand state, rendering and persistence from the ground up before relying on tools that hide them.</p>
+
+  <h2>What it does</h2>
+  <ul><li>Add and remove income and expense transactions with an amount, category, date and note</li><li>Running totals for income, expenses and balance</li><li>A category chart drawn with Chart.js</li><li>Data saved in the browser so it is still there after a refresh</li><li>A responsive layout that works on phones and desktops</li></ul>
+
+  <h2>How it works</h2>
+  <p><strong>One list is the source of truth.</strong> Every transaction is an object in a single array. The totals, the table and the chart are never edited directly; they are all rebuilt from that array by a render function. That rule removed a whole class of bugs where the screen and the data disagree.</p><p><strong>Saving and loading.</strong> After each change the array is converted to a JSON string and written to localStorage. On startup the app reads it back inside a try/catch, so corrupted or missing data falls back to an empty list instead of breaking the page.</p><pre class="codeBlock"><code>function save() {
+  localStorage.setItem(&quot;transactions&quot;, JSON.stringify(transactions));
+}
+
+function load() {
+  try {
+    return JSON.parse(localStorage.getItem(&quot;transactions&quot;)) || [];
+  } catch {
+    return [];
+  }
+}</code></pre><p><strong>From transactions to a chart.</strong> Chart.js needs labels and values, so the expenses are grouped by category with reduce() and the result is handed to the chart.</p><pre class="codeBlock"><code>function totalsByCategory(transactions) {
+  return transactions
+    .filter(t =&gt; t.type === &quot;expense&quot;)
+    .reduce((totals, t) =&gt; {
+      totals[t.category] = (totals[t.category] || 0) + t.amount;
+      return totals;
+    }, {});
+}</code></pre>
+
+  <div class="shotsWrap"><h2>Screenshots</h2><div class="shots"><figure><img src="../images/case-studies/expense-tracker-1.png" alt="Expense tracker dashboard with totals and chart" loading="lazy" onerror="var s=this.closest('.shotsWrap');this.closest('figure').remove();if(s&&!s.querySelector('figure'))s.remove()" /><figcaption>Dashboard with totals and the spending chart</figcaption></figure><figure><img src="../images/case-studies/expense-tracker-2.png" alt="Expense tracker add-transaction form" loading="lazy" onerror="var s=this.closest('.shotsWrap');this.closest('figure').remove();if(s&&!s.querySelector('figure'))s.remove()" /><figcaption>Adding a new transaction</figcaption></figure></div></div>
+
+  <h2>Technical lessons</h2>
+  <ul><li><strong>State first, interface second.</strong> Deciding what the data looks like before drawing anything made every later feature easier.</li><li><strong>Floating point and money do not mix perfectly.</strong> Adding 0.1 and 0.2 in JavaScript does not give exactly 0.3, so amounts should be rounded for display or stored as whole cents.</li><li><strong>localStorage only stores strings.</strong> Everything has to pass through JSON, and anything read back must be treated as untrusted input.</li><li><strong>Charts keep state too.</strong> Creating a new Chart.js chart on the same canvas without destroying or updating the old one causes overlapping, flickering charts.</li><li><strong>Because there is no backend, data lives on one device.</strong> That is a real limitation, and it shaped my next steps.</li></ul>
+
+  <h2>What I would improve next</h2>
+  <ul><li>Add accounts and a backend so the data syncs across devices</li><li>Export transactions to CSV</li><li>Add monthly budgets with a warning when a category goes over</li><li>Support recurring transactions such as rent or subscriptions</li></ul>
+<div class="pager"><a href="smart-trash-bin.html"><small>&larr; Previous project</small>Smart Trash Bin</a><a class="next" href="shift-time-tracker.html"><small>Next project &rarr;</small>Shift Time Tracker</a></div>
+</article>
+    </div></main>
+    <footer class="footer">
+      <p>&copy; <span id="year">2026</span> Kedar Nath Sapkota. All rights reserved.</p>
+      <p><a href="../privacy.html">Privacy Policy</a> &middot; <a href="../index.html#contact">Contact</a></p>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  </body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f7f8fb" />
+    <title>Calculator (case study) | Kedar Nath Sapkota</title>
+    <meta name="description" content="A button-driven calculator built to practise managing input state and handling edge cases." />
+    <script src="../js/theme.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/pages.css" />
+    <link rel="icon" type="image/png" href="../images/apple-touch-icon.png" />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg siteNav scrolled position-fixed start-0 end-0 top-0" aria-label="Main">
+      <div class="container">
+        <a class="navbar-brand" href="../index.html" aria-label="Kedar, go to home">Kedar<span>.</span></a>
+        <div class="d-flex align-items-center gap-2 ms-auto ms-lg-3 me-2 me-lg-0 order-lg-last">
+          <button type="button" class="navBtn" id="themeToggle" aria-label="Switch to dark theme"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i></button>
+        </div>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation"><i class="bi bi-list" aria-hidden="true"></i></button>
+        <div class="collapse navbar-collapse" id="navMenu">
+          <ul class="navbar-nav ms-lg-auto mb-0">
+            <li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#work">Work</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#blog">Tech Journey</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#contact">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <main class="pageMain"><div class="container">
+
+<article class="article">
+  <div class="crumbs"><a href="../index.html">Home</a><span>/</span><a href="../index.html#work">Work</a><span>/</span>Calculator</div>
+  <span class="chip">Web Design</span>
+  <h1>Calculator</h1>
+  <p class="lead">A button-driven calculator built to practise managing input state and handling edge cases.</p>
+  <p class="metaRow"><span><i class="bi bi-calendar3"></i>8 May 2024</span><span><i class="bi bi-person"></i>Solo project: design and development</span></p>
+  <div class="chipRow" aria-label="Technologies used"><span class="chip">HTML</span><span class="chip">CSS</span><span class="chip">JavaScript</span></div>
+  <div class="btnRow">
+    <a class="btn btn-primary rounded-pill px-4" href="../projects/calculator/index.html" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> Open live demo</a>
+    <a class="btn btn-outline-secondary rounded-pill px-4" href="../index.html#work">All projects</a>
+  </div>
+  <figure><img src="../images/work-6.jpg" alt="Calculator interface" /><figcaption>Calculator interface</figcaption></figure>
+
+  <h2>Why I built it</h2>
+  <p>A calculator looks simple until you try to build one. The challenge is not the arithmetic; it is deciding what each button press means depending on what came before it. I built this project to practise managing state across many small interactions.</p>
+
+  <h2>What it does</h2>
+  <ul><li>Digits, decimal point and the four basic operations</li><li>A clear button to reset the calculator</li><li>A display that shows the number currently being typed</li><li>Handling for edge cases such as dividing by zero</li></ul>
+
+  <h2>How it works</h2>
+  <p><strong>Three pieces of state.</strong> A calculator needs to remember the first number, the chosen operator and the number currently being typed. Every button press updates one of these.</p><p><strong>Operations as a function.</strong> Once the two numbers and the operator are known, a single function performs the calculation.</p><pre class="codeBlock"><code>function calculate(a, operator, b) {
+  switch (operator) {
+    case &quot;+&quot;: return a + b;
+    case &quot;-&quot;: return a - b;
+    case &quot;*&quot;: return a * b;
+    case &quot;/&quot;: return b === 0 ? &quot;Error&quot; : a / b;
+  }
+}</code></pre><p><strong>Evaluating input safely.</strong> A common shortcut in browser calculators is to build a string and pass it to eval(). That executes arbitrary code, so handling operators explicitly as above is the safer approach.</p>
+
+  <div class="shotsWrap"><h2>Screenshots</h2><div class="shots"><figure><img src="../images/case-studies/calculator-1.png" alt="Calculator with a calculation in progress" loading="lazy" onerror="var s=this.closest('.shotsWrap');this.closest('figure').remove();if(s&&!s.querySelector('figure'))s.remove()" /><figcaption>The calculator mid-calculation</figcaption></figure></div></div>
+
+  <h2>Technical lessons</h2>
+  <ul><li><strong>State machines hide in everyday interfaces.</strong> What a key press does depends on the current state, which is the idea behind many larger programs.</li><li><strong>Edge cases take most of the time.</strong> Multiple decimal points, an operator pressed twice and division by zero each needed their own handling.</li><li><strong>Floating point surprises.</strong> 0.1 + 0.2 does not display as 0.3 without rounding, a reminder that computers store decimals approximately.</li></ul>
+
+  <h2>What I would improve next</h2>
+  <ul><li>Add keyboard support</li><li>Add a calculation history</li><li>Support percentages and a sign-toggle button</li></ul>
+<div class="pager"><a href="rock-paper-scissors.html"><small>&larr; Previous project</small>Rock Paper Scissors</a><span class="empty"></span></div>
+</article>
+    </div></main>
+    <footer class="footer">
+      <p>&copy; <span id="year">2026</span> Kedar Nath Sapkota. All rights reserved.</p>
+      <p><a href="../privacy.html">Privacy Policy</a> &middot; <a href="../index.html#contact">Contact</a></p>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  </body>
+</html>

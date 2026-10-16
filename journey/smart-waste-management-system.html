@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f7f8fb" />
+    <title>Building a Smart Waste Management System | Kedar Nath Sapkota</title>
+    <meta name="description" content="How I built a smart waste system: Arduino sensors, a Raspberry Pi, a Flask API and a live campus dashboard, including sensor fusion and alert design." />
+    <script src="../js/theme.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/pages.css" />
+    <link rel="icon" type="image/png" href="../images/apple-touch-icon.png" />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg siteNav scrolled position-fixed start-0 end-0 top-0" aria-label="Main">
+      <div class="container">
+        <a class="navbar-brand" href="../index.html" aria-label="Kedar, go to home">Kedar<span>.</span></a>
+        <div class="d-flex align-items-center gap-2 ms-auto ms-lg-3 me-2 me-lg-0 order-lg-last">
+          <button type="button" class="navBtn" id="themeToggle" aria-label="Switch to dark theme"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i></button>
+        </div>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation"><i class="bi bi-list" aria-hidden="true"></i></button>
+        <div class="collapse navbar-collapse" id="navMenu">
+          <ul class="navbar-nav ms-lg-auto mb-0">
+            <li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#work">Work</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#blog">Tech Journey</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#contact">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <main class="pageMain"><div class="container">
+
+<article class="article">
+  <div class="crumbs"><a href="../index.html">Home</a><span>/</span><a href="../index.html#blog">Tech Journey</a><span>/</span>Building a Smart Waste Management System</div>
+  <span class="chip"><i class="bi bi-code-slash" aria-hidden="true"></i>Project</span>
+  <h1>Building a Smart Waste Management System</h1>
+  <p class="metaRow"><span><i class="bi bi-person"></i>Kedar Nath Sapkota</span><span><i class="bi bi-calendar3"></i>2026</span><span><i class="bi bi-clock"></i>7 min read</span></p>
+  <figure><img src="../images/smarttrashbin.jpeg" alt="Smart Waste Management System" /></figure>
+
+<p class="lead">Most campus waste collection runs on a fixed schedule. That is simple to manage, but it means trucks stop at bins that are barely used while other bins overflow days before the next visit. For my Computer Science project I wanted to find out what changes when the people responsible for the bins can see their condition live. The result is the Smart Trash Bin system, a complete chain from a sensor on a bin to an alert in a browser.</p>
+
+<h2>The problem</h2>
+<p>An overflowing bin is a cleanliness and health problem. An unnecessary collection stop costs fuel and time. Both come from the same missing piece of information: nobody knows how full a bin is until someone goes to look. I defined four requirements: measure how full each bin is, know where each bin is, show a live status, and alert the user when a bin needs attention.</p>
+
+<h2>The architecture: four layers</h2>
+<ol>
+  <li><strong>Sensors (Arduino).</strong> An ultrasonic sensor measures the distance to the trash, and a load cell measures weight.</li>
+  <li><strong>Gateway (Raspberry Pi, Python).</strong> Reads the Arduino over serial, calculates a fill level and sends it to the server.</li>
+  <li><strong>Server (Flask).</strong> Stores each bin as JSON and serves it through a small REST API.</li>
+  <li><strong>Dashboard (HTML, CSS, JavaScript, Leaflet).</strong> Shows bins on a campus map, with status, alerts and controls.</li>
+</ol>
+<p>Splitting the project this way meant I could test each layer on its own. For example, I could test the dashboard with a script that sends fake readings long before the hardware was wired up.</p>
+
+<h2>Layer 1: getting a trustworthy reading</h2>
+<p>An ultrasonic sensor works by sending a short pulse and timing how long the echo takes to return. The distance is the time multiplied by the speed of sound, divided by two because the sound travels there and back. In practice the readings are noisy. Soft surfaces absorb sound, and sometimes no echo returns at all. To handle this, the Arduino takes three readings, discards invalid ones and keeps the median:</p>
+<pre class="codeBlock"><code>int readDistanceFiltered() {
+  int d1 = readDistanceOnce(); delay(10);
+  int d2 = readDistanceOnce(); delay(10);
+  int d3 = readDistanceOnce();
+  if (d1 &lt; 0 &amp;&amp; d2 &lt; 0 &amp;&amp; d3 &lt; 0) return -1;   // all three failed
+  // ... replace invalid values with a valid one, then:
+  return median3(d1, d2, d3);
+}</code></pre>
+<p>The load cell adds a second, independent measurement. An HX711 amplifier converts its tiny electrical signal to a number, and a calibration factor converts that number to kilograms. The Arduino sends both values over serial as one line, such as <code>23,4.80</code> (distance in cm, weight in kg).</p>
+
+<h2>Layer 2: from two readings to one fill level</h2>
+<p>The Raspberry Pi converts each sensor to a percentage using calibration points: 55 cm means empty and 8 cm means full for the ultrasonic sensor, and 0 to 10 kg for the load cell. Each percentage is then smoothed with an exponential moving average, which blends every new value with the previous one so a single odd reading cannot make the dashboard jump:</p>
+<pre class="codeBlock"><code>def ema(prev, new, alpha=0.35):
+    if prev is None:
+        return new
+    return alpha * new + (1 - alpha) * prev</code></pre>
+<p>Then comes the part I found most interesting: <strong>sensor fusion</strong>. Each sensor fails in a different way. A bag of light packaging can fill the bin to the top but weigh almost nothing, while a single heavy object can sit at the bottom of a bin that is otherwise empty. If I trusted either sensor alone, I would get false alarms or missed alarms. My rule takes the lower of the two readings by default, which avoids false alarms, but lifts the result when either sensor strongly says the bin is full:</p>
+<pre class="codeBlock"><code>def fuse(height_pct, weight_pct):
+    base = min(height_pct, weight_pct)
+
+    if height_pct &gt;= 85 or weight_pct &gt;= 85:
+        return max(base, 0.70 * max(height_pct, weight_pct))
+
+    if height_pct &lt;= 10 and weight_pct &lt;= 10:
+        return min(height_pct, weight_pct)
+
+    return base</code></pre>
+<h2>Layer 3: the server decides what silence means</h2>
+<p>The Pi sends the fill level with an HTTP PUT request every two seconds. The Flask server saves it with a timestamp. The most important design decision here is what to do when data stops arriving. A bin that last reported "40%" three hours ago is not a 40% bin; it is a bin we know nothing about. So the server calculates a status from the time of the last reading and marks the bin offline if nothing has arrived for 10 seconds. The dashboard shows it in grey and leaves it out of alerts.</p>
+
+<h2>Layer 4: a dashboard that tells you what to do</h2>
+<p>The dashboard refreshes every second. Bins are coloured by status: Empty is below 40%, Half is 40% or more, and Full is 80% or more. A map built with Leaflet and OpenStreetMap shows where each bin is, limited to the campus area, and a button opens walking directions in Google Maps.</p>
+<p>The alert was the hardest piece to get right. If the dashboard played a sound on every refresh while a bin was full, it would be unbearable within seconds. Instead, the alert plays once every 60 seconds while a bin remains full, and the Acknowledge button silences it for two minutes. Adding and deleting bins asks for a PIN, and every change has an undo option for a few seconds.</p>
+
+<h2>Design problems the system had to solve</h2>
+<ul>
+  <li><strong>Noisy distance readings.</strong> Handled with the three-sample median and an invalid-reading marker.</li>
+  <li><strong>Sensors that disagree.</strong> Handled with the fusion rules above.</li>
+  <li><strong>A display that jumps around.</strong> Smoothing on the Pi keeps the percentage from swinging with every reading.</li>
+  <li><strong>Silent bins.</strong> Offline bins are shown in grey and left out of alerts.</li>
+</ul>
+
+<h2>A live demo, and why it is simulated</h2>
+<p>My portfolio is hosted on GitHub Pages, which only serves static files. It cannot run a Flask server or connect to Arduino hardware. So the <a href="../projects/Smart%20Trash%20Bin/index.html">live demo</a> runs the same calibration values, smoothing and fusion rule in your browser and generates the sensor readings itself. You can add trash to a bin, empty it or disconnect its sensor and watch the full alert and offline status appear. The <a href="../case-studies/smart-trash-bin.html">case study</a> covers the technical details.</p>
+
+<h2>What I would build next</h2>
+<ul>
+  <li>A real database with reading history, so the system can show fill-rate trends and predict when each bin will be full.</li>
+  <li>Proper authentication. The PIN in my dashboard is a convenience, not real security, because anything in browser code can be read.</li>
+  <li>Route suggestions that cover only the bins that need emptying.</li>
+  <li>A secure hosted API using HTTPS.</li>
+</ul>
+
+<h2>What this project taught me</h2>
+<p>The biggest lesson was that real data is messy, and most of the engineering is about deciding what to trust: filtering a noisy sensor, combining two imperfect ones, treating silence as information, and warning people without overwhelming them. Writing the code for each layer was the easy part. Choosing the right behaviour was the real work.</p>
+
+<div class="pager"><span class="empty"></span><a class="next" href="my-computer-science-journey.html"><small>Next article &rarr;</small>My Computer Science journey</a></div>
+</article>
+    </div></main>
+    <footer class="footer">
+      <p>&copy; <span id="year">2026</span> Kedar Nath Sapkota. All rights reserved.</p>
+      <p><a href="../privacy.html">Privacy Policy</a> &middot; <a href="../index.html#contact">Contact</a></p>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  </body>
+</html>

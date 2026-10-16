@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f7f8fb" />
+    <title>From learning to building | Kedar Nath Sapkota</title>
+    <meta name="description" content="The step-by-step process I use to take an idea from a sentence to a working, version-controlled project, with a worked example." />
+    <script src="../js/theme.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/pages.css" />
+    <link rel="icon" type="image/png" href="../images/apple-touch-icon.png" />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg siteNav scrolled position-fixed start-0 end-0 top-0" aria-label="Main">
+      <div class="container">
+        <a class="navbar-brand" href="../index.html" aria-label="Kedar, go to home">Kedar<span>.</span></a>
+        <div class="d-flex align-items-center gap-2 ms-auto ms-lg-3 me-2 me-lg-0 order-lg-last">
+          <button type="button" class="navBtn" id="themeToggle" aria-label="Switch to dark theme"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i></button>
+        </div>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation"><i class="bi bi-list" aria-hidden="true"></i></button>
+        <div class="collapse navbar-collapse" id="navMenu">
+          <ul class="navbar-nav ms-lg-auto mb-0">
+            <li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#work">Work</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#blog">Tech Journey</a></li>
+            <li class="nav-item"><a class="nav-link" href="../index.html#contact">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <main class="pageMain"><div class="container">
+
+<article class="article">
+  <div class="crumbs"><a href="../index.html">Home</a><span>/</span><a href="../index.html#blog">Tech Journey</a><span>/</span>From learning to building</div>
+  <span class="chip"><i class="bi bi-laptop" aria-hidden="true"></i>Development</span>
+  <h1>From learning to building</h1>
+  <p class="metaRow"><span><i class="bi bi-person"></i>Kedar Nath Sapkota</span><span><i class="bi bi-calendar3"></i>2026</span><span><i class="bi bi-clock"></i>7 min read</span></p>
+  <figure><img src="../images/software-development.png" alt="Software development" /></figure>
+
+<p class="lead">Learning a programming language and building something with it are two different skills. Tutorials teach you the first. The second only comes from making projects, and it needs a process. This article describes the process I use to go from "I have an idea" to "it works and anyone can try it", with a worked example from one of my own projects.</p>
+
+<h2>Step 1: Shrink the idea</h2>
+<p>My first ideas are always too big. A "chat app" turns into accounts, rooms, notifications and video calls before I have written a line of code. So I write one sentence describing the smallest version that is still useful.</p>
+<p>For my expense tracker, that sentence was: <em>"Let me add an expense and see my total."</em> Charts, categories and saved data came later, one at a time. Having a tiny version that works early keeps motivation high and gives me something to build on.</p>
+
+<h2>Step 2: Decide what the data looks like</h2>
+<p>Before drawing any interface, I decide what information the program has to remember. An expense, for example, needs an amount, a category and a date:</p>
+<pre class="codeBlock"><code>const expense = {
+  id: 1,
+  amount: 12.5,
+  category: &quot;Food&quot;,
+  date: &quot;2026-10-01&quot;
+};</code></pre>
+<p>Once I know the shape of the data, most of the program is clear: the screen shows this data, buttons change this data, and saving stores this data.</p>
+
+<h2>Step 3: Write the logic before the interface</h2>
+<p>I build the rules as plain functions that do not touch the page. They are easy to test because they take input and return output. Here is the win check from my Tic Tac Toe game:</p>
+<pre class="codeBlock"><code>const lines = [
+  [0, 1, 2], [3, 4, 5], [6, 7, 8],
+  [0, 3, 6], [1, 4, 7], [2, 5, 8],
+  [0, 4, 8], [2, 4, 6]
+];
+
+function checkWinner(board) {
+  for (const [a, b, c] of lines) {
+    if (board[a] &amp;&amp; board[a] === board[b] &amp;&amp; board[a] === board[c]) {
+      return board[a];
+    }
+  }
+  return null;
+}
+
+console.log(checkWinner([&quot;X&quot;,&quot;X&quot;,&quot;X&quot;,&quot;&quot;,&quot;O&quot;,&quot;O&quot;,&quot;&quot;,&quot;&quot;,&quot;&quot;])); // &quot;X&quot;</code></pre>
+<p>Because the function does not depend on buttons or colours, I can run it in the console with a few boards and know it works before I design anything.</p>
+
+<h2>Step 4: Add the interface</h2>
+<p>With the logic working, the interface becomes a layer that does two things: draw the current data, and call the logic when the user does something. I keep one function that redraws the screen from the data, so the display can never drift out of sync.</p>
+
+<h2>Step 5: Break it on purpose</h2>
+<p>Real users do things I did not plan for. Before calling a project finished I try the awkward cases:</p>
+<ul>
+  <li>Empty input, text in a number box and extremely large values</li>
+  <li>Pressing buttons in an unexpected order or very quickly</li>
+  <li>Refreshing the page in the middle of something</li>
+  <li>A very small phone screen</li>
+</ul>
+<p>This step is where bugs like divide-by-zero in a calculator or an off-by-one error in a random range usually show up.</p>
+
+<h2>Step 6: Use Git from the first commit</h2>
+<p>Version control is part of building, not an extra. My usual cycle is small and repeatable:</p>
+<pre class="codeBlock"><code>git init
+git add .
+git commit -m &quot;Add basic expense form&quot;
+
+# work on the next small feature
+git add .
+git commit -m &quot;Calculate and display total&quot;
+git push origin main</code></pre>
+<p>Frequent commits with clear messages mean I can undo a bad idea and see how the project grew. They also give anyone reading my GitHub profile a view of how I work.</p>
+
+<h2>Step 7: Publish and write about it</h2>
+<p>A project that lives only on my laptop teaches me less than one other people can open. Publishing forces me to fix the rough edges, and writing a short explanation of how it works, as I do in my <a href="../index.html#work">portfolio case studies</a>, shows me what I understand and what I only copied.</p>
+
+<h2>The tools I rely on</h2>
+<p>Java and Python for logic-heavy programs, JavaScript, HTML and CSS for anything that runs in a browser, and Git for history. The tools matter less than the process around them: scope small, model the data, write the logic, add the interface, test the edges, commit often and publish.</p>
+
+<h2>What I am working on next</h2>
+<p>My next goal is to move beyond front-end-only projects: add a backend, a database and user accounts, so that what I build can store data for many people instead of one browser. If you are curious how that goes, see the <a href="../case-studies/expense-tracker.html">Expense Tracker case study</a>, where it is first on my list of improvements.</p>
+
+<div class="pager"><a href="my-computer-science-journey.html"><small>&larr; Previous article</small>My Computer Science journey</a><span class="empty"></span></div>
+</article>
+    </div></main>
+    <footer class="footer">
+      <p>&copy; <span id="year">2026</span> Kedar Nath Sapkota. All rights reserved.</p>
+      <p><a href="../privacy.html">Privacy Policy</a> &middot; <a href="../index.html#contact">Contact</a></p>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  </body>
+</html>
