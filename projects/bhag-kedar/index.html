@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#2a1b4d"><meta name="description" content="Dodge, jump, slide and win. Race friends from anywhere in the world.">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" href="icons/favicon.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Bhag Kedar"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Bhag Kedar – race your friends</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;800&family=Bungee&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css"></head><body>
+<canvas id="g" aria-label="Bhag Kedar game"></canvas>
+<div id="ui">
+ <div id="p1"><div class="logo"><div><h1>Bhag Kedar</h1><p class="tag">Dodge, jump, slide and win</p></div></div>
+ <section id="s1" class="step"><h3>What’s your name?</h3><input id="nick" maxlength="10" placeholder="Type your name" autocomplete="off" aria-label="Your name"><div class="lab">Your country</div><select id="ct" aria-label="Your country"></select><p class="m" id="m9"></p><button id="n1" class="big">Continue</button></section>
+ <section id="s2" class="step" hidden><h3>Choose your runner</h3><div class="stage"><button id="pr" class="arw" aria-label="Previous runner">‹</button><canvas id="pv" width="720" height="380"></canvas><button id="nx" class="arw" aria-label="Next runner">›</button></div><div class="pn"><b id="cn"></b><span id="cp"></span></div><div class="thumbs" id="th"></div><div class="two" style="margin-top:4px"><button id="ph" class="alt">📷 Add my photo</button><button id="phx" class="gh" hidden style="flex:0 0 34%">Remove</button></div><input id="pf" type="file" accept="image/*" hidden aria-label="Choose your photo"><p class="m" id="mph" style="margin:4px 0 0;font-size:13px;opacity:.8">Put your own face on your runner. Saved on this device.</p><div class="two"><button id="b2" class="gh">Back</button><button id="n2" class="big" style="flex:2">Continue</button></div></section>
+ <section id="s3" class="step" hidden><h3 id="hi"></h3><button id="mo" class="big">🤖 Play offline<small>Race computer runners</small></button><button id="mn" class="big alt">🌍 Play online<small>Race your friends in a room</small></button><div class="two" style="margin-top:12px"><button id="so" class="gh">⏱ Practice</button><button id="hw" class="gh">📖 How to play</button><button id="se" class="gh" aria-label="Settings">⚙️</button></div><div class="stats" id="stt"></div><button id="inst" class="alt" hidden>📲 Install app</button><p class="m" id="ioshint" hidden>To install: tap <b>Share</b> then <b>Add to Home Screen</b>.</p><button id="b3" class="gh">Change runner</button></section>
+ <section id="s4" class="step" hidden><h3>Offline race</h3><div class="lab">Location</div><div class="locs"></div><div class="lab">Difficulty</div><select id="df" aria-label="Difficulty"><option value="0">😌 Easy</option><option value="1" selected>🙂 Normal</option><option value="2">🔥 Hard</option></select><div class="lab">Computer rivals</div><select id="nb" aria-label="Rivals"><option value="1">1 rival</option><option value="2" selected>2 rivals</option><option value="3">3 rivals</option></select><button id="cpu" class="big">Start race</button><button id="b4" class="gh">Back</button></section>
+ <section id="s5" class="step" hidden><h3>Play online</h3>
+  <div class="pan"><h3>Host a room</h3><p class="m">You choose the location and difficulty. Friends join with your code.</p><div class="lab">Location</div><div class="locs"></div><div class="lab">Difficulty</div><select id="df2" aria-label="Room difficulty"><option value="0">😌 Easy</option><option value="1" selected>🙂 Normal</option><option value="2">🔥 Hard</option></select><button id="mk" class="big alt">Create room</button></div>
+  <div class="pan"><h3>Join a friend</h3><div class="row"><input id="cd" maxlength="6" placeholder="ROOM CODE" autocomplete="off" style="text-transform:uppercase" aria-label="Room code"><button id="jn" class="alt">Join</button></div></div>
+  <button id="qm" class="gh">🌍 Quick match · anyone worldwide</button><p class="m" id="m0"></p><button id="b5" class="gh">Back</button></section></div>
+ <div id="p2" hidden><div class="m" id="rl">Room code – send it to your friends</div><div id="rc"></div>
+  <ul id="pl"></ul><button id="rd">I’m ready</button><button id="lv" class="gh">Leave room</button><p class="m" id="m1"></p></div>
+ <div id="p3" hidden><h2 id="ttl"></h2><ul id="rs"></ul><p class="m" id="rst"></p><button id="ag">Race again</button><button id="lv2" class="gh">Leave</button></div>
+ <div id="p4" hidden><h2>📖 How to play</h2><div class="seg" id="tabs"></div><div class="rules" id="tb"></div><button id="bk">Back</button></div>
+ <div id="p6" hidden><h2>📷 Your photo</h2><p class="sub">Drag to move your face into the oval, slide to zoom.</p><canvas id="cr" width="260" height="300" style="width:260px;max-width:100%;border-radius:18px;touch-action:none;display:block;margin:0 auto"></canvas><label class="sl">🔍 Zoom<input type="range" id="cz" min="100" max="400" value="100"></label><div class="two"><button id="cc" class="gh">Cancel</button><button id="cu" class="alt">Use photo</button></div></div>
+ <div id="p5" hidden><h2>⚙️ Settings</h2><label class="sl">🔊 Sound effects<input type="range" id="vs" min="0" max="100"></label><label class="sl">🎵 Music<input type="range" id="vm" min="0" max="100"></label><div class="seg" id="tg"></div><button id="bk2">Back</button></div>
+</div>
+<button id="bst" hidden aria-label="Samosa boost">🥟</button><button id="pw" hidden aria-label="Use power">🎁</button><button id="mt" aria-label="Sound">🔊</button><button id="ps" aria-label="Pause" hidden>⏸</button>
+<script src="js/firebase-config.js"></script>
+<script src="js/sounds.js"></script>
+<script src="js/locations.js"></script>
+<script src="js/game.js"></script><script>if("serviceWorker" in navigator&&/^https?:/.test(location.protocol))addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))</script></body></html>

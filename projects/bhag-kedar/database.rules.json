@@ -1,0 +1,33 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "sprint": {
+      "$room": {
+        ".read": true,
+        "$player": {
+          ".write": true,
+          ".validate": "newData.hasChildren(['n','st'])"
+        }
+      }
+    },
+
+    "sprintface": {
+      "$room": {
+        ".read": true,
+        "$player": {
+          ".write": true,
+          ".validate": "newData.isString() && newData.val().length < 30000"
+        }
+      }
+    },
+
+    "mm": {
+      "open": {
+        ".read": true,
+        ".write": true
+      }
+    }
+  }
+}
