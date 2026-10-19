@@ -1,10 +1,10 @@
 (function(){"use strict";
-let initializeApp,getDatabase,ref,set,onValue,onDisconnect,remove,runTransaction,db=null,off=0;
+let initializeApp,getDatabase,ref,set,onValue,onDisconnect,remove,runTransaction,db=null,off=0,offOk=0;
 (async()=>{try{if(CFG.apiKey.startsWith("YOUR"))return;
  const V="https://www.gstatic.com/firebasejs/10.12.2/",A=await import(V+"firebase-app.js"),D=await import(V+"firebase-database.js");
  ({initializeApp}=A);({getDatabase,ref,set,onValue,onDisconnect,remove,runTransaction}=D);
- db=getDatabase(initializeApp(CFG));onValue(ref(db,".info/serverTimeOffset"),v=>off=v.val()||0)}catch(e){console.error("Firebase not loaded:",e)}})();
-const myId=Math.random().toString(36).slice(2,10);const now=()=>Date.now()+off;
+ db=getDatabase(initializeApp(CFG));onValue(ref(db,".info/serverTimeOffset"),v=>{off=v.val()||0;offOk=1})}catch(e){console.error("Firebase not loaded:",e)}})();
+const myId=Math.random().toString(36).slice(2,10),myUid=(()=>{try{return localStorage.uid||(localStorage.uid=Math.random().toString(36).slice(2)+Date.now().toString(36))}catch(e){return myId}})(),cdn=()=>Math.min(3,Math.ceil(Math.max(0,S.cd)));const now=()=>Date.now()+off;
 
 const $=i=>document.getElementById(i),cv=$("g");let cx=cv.getContext("2d");
 let W=0,H=0;
@@ -43,48 +43,50 @@ function gen(c,df=1){const r=rng(hash(c)),it=[],m=[.45,.7,1][df];
  return it}
 const sky=(()=>{const r=rng(7),a=[];for(let i=0;i<22;i++)a.push({x:i/22+r()*.03,w:.04+r()*.04,h:.25+r()*.6,dome:r()<.35,ci:i%3});return a})();
 let selLoc=(+(()=>{try{return localStorage.lc}catch(e){}})()||0)%LOC.length,myCh=+(()=>{try{return localStorage.ch}catch(e){}})()||0,rm=null,seen={},code="",items=gen("demo"),sm={},S={st:"menu",loc:selLoc},myc=1,lastP=0;
-$("nick").value=(()=>{try{return localStorage.nm||""}catch(e){return""}})();
-function seg(id){const s=$(id),d=document.createElement("div"),u=()=>[...d.children].forEach((b,i)=>b.classList.toggle("on",s.options[i].value===s.value));d.className="seg";[...s.options].forEach(o=>{const b=document.createElement("button");b.textContent=o.text;b.onclick=()=>{s.value=o.value;u();snd(660,.08,"triangle",.06,200)};d.append(b)});s.after(d);s.hidden=true;u()}
-seg("df");seg("df2");seg("nb");$("ui").classList.add("wide");
-const LCS=[...document.querySelectorAll(".locs")];LCS.forEach(c=>{LOC.forEach((l,i)=>{const b=document.createElement("button");b.innerHTML="<b>"+l.e+"</b><span>"+l.n+"</span>";b.style.background="linear-gradient(180deg,"+l.sky[0]+","+l.sky[1]+" 55%,"+l.sky[2]+")";b.onclick=()=>pickLoc(i);c.append(b)});c.children[selLoc].classList.add("on")});
-function pickLoc(i){selLoc=i;S.loc=i;try{localStorage.lc=i}catch(e){}LCS.forEach(c=>[...c.children].forEach((b,j)=>b.classList.toggle("on",j===i)));ds();snd(520+i*60,.12,"triangle",.07,300)}
+const sv=(k,v)=>{try{localStorage[k]=typeof v==="string"?v:JSON.stringify(v)}catch(e){}};
+let PROF=null,booted=0,DM=0,UL=[0];
+try{PROF=JSON.parse(localStorage.bkp)}catch(e){}
+try{DM=+localStorage.dm||0;UL=JSON.parse(localStorage.ul)||[0]}catch(e){}
+[0,1,2].forEach(i=>{if(!UL.includes(i))UL.push(i)});let CL=[1,1,1,1,1,1,1];try{const a=JSON.parse(localStorage.cl);if(Array.isArray(a))CL=CL.map((x,i)=>Math.min(10,Math.max(1,+a[i]||1)))}catch(e){}if(!UL.includes(selLoc)){selLoc=0;S.loc=0}
+function seg(id){const s=$(id),d=document.createElement("div"),u=()=>[...d.children].forEach((b,i)=>b.classList.toggle("on",s.options[i].value===s.value));d.className="seg";[...s.options].forEach(o=>{const b=document.createElement("button");b.textContent=o.text;b.onclick=()=>{s.value=o.value;u();s.dispatchEvent(new Event("change"));snd(660,.08,"triangle",.06,200)};d.append(b)});s.after(d);s.hidden=true;u()}
+seg("df");seg("nb");seg("md");seg("ol");
+const LCS=[...document.querySelectorAll(".locs")],COST=[0,0,0,100,200,350];
+LCS.forEach(c=>{LOC.forEach((l,i)=>{const b=document.createElement("button");b.innerHTML="<b>"+l.e+"</b><span>"+l.n+"</span><em></em>";b.style.background="linear-gradient(180deg,"+l.sky[0]+","+l.sky[1]+" 55%,"+l.sky[2]+")";b.onclick=()=>pickLoc(i);c.append(b)})});
+function locUI(){LCS.forEach(c=>[...c.children].forEach((b,j)=>{const u=UL.includes(j);b.classList.toggle("on",j===selLoc);b.classList.toggle("lk",!u);b.lastChild.textContent=u?(j===selLoc?"Selected":"Unlocked"):"🔒 💎 "+COST[j]}))}
+locUI();
+function pickLoc(i){if(!UL.includes(i)){if(DM<COST[i]){snd(200,.2,"sawtooth",.06,-80);return toast("Need 💎 "+COST[i]+" to unlock "+LOC[i].n+". You have 💎 "+DM+". Earn more in offline races!")}
+ if(!confirm("Unlock "+LOC[i].n+" for 💎 "+COST[i]+"?"))return;DM-=COST[i];UL.push(i);sv("dm",DM);sv("ul",UL);sfx("win",myCh,.5)}
+ selLoc=i;S.loc=i;sv("lc",i);locUI();ds();snd(520+i*60,.12,"triangle",.07,300)}
 {$("vs").value=VOL.s*100;$("vm").value=VOL.m*100;
  $("vs").oninput=()=>{VOL.s=$("vs").value/100;saveOpt()};$("vs").onchange=()=>sfx("coin");
  $("vm").oninput=()=>{VOL.m=$("vm").value/100;saveOpt()};$("vm").onchange=()=>{if(S.st==="run")music(1)};
  [["sh","📳 Shake"],["wx","🌦 Weather"],["vb","📱 Vibrate"]].forEach(([k,n])=>{const b=document.createElement("button"),u=()=>b.classList.toggle("on",!!OPT[k]);b.textContent=n;b.onclick=()=>{OPT[k]=OPT[k]?0:1;u();saveOpt()};u();$("tg").append(b)});
- $("se").onclick=()=>show("p5");$("bk2").onclick=()=>show("p1")}
-/* ---- step flow: name > runner > mode > setup ---- */
-const STEPS=["s1","s2","s3","s4","s5"];
-function go(n){STEPS.forEach((x,i)=>$(x).hidden=i+1!==n);show("p1");if(n===3)$("hi").textContent="Hi "+nick()+"! How do you want to race?"}
-$("n1").onclick=()=>{if(!$("nick").value.trim())return msg("m9","Type your name to continue.");try{localStorage.nm=nick()}catch(e){}msg("m9","");go(2)};
-$("nick").onkeydown=e=>{if(e.key==="Enter")$("n1").click()};
-$("b2").onclick=()=>go(1);$("n2").onclick=()=>go(3);$("mo").onclick=()=>go(4);$("mn").onclick=()=>go(5);$("b3").onclick=()=>go(2);$("b4").onclick=()=>go(3);$("b5").onclick=()=>go(3);
+ $("se").onclick=()=>show("p5");$("bk2").onclick=home}
 /* ---- app features: keep screen awake while racing, install button ---- */
 let WL=null;async function wl(on){try{if(on&&navigator.wakeLock&&!WL){WL=await navigator.wakeLock.request("screen");WL.onrelease=()=>{WL=null}}else if(!on&&WL){const w=WL;WL=null;await w.release()}}catch(e){}}
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&(S.st==="run"||S.st==="count"))wl(1)});
 let DP=null;const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
-addEventListener("beforeinstallprompt",e=>{e.preventDefault();DP=e;if(!standalone())$("inst").hidden=false});
-addEventListener("appinstalled",()=>{DP=null;$("inst").hidden=true;$("ioshint").hidden=true});
-$("inst").onclick=async()=>{if(!DP)return;DP.prompt();try{await DP.userChoice}catch(e){}DP=null;$("inst").hidden=true};
-if((/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1))&&!standalone())$("ioshint").hidden=false;
-go(1);
+addEventListener("beforeinstallprompt",e=>{e.preventDefault();DP=e});
+addEventListener("appinstalled",()=>{DP=null;$("inst").hidden=true});
+const IOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+$("inst").onclick=async()=>{if(DP){DP.prompt();try{await DP.userChoice}catch(e){}DP=null;return}toast(IOS?"To install: tap Share, then Add to Home Screen.":"To install: open your browser menu and choose Install app (or Add to Home screen).")};
 const PW=[["c","🌶️","Chilli","slows rivals for 2.5s","Kedar"],["w","🧱","Wall drop","drops a brick wall in front of rivals","Rasmina"],["d","🌀","Dizzy","reverses rivals’ left/right for 4s","Amit"],["f","❄️","Freeze","freezes rivals in place for 1.5s","Rahul"],["g","🌫️","Fog","blinds rivals with thick fog for 4s","Resmina"],["l","🔒","Lane lock","locks rivals into their lane for 3s","Rushina"],["s","🌪️","Shove","throws rivals into a random lane","Navraj"]];
-const RU={"🎮 Basics":["Reach the finish line first. Touch a wall, barrier or bar and you’re out.","Swipe or use ← → to change lane, ↑ / Space to jump, ↓ to slide.","Shift or the 🥟 button = speed boost. Collect 10 🌀 coins for a samosa.","P pauses offline races. Every runner starts in their own lane.","Jump or slide past barriers to build a 🔥 combo for bonus points."],"🚧 Obstacles":["🧱 Brick wall: change lane.","🚧 Concrete barrier: jump over it.","⛓️ Overhead bar: slide under it.","🛺 Rickshaw: change lane."],"⭐ Pickups":["🌀 Coins: 10 = 1 samosa boost.","🍵 Chai: a shield that blocks one hit.","🛵 Scooty: 8s of extra speed, absorbs one crash.","🎁 Crate: gives you your runner’s special power. Tap the power button to hit your rivals."],"⚡ Powers":PW.map(x=>x[1]+" "+x[4]+" · "+x[2]+": "+x[3]),"🏁 Modes":["🤖 Race computers: offline vs 1–3 AI runners.","⚡ Online match: quick 1v1 worldwide.","👥 Private room: share the code, up to 4 runners. The code also sets the room’s location and difficulty.","📍 Locations: Mumbai, Tokyo, Cairo, Rio, London and the Himalaya each have their own scenery, weather, vehicles and music.","Finish first to win. Crashed runners rank by distance."]};
+const RU={"🎮 Basics":["Reach the finish line first. Touch a wall, barrier or bar and you’re out.","Swipe or use ← → to change lane, ↑ / Space to jump, ↓ to slide.","Shift or the 🥟 button = speed boost. Collect 10 🌀 coins for a samosa.","P pauses offline races. Every runner starts in their own lane.","Jump or slide past barriers to build a 🔥 combo for bonus points."],"🚧 Obstacles":["🧱 Brick wall: change lane.","🚧 Concrete barrier: jump over it.","⛓️ Overhead bar: slide under it.","🛺 Rickshaw: change lane."],"⭐ Pickups":["🌀 Coins: 10 = 1 samosa boost.","🍵 Chai: a shield that blocks one hit.","🛵 Scooty: 8s of extra speed, absorbs one crash.","🎁 Crate: gives you your runner’s special power. Tap the power button to hit your rivals."],"⚡ Powers":PW.map(x=>x[1]+" "+x[4]+" · "+x[2]+": "+x[3]),"🏁 Modes":["🤖 Offline: practice alone or race 1–3 computer runners.","⚡ Online quick match: race anyone worldwide.","👥 Private room: share the code, up to 4 runners. The code also sets the room’s location and difficulty.","📍 Levels: Kathmandu, Pokhara, Chitwan, Lumbini, Mustang and Everest each have their own scenery, weather, vehicles and music. Unlock them with 💎 diamonds.","💎 Diamonds: earn them in offline races (1 per 25 coins, +2 for finishing). Also spend them to level up your runners (max level 10).","Finish first to win. Crashed runners rank by distance."]};
 {const t=$("tabs"),k=Object.keys(RU),tb=$("tb"),sel=i=>{[...t.children].forEach((b,j)=>b.classList.toggle("on",i===j));tb.textContent="";RU[k[i]].forEach(x=>{const e=document.createElement("p");e.textContent=x;tb.append(e)})};k.forEach((n,i)=>{const b=document.createElement("button");b.textContent=n;b.onclick=()=>sel(i);t.append(b)});sel(0)}
 let ST2={r:0,b:0};try{Object.assign(ST2,JSON.parse(localStorage.sst))}catch(e){}
-function ds(){$("stt").textContent="⭐ Lv "+(1+Math.floor((ST2.c||0)/100))+"  ·  🏁 "+ST2.r+" races  ·  ⏱ "+LC().n+" "+((ST2.lb||{})[LC().k]?ST2.lb[LC().k].toFixed(1)+"s best":"no finish yet")}
-function rec(t){ST2.r++;ST2.c=(ST2.c||0)+S.coins;if(t){const k=LC().k;ST2.lb=ST2.lb||{};S.pb=!ST2.lb[k]||t<ST2.lb[k];if(S.pb)ST2.lb[k]=t;if(!ST2.b||t<ST2.b)ST2.b=t}try{localStorage.sst=JSON.stringify(ST2)}catch(e){}ds()}ds();
+function ds(){if(booted)dashUI()}
+function rec(t){S.dg=0;if(S.solo){S.dg=Math.floor(S.coins/25)+(t?2:0);DM+=S.dg;sv("dm",DM)}ST2.r++;ST2.c=(ST2.c||0)+S.coins;if(t){const k=LC().k;ST2.lb=ST2.lb||{};S.pb=!ST2.lb[k]||t<ST2.lb[k];if(S.pb)ST2.lb[k]=t;if(!ST2.b||t<ST2.b)ST2.b=t}try{localStorage.sst=JSON.stringify(ST2)}catch(e){}ds()}ds();
 const CT=[["IN","India"],["US","USA"],["GB","UK"],["PK","Pakistan"],["BD","Bangladesh"],["AE","UAE"],["CA","Canada"],["AU","Australia"],["DE","Germany"],["FR","France"],["BR","Brazil"],["NG","Nigeria"],["ID","Indonesia"],["JP","Japan"],["ZA","South Africa"],["NP","Nepal"],["LK","Sri Lanka"]];
 const fl=c=>c?String.fromCodePoint(...[...c].map(x=>127397+x.charCodeAt(0))):"",nm=p=>fl(p.c)+" "+(p.n||"Player");
-{const lc=(navigator.language.split("-")[1]||"").toUpperCase();CT.forEach(([c,n])=>$("ct").add(new Option(fl(c)+" "+n,c)));$("ct").value=CT.some(x=>x[0]===lc)?lc:"IN"}
-const nick=()=>($("nick").value.trim()||"Runner").slice(0,10);
+{const lc=(navigator.language.split("-")[1]||"").toUpperCase();CT.forEach(([c,n])=>$("ct").add(new Option(fl(c)+" "+n,c)));$("ct").value=CT.some(x=>x[0]===lc)?lc:"NP"}
+const nick=()=>PROF?PROF.user.slice(0,12):"Runner";
 function reset(){Object.assign(S,{d:0,x:1,lane:1,y:0,vy:0,sl:0,sp:0,bt:0,ch:0,coins:0,sh:0,hit:0,ft:0,t:0,msg:"",mt:0,sc:0,pw:0,cr:0,rt:0,at:"",an:0,sk:0,fz:0,dz:0,fg:0,lk:0,pt:0,cm:0,cmT:0,cl:0,tp:0,pb:0})}
 reset();
 const stc=()=>({menu:0,lobby:0,ready:1,count:2,run:2,done:3})[S.st]??0;
 function pres(){if(!rm)return;rm.presence({n:nick(),st:stc(),d:+S.d.toFixed(1),x:+S.x.toFixed(2),y:+S.y.toFixed(2),sl:S.sl>0?1:0,bt:S.bt>0?1:0,sh:S.sh,ft:+S.ft.toFixed(2),t0:S.T0||0,rt:S.rt,cr:S.cr,at:S.at,c:$("ct").value,ch:myCh})}
 let PA=0,bots=[];const slot=i=>[1,2,0,3][i%4];const viewers=()=>rm?rm.peers():bots.map(b=>({peer:b.id,isMe:false,presence:b.p}));
 const order=()=>rm?viewers().map(p=>p.peer).sort():[myId,...bots.map(b=>b.id)];
-function show(p){["p1","p2","p3","p4","p5","p6"].forEach(i=>$(i).hidden=i!==p);$("ui").hidden=!p;$("ui").classList.toggle("wide",p==="p1")}
+function show(p){["p1","p2","p3","p4","p5","p6"].forEach(i=>$(i).hidden=i!==p);$("ui").hidden=!p;$("dash").hidden=!!p||S.st!=="menu"||!PROF;$("mt").style.display=$("dash").hidden?"":"none"}
 const msg=(el,t)=>{$(el).textContent=t};
 function say(t){S.msg=t;S.mt=1.1;snd(520,.18,"triangle",.07,400)}
 const dfOf=c=>{const i="enh".indexOf((c[4]||"").toLowerCase());return i<0?1:i},locOf=c=>(parseInt(c[5],10)||0)%LOC.length;
@@ -94,6 +96,7 @@ async function joinRoom(c){
  c=c.toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,6);
  if(c.length<3)return msg("m0","Enter a room code (3–6 letters or digits).");
  if(!db)return msg("m0","Rooms aren’t switched on yet: add your Firebase config in js/firebase-config.js. Practice solo works now.");
+ for(let i=0;i<30&&!offOk;i++)await new Promise(r=>setTimeout(r,100));
  const room=ref(db,"sprint/"+c),me=ref(db,"sprint/"+c+"/"+myId);
  let fmr=null,others={},mine={n:nick(),st:0,d:0,x:1,y:0,sl:0,bt:0,sh:0,ft:0,t0:0,rt:0,cr:0,at:"",c:$("ct").value,ch:myCh},cbs=[],cache=[];
  const rebuild=()=>{const o={...others};o[myId]=mine;cache=Object.entries(o).map(([k,v])=>({peer:k,isMe:k===myId,presence:v||{}}))};
@@ -121,20 +124,17 @@ function renderLobby(){
 function checkStart(){
  if(!rm||S.st!=="ready")return;
  const o=viewers().filter(p=>!p.isMe);if(!o.length||o.length>3)return;
- if(o.every(p=>p.presence.st===1||(p.presence.st===2&&Math.abs(now()-p.presence.t0)<9000)))begin(false,Math.max(S.rt,...o.map(p=>p.presence.st===2?p.presence.t0:p.presence.rt||0))+3500)}
+ if(o.every(p=>p.presence.st===1||(p.presence.st===2&&Math.abs(now()-p.presence.t0)<9000)))begin(false,Math.max(S.rt+3000,...o.map(p=>p.presence.st===2?p.presence.t0:(p.presence.rt||0)+3000)))}
 const rcode=(d=1,l=0)=>{const a="ABCDEFGHJKMNPQRSTUVWXYZ23456789";let c="";for(let i=0;i<4;i++)c+=a[Math.floor(Math.random()*a.length)];return c+"ENH"[d]+l};
-$("mk").onclick=()=>joinRoom(rcode(+$("df2").value,selLoc));
-$("qm").onclick=async()=>{if(!db)return msg("m0","Rooms aren’t switched on yet: add your Firebase config in js/firebase-config.js.");msg("m0","Finding a rival…");
+const mk=()=>joinRoom(rcode(+$("df").value,selLoc));
+const quick=async()=>{if(!db)return msg("m0","Rooms aren’t switched on yet: add your Firebase config in js/firebase-config.js.");msg("m0","Finding a rival…");
  const c=rcode(1,Math.floor(Math.random()*LOC.length));let f=null;
  try{await runTransaction(ref(db,"mm/open"),v=>{if(v&&now()-v.t<40000){f=v.room;return null}f=null;return{room:c,t:now()}})}catch(e){return msg("m0","Matchmaking failed. Check your database rules.")}
  await joinRoom(f||c);if(rm){S.st="ready";S.rt=now();pres();renderLobby()}};
-$("jn").onclick=()=>joinRoom($("cd").value);
-$("so").onclick=()=>begin(true);
-$("pr").onclick=()=>pick(myCh-1);$("nx").onclick=()=>pick(myCh+1);$("hw").onclick=()=>show("p4");$("bk").onclick=()=>show("p1");
-$("cpu").onclick=()=>begin(true,0,+$("nb").value);
+$("hw").onclick=()=>show("p4");$("bk").onclick=home;
 $("rd").onclick=()=>{S.st=S.st==="ready"?"lobby":"ready";S.rt=S.st==="ready"?now():0;pres();renderLobby()};
 function pause(){if(S.st==="run"&&!rm){PA=!PA;music(!PA)}}addEventListener("keydown",e=>{if(e.key==="p"||e.key==="P"||e.key==="Escape")pause()});$("ps").onclick=pause;
-function leave(){wl(0);if(rm){rm.leave();rm=null}bots=[];PA=0;$("ps").hidden=true;code="";S.loc=selLoc;music(0);ds();S.st="menu";$("bst").hidden=$("pw").hidden=true;items=gen("demo");reset();show("p1")}
+function leave(){wl(0);if(rm){rm.leave();rm=null}bots=[];PA=0;$("ps").hidden=true;code="";S.loc=selLoc;music(0);ds();S.st="menu";$("bst").hidden=$("pw").hidden=true;items=gen("demo");reset();home()}
 $("lv").onclick=$("lv2").onclick=leave;
 $("ag").onclick=()=>{if(S.solo)begin(true,0,S.nb);else{S.st="lobby";reset();$("bst").hidden=true;pres();show("p2");renderLobby()}};
 function act(a){
@@ -158,10 +158,10 @@ $("pw").addEventListener("pointerdown",e=>{e.stopPropagation();act("P")});
 function step(dt){
  if(S.mt>0)S.mt-=dt;
  if(S.st==="menu"||S.st==="lobby"||S.st==="ready"){S.d=(S.d+10*dt)%600;return}
- if(S.st==="count"){const q=Math.ceil(S.cd);S.cd=(S.T0-now())/1000;if(Math.ceil(S.cd)!==q&&S.cd>0)snd(440,.12,"square",.06);if(S.cd<=0){snd(880,.4,"square",.07);S.st="run";S.t=Math.max(0,-S.cd);music(1)}return}
+ if(S.st==="count"){const q=cdn();S.cd=(S.T0-now())/1000;if(cdn()!==q&&S.cd>0)snd(440,.12,"square",.06);if(S.cd<=0){snd(880,.4,"square",.07);S.st="run";S.t=Math.max(0,-S.cd);music(1)}return}
  if(S.st==="done"){S.sp*=Math.pow(.2,dt);S.d+=S.sp*dt;return}
  S.t+=dt;
- const base=[12,14,16][S.df??1];let tg=(S.bt>0?base*1.65:base)*(S.sc>0?1.3:1);
+ const base=[12,14,16][S.df??1];let tg=(S.bt>0?base*1.65:base)*(S.sc>0?1.3:1)*(S.solo?1+.012*(CL[myCh]-1):1);
  if(S.hit>0){S.hit-=dt;tg=base*.45}if(S.fz>0){S.fz-=dt;tg=0}S.dz=Math.max(0,S.dz-dt);S.fg=Math.max(0,S.fg-dt);S.lk=Math.max(0,S.lk-dt);
  S.sp+=(tg-S.sp)*Math.min(1,dt*(S.hit>0?10:3));S.tp=Math.max(S.tp,S.sp*7);S.cmT=Math.max(0,S.cmT-dt);if(!S.cmT)S.cm=0;
  S.d+=S.sp*dt;S.bt=Math.max(0,S.bt-dt);S.sc=Math.max(0,S.sc-dt);S.sl=Math.max(0,S.sl-dt);
@@ -199,7 +199,7 @@ function results(){
  const ul=$("rs");ul.textContent="";
  a.forEach((x,i)=>{const li=document.createElement("li"),b=document.createElement("b"),s=document.createElement("span");
   b.textContent=(["🥇","🥈","🥉","4️⃣"][i]||"")+" "+x.n+(x.me?" (you)":"");s.className="s";
-  s.textContent=x.cr?"💥 crashed at "+Math.round(x.d/L*100)+"%":x.st===3?x.ft.toFixed(1)+" s":"running… "+Math.round(Math.min(100,x.d/L*100))+"%";if(x.me)li.style.background="rgba(255,194,51,.2)";li.append(b,s);ul.append(li)});$("rst").textContent=(a.every(x=>x.cr||x.st===3)?"🏁 Final result  ·  ":"⏳ Waiting for others  ·  ")+"⭐ "+score()+"  ·  🌀 "+S.coins+"  ·  🚧 "+S.cl+" clean  ·  🚀 "+Math.round(S.tp)+" km/h"+(S.pb&&!S.cr?"  ·  🏆 New best at "+LC().n+"!":"")}
+  s.textContent=x.cr?"💥 crashed at "+Math.round(x.d/L*100)+"%":x.st===3?x.ft.toFixed(1)+" s":"running… "+Math.round(Math.min(100,x.d/L*100))+"%";if(x.me)li.style.background="rgba(255,194,51,.2)";li.append(b,s);ul.append(li)});$("rst").textContent=(a.every(x=>x.cr||x.st===3)?"🏁 Final result  ·  ":"⏳ Waiting for others  ·  ")+"⭐ "+score()+"  ·  🌀 "+S.coins+(S.dg?"  ·  💎 +"+S.dg:"")+"  ·  🚧 "+S.cl+" clean  ·  🚀 "+Math.round(S.tp)+" km/h"+(S.pb&&!S.cr?"  ·  🏆 New best at "+LC().n+"!":"")}
 setInterval(results,400);
 function brick(x,y,s){const w=s*.96,h=s*.95,l=x-w/2,rows=6,bh=h/rows,bw=w/3.5;
  cx.fillStyle="rgba(0,0,0,.35)";cx.beginPath();cx.ellipse(x,y,w*.55,s*.07,0,0,7);cx.fill();rr(l,y-h,w,h,s*.02,"#6e2a1c");
@@ -299,13 +299,11 @@ function crSave(){const k=136/OW,o=document.createElement("canvas");o.width=136;
 
 function bust(c,x,y,r,i,fc){const mc=cx;cx=c;c.save();c.beginPath();c.arc(x,y,r,0,7);c.clip();const g=c.createRadialGradient(x,y-r*.3,r*.1,x,y,r);g.addColorStop(0,"#5b3aa0");g.addColorStop(1,"#241446");c.fillStyle=g;c.fillRect(x-r,y-r,r*2,r*2);const sz=r*11.2;runner(x,y+sz*.885-r*.08,sz,"#ffc233",i,0,0,"",0,0,0,1,1,fc);c.restore();cx=mc}
 function drawThumbs(){TH.forEach((k,i)=>{const c=k.getContext("2d");c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,112,144);bust(c,56,72,50,i);c.lineWidth=3;c.strokeStyle="rgba(255,255,255,.55)";c.beginPath();c.arc(56,72,50,0,7);c.stroke()})}
-function pick(i){myCh=(i+CH.length)%CH.length;try{localStorage.ch=myCh}catch(_){}sfx("pick")}
-function pv(){const c2=$("pv").getContext("2d"),mc=cx;cx=c2;
- if(!thd){thd=1;CH.forEach((c,i)=>{const b=document.createElement("button"),k=document.createElement("canvas");k.width=112;k.height=144;b.append(k);b.setAttribute("aria-label",c.n);b.onclick=()=>pick(i);$("th").append(b);TH.push(k)});drawThumbs()}
- if(lc!==myCh){lc=myCh;[...$("th").children].forEach((b,i)=>b.classList.toggle("on",i===myCh));$("cn").textContent=CH[myCh].n;$("cp").textContent=PW[myCh][1]+" "+PW[myCh][2]+": "+PW[myCh][3]}
+function pick(i){myCh=(i+CH.length)%CH.length;sv("ch",myCh);sfx("pick");ds()}
+function pv(el,ci){const c2=el.getContext("2d"),mc=cx,fc=ci===myCh?MYF:null;cx=c2;
  c2.setTransform(2,0,0,2,0,0);c2.clearRect(0,0,360,190);c2.fillStyle="rgba(255,255,255,.1)";c2.beginPath();c2.ellipse(250,176,70,10,0,0,7);c2.fill();
- {const px=96,py=98,pr=56;c2.save();const gl=c2.createRadialGradient(px,py,pr*.6,px,py,pr*1.5);gl.addColorStop(0,"rgba(255,194,51,.5)");gl.addColorStop(1,"rgba(255,194,51,0)");c2.fillStyle=gl;c2.fillRect(0,0,200,190);c2.restore();bust(c2,px,py,pr,myCh,MYF);c2.lineWidth=4;c2.strokeStyle="#ffc233";c2.beginPath();c2.arc(px,py,pr,0,7);c2.stroke();cx=c2}
- runner(250,176,145,"#ffc233",myCh,0,0,"",0,0,0,1,1,MYF);cx=mc}
+ {const px=96,py=98,pr=56;c2.save();const gl=c2.createRadialGradient(px,py,pr*.6,px,py,pr*1.5);gl.addColorStop(0,"rgba(255,194,51,.5)");gl.addColorStop(1,"rgba(255,194,51,0)");c2.fillStyle=gl;c2.fillRect(0,0,200,190);c2.restore();bust(c2,px,py,pr,ci,fc);c2.lineWidth=4;c2.strokeStyle="#ffc233";c2.beginPath();c2.arc(px,py,pr,0,7);c2.stroke();cx=c2}
+ runner(250,176,145,"#ffc233",ci,0,0,"",0,0,0,1,1,fc);cx=mc}
 const faceOk=i=>i&&i.complete&&i.naturalWidth?i:null;
 function runner(sx,yy,sz,col,ci,y,sl,name,bt,sh,hit,al,fr,fc){
  const C=CH[ci|0]||CH[0],K=Date.now(),ar=y>0,s1=(!ar&&!fr)?Math.sin(K/95):0,b=yy-y*sz*.5+(fr?Math.sin(K/420)*sz*.006:0),
@@ -411,14 +409,54 @@ function hud(ord){
  cx.textAlign="center";cx.font=F(18);cx.fillStyle="rgba(255,255,255,.9)";cx.fillText(Math.round(S.sp*7)+" km/h"+(S.sc>0?"  🛵 "+Math.ceil(S.sc)+"s":"")+(S.fz>0?" ❄️":"")+(S.dz>0?" 🌀":"")+(S.fg>0?" 🌫️":"")+(S.lk>0?" 🔒":""),W/2,62);cx.textAlign="right";cx.font=F(20);cx.fillText("🌀 "+S.coins+"   🥟 ×"+S.ch,W-20,62);cx.textAlign="left";cx.font=F(16);cx.fillStyle="#ffe9a0";cx.fillText("⭐ "+score()+(S.cm>1?"   🔥 x"+S.cm:""),20,86);cx.fillStyle="#fff";
  cx.textAlign="center";cx.lineWidth=6;cx.strokeStyle="#2a1b4d";
  const big=(t,sz,c,y)=>{cx.font=sz+"px Bungee,'Baloo 2',system-ui";cx.fillStyle=c;cx.strokeText(t,W/2,y);cx.fillText(t,W/2,y)};
- if(S.st==="count"){{const n3=4-Math.ceil(Math.max(0,S.cd)),r3=Math.min(W,H)*.05;for(let i=0;i<3;i++){cx.fillStyle=i<n3?"#ff2d2d":"#3a1a3a";cx.shadowColor="#ff2d2d";cx.shadowBlur=i<n3?24:0;cx.beginPath();cx.arc(W/2+(i-1)*r3*2.6,H*.3,r3,0,7);cx.fill()}cx.shadowBlur=0}big(Math.ceil(S.cd),Math.min(W,H)*.25,"#ffc233",H*.5);cx.font=F(16);cx.fillStyle="#fff";cx.lineWidth=4;cx.strokeText("Swipe or arrow keys to move, jump, slide · Shift or 🥟 to boost",W/2,H*.58);cx.fillText("Swipe or arrow keys to move, jump, slide · Shift or 🥟 to boost",W/2,H*.58)}
+ if(S.st==="count"){{const n3=4-cdn(),r3=Math.min(W,H)*.05;for(let i=0;i<3;i++){cx.fillStyle=i<n3?"#ff2d2d":"#3a1a3a";cx.shadowColor="#ff2d2d";cx.shadowBlur=i<n3?24:0;cx.beginPath();cx.arc(W/2+(i-1)*r3*2.6,H*.3,r3,0,7);cx.fill()}cx.shadowBlur=0}big(cdn(),Math.min(W,H)*.25,"#ffc233",H*.5);cx.font=F(16);cx.fillStyle="#fff";cx.lineWidth=4;cx.strokeText("Swipe or arrow keys to move, jump, slide · Shift or 🥟 to boost",W/2,H*.58);cx.fillText("Swipe or arrow keys to move, jump, slide · Shift or 🥟 to boost",W/2,H*.58)}
  else if(S.st==="run"&&S.t<.8)big("GO!",Math.min(W,H)*.2,"#5bd94a",H*.5);
  if(S.st==="run"&&S.t<2.6){cx.globalAlpha=Math.min(1,(2.6-S.t)*1.5,S.t*3+.2);cx.font=Math.min(W*.06,34)+"px Bungee,'Baloo 2',system-ui";cx.fillStyle="#fff";cx.lineWidth=5;cx.strokeStyle="#2a1b4d";const tx=LC().e+" "+LC().n;cx.strokeText(tx,W/2,H*.24);cx.fillText(tx,W/2,H*.24);cx.globalAlpha=1}
  if(S.mt>0){cx.globalAlpha=Math.min(1,S.mt*2);big(S.msg,28,"#fff",H*.2);cx.globalAlpha=1}}
+/* ---- dashboard: profile, characters, levels, start game ---- */
+const UNRE=/^[a-z0-9_]{3,16}$/,mkUser=n=>((n||"runner").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,10)||"runner")+Math.floor(100+Math.random()*900);
+const INTRO=["The street-smart sprinter from Kathmandu who never stops running. Fast, fearless, always one step ahead.","Quick feet and a quicker mind. She builds walls in her rivals’ way while she sprints past.","The joker with a spinning secret. One zap and rivals don’t know left from right.","Cool under pressure. He freezes the competition solid, then dashes off.","Calm as mountain mist. She hides the road in thick fog so rivals run blind.","Fierce and focused. She locks rivals into their lane and leaves them stuck.","Big heart, bigger shove. He sends rivals flying into a random lane."];
+let TAB=0,vc=myCh;
+const lvOf=()=>{const x=(ST2.c||0)+(ST2.r||0)*20;return{l:1+Math.floor(x/100),p:x%100}};
+function toast(t){const e=$("toast");e.textContent=t;e.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>{e.hidden=true},3500)}
+async function claimUser(u,old){for(let i=0;i<30&&!db;i++)await new Promise(r=>setTimeout(r,100));if(!db)return"offline";
+ try{const r=await runTransaction(ref(db,"usernames/"+u),v=>v&&v!==myUid?undefined:myUid);if(!r.committed)return"taken";if(old&&old!==u)remove(ref(db,"usernames/"+old)).catch(()=>{});return"ok"}catch(e){return"error"}}
+function openProfile(){const p=PROF||{};$("nick").value=p.name||"";$("em").value=p.email||"";$("un").value=p.user||"";$("un").dataset.t=p.user?"1":"";if(p.cc)$("ct").value=p.cc;
+ $("cn1").hidden=!PROF;$("n1").textContent=PROF?"Save":"Enter game";$("ph1").textContent=PROF?"Edit profile":"Create your player";msg("m9","");photoUI();show("p1")}
+function home(){S.st="menu";if(!PROF)return openProfile();show(null);dashUI()}
+$("nick").oninput=()=>{if(!$("un").dataset.t&&!PROF)$("un").value=mkUser($("nick").value)};
+$("un").oninput=()=>{$("un").dataset.t="1";$("un").value=$("un").value.toLowerCase().replace(/[^a-z0-9_]/g,"")};
+$("n1").onclick=async()=>{const n=$("nick").value.trim().slice(0,20),em=$("em").value.trim().toLowerCase(),u=$("un").value.trim().toLowerCase();
+ if(!n)return msg("m9","Type your name.");
+ if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em))return msg("m9","Enter a valid email address.");
+ if(!UNRE.test(u))return msg("m9","Username: 3 to 16 letters, numbers or _");
+ const old=PROF&&PROF.user;$("n1").disabled=true;msg("m9","Checking username…");
+ const r=u===old?"same":await claimUser(u,old);$("n1").disabled=false;
+ if(r==="taken")return msg("m9","That username is already taken. Try another one.");
+ if(r==="offline"||r==="error")toast("Couldn’t reserve the username online. Saved on this device.");
+ PROF={name:n,email:em,user:u,cc:$("ct").value};sv("bkp",PROF);msg("m9","");home()};
+$("cn1").onclick=home;$("pfb").onclick=openProfile;
+function dashUI(){if(!booted||!PROF)return;const v={l:CL[myCh],p:CL[myCh]*10};$("dn").textContent=PROF.name;$("du").textContent="@"+PROF.user;$("dl").textContent="Lv "+v.l+" / 10";$("dx").style.width=v.p+"%";$("dm").textContent="💎 "+DM;
+ const c=$("avc").getContext("2d");c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,96,96);bust(c,48,48,44,myCh,MYF);
+ $("cn").textContent=CH[myCh].n;$("cp").textContent=PW[myCh][1]+" "+PW[myCh][2]+": "+PW[myCh][3];
+ const b=(ST2.lb||{})[LC().k];$("bs").textContent=b?"🏆 Best at "+LC().n+": "+b.toFixed(1)+"s":"";
+ [...$("th").children].forEach((x,i)=>{x.classList.toggle("on",i===myCh);x.lastChild.textContent=CH[i].n+" · Lv "+CL[i]});locUI();photoUI();chUI()}
+function buildThumbs(){CH.forEach((c,i)=>{const b=document.createElement("button"),k=document.createElement("canvas"),s=document.createElement("span");k.width=112;k.height=144;s.textContent=c.n;b.append(k,s);b.setAttribute("aria-label",c.n);b.onclick=()=>{vc=i;chUI();sfx("pick",i)};$("th").append(b);TH.push(k)});drawThumbs()}
+function chUI(){const p=PW[vc];$("cn2").textContent=CH[vc].n;$("ci").textContent=INTRO[vc];$("cw").innerHTML="<b>"+p[1]+" "+p[2]+"</b><span>Power: "+p[3]+"</span>";
+ {const L=CL[vc];$("cl").textContent="Level "+L+" / 10";$("lu").textContent=L>=10?"MAX LEVEL":"⬆ Level up · 💎 "+10*L;$("lu").disabled=L>=10}
+ $("set").textContent=vc===myCh?"✔ Your runner":"Set as my runner";$("set").disabled=vc===myCh;[...$("th").children].forEach((b,i)=>b.classList.toggle("sel",i===vc))}
+$("set").onclick=()=>{pick(vc);chUI()};
+$("lu").onclick=()=>{const L=CL[vc];if(L>=10)return;if(DM<10*L){snd(200,.2,"sawtooth",.06,-80);return toast("Need 💎 "+10*L+" to level up "+CH[vc].n+". You have 💎 "+DM+".")}DM-=10*L;CL[vc]=L+1;sv("dm",DM);sv("cl",CL);sfx("win",vc,.6);dashUI()};
+[...$("dt").children].forEach((b,i)=>b.onclick=()=>{TAB=i;[...$("dt").children].forEach((x,j)=>x.classList.toggle("on",j===i));[0,1,2].forEach(j=>$("t"+j).hidden=j!==i);if(i===1){vc=myCh;chUI()}snd(600,.06,"triangle",.05)});
+function panels(){const on=$("md").value==="1",t=$("ol").value;$("offp").hidden=on;$("onp").hidden=!on;$("cd").hidden=!on||t!=="2";$("dfp").hidden=on&&t!=="1";msg("m0","")}
+$("md").onchange=$("ol").onchange=panels;
+$("go").onclick=()=>{msg("m0","");if($("md").value==="0")return begin(true,0,+$("nb").value);const t=$("ol").value;if(t==="0")quick();else if(t==="1")mk();else joinRoom($("cd").value)};
+function boot(){booted=1;buildThumbs();if(PROF&&PROF.cc)$("ct").value=PROF.cc;$("inst").hidden=standalone();panels();home()}
+boot();
 let last=performance.now();
 function loop(n){const dt=PA?0:Math.min(.05,(n-last)/1000);last=n;step(dt);botStep(dt);checkStart();fx();
  if(rm&&n-lastP>45&&(S.st==="run"||S.st==="count"||S.st==="done")){lastP=n;pres()}
- if(!$("p1").hidden&&!$("ui").hidden&&!$("s2").hidden)pv();draw();if(PA){cx.fillStyle="rgba(10,4,30,.6)";cx.fillRect(0,0,W,H);cx.fillStyle="#fff";cx.textAlign="center";cx.font="800 36px system-ui";cx.fillText("⏸ PAUSED · press P",W/2,H/2)}requestAnimationFrame(loop)}
+ if(!$("dash").hidden){if(TAB===0)pv($("pv"),myCh);else if(TAB===1)pv($("pv2"),vc)}draw();if(PA){cx.fillStyle="rgba(10,4,30,.6)";cx.fillRect(0,0,W,H);cx.fillStyle="#fff";cx.textAlign="center";cx.font="800 36px system-ui";cx.fillText("⏸ PAUSED · press P",W/2,H/2)}requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
 
 })();

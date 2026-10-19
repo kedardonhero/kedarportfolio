@@ -112,3 +112,42 @@ body{-webkit-touch-callout:none;overscroll-behavior:none}
 @media(min-width:900px) and (min-height:700px){#ui,#ui.wide{width:min(94%,520px)}}
 @media(max-width:340px){h1{font-size:30px}.thumbs{gap:3px}.locs{gap:5px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ===== dashboard v4 (profile, characters, levels, start) ===== */
+#dash{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;gap:8px;padding:10px 12px 0;box-sizing:border-box;background:linear-gradient(180deg,rgba(18,9,42,.92),rgba(18,9,42,.75) 50%,rgba(18,9,42,.92));color:#fff}
+#dash header{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pf{width:auto;display:flex;align-items:center;gap:8px;padding:4px 14px 4px 4px;margin:0;border-radius:999px;text-align:left;font-size:15px}
+.pf canvas{width:46px;height:46px;border-radius:50%;border:2px solid #ffc233;background:#241446;flex:none}
+.pf span{display:flex;flex-direction:column;line-height:1.1}.pf b{font-size:17px}.pf small{opacity:.75;font-size:12px;font-weight:600}
+.lvl{flex:1;min-width:100px}.lvl b{font-family:Bungee,"Baloo 2",sans-serif;font-weight:400;color:#ffc233;font-size:16px}
+.lvl i{display:block;height:8px;border-radius:6px;background:rgba(255,255,255,.18);overflow:hidden;margin-top:3px}
+.lvl u{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffc233,#ff4f7b);border-radius:6px;text-decoration:none;transition:width .4s}
+.dm{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:5px 14px;font-weight:800;white-space:nowrap}
+.ics{display:flex;gap:6px}.ic{width:auto;margin:0;padding:6px 12px;font-size:15px;border-radius:14px;color:#fff;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.28);box-shadow:0 3px 0 rgba(0,0,0,.35)}
+#dash main{flex:1;min-height:0;overflow:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+#t0{display:grid;gap:12px}#t1{display:grid;gap:12px}
+@media(min-width:760px){#t0{grid-template-columns:1fr 1fr;align-items:start}#t1{grid-template-columns:1.1fr .9fr;align-items:start}}
+#pv2{width:100%;aspect-ratio:360/190;display:block}
+.hero .pn{text-align:center}.hero .pn #bs{font-size:13px;opacity:.9}
+.play{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:6px 12px 8px;text-align:left}
+.cgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cgrid button{padding:4px 2px 6px;margin:0;border-width:2px;border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.07);box-shadow:none;border-radius:14px;font-size:13px;color:#fff}
+.cgrid canvas{width:100%;display:block}.cgrid button.on{border-color:#ffc233;background:rgba(255,194,51,.22)}.cgrid button.sel{box-shadow:0 0 0 2px #fff}
+.cdet{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:20px;padding:10px 12px;text-align:center}
+.cdet h3{margin:6px 0 2px;font-family:Bungee,"Baloo 2",sans-serif;font-weight:400;font-size:24px;color:#ffc233}
+.cdet p{margin:4px 0 8px;font-size:15px;opacity:.92}
+.pwr{display:flex;flex-direction:column;background:rgba(255,194,51,.14);border:1px solid rgba(255,194,51,.4);border-radius:14px;padding:8px;margin-bottom:4px}.pwr span{font-size:14px}
+#t2 .locs button{padding:22px 4px 12px}
+.locs button em{position:relative;z-index:1;display:block;font-style:normal;font-size:12px;font-weight:700}
+.locs button.lk{filter:grayscale(.75) brightness(.7)}
+.go{position:sticky;bottom:0;display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:8px 0 calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(18,9,42,.96) 30%)}
+.go .seg{width:min(58%,260px);margin:0}.go .seg button{padding:10px 4px}
+#go{width:auto;flex:0 0 auto;margin:0;padding:12px 24px;font-size:20px}
+#toast{position:absolute;left:50%;bottom:92px;transform:translateX(-50%);z-index:20;background:rgba(18,9,42,.96);border:1px solid rgba(255,255,255,.3);color:#fff;padding:10px 16px;border-radius:14px;max-width:90%;text-align:center;font-weight:700;font-size:15px}
+#inst span{display:none}@media(min-width:520px){#inst span{display:inline}}
+@media(max-height:520px){#dash{gap:4px;padding-top:6px}.pf canvas{width:36px;height:36px}.hero .pn{display:none}#t0{grid-template-columns:.8fr 1.2fr}.go{padding-top:4px}#go{padding:8px 18px;font-size:17px}}
+
+/* plain dashboard background + level card */
+#dash{background:#1b1040}
+.lvb{background:rgba(18,181,166,.15);border-color:rgba(18,181,166,.5)}
+#lu{margin-top:6px}

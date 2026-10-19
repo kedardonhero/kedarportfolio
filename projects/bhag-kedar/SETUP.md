@@ -106,3 +106,15 @@ Upload the changed files the same way as before. Installed apps pick up the new 
 - **Delay:** online players on different continents may notice a small delay. The game smooths other runners' movement to hide it.
 - **Security:** anyone with your link can create rooms and race, which is fine for a friends game. The `apiKey` is not a secret; the rules protect your data. Never use "test mode" rules (they expire after 30 days and are fully open).
 - **Photos** are stored only on the player's own device. A small copy (about 8 KB) is shared with the room while they play and deleted when they leave.
+
+---
+
+## Update v4: dashboard, profiles, Nepal levels
+
+**You must re-publish the database rules** (Firebase Console > Realtime Database > Rules > paste `database.rules.json` > Publish). It adds the `usernames` section that keeps usernames unique.
+
+- First launch asks for name, email and username (a unique one is suggested, you can edit it). Tap the profile at the top left any time to change them. Email stays on the player's device only.
+- Dashboard: profile, level bar and 💎 diamonds on top; Home / Characters / Levels tabs; Offline or Online and **Start game** at the bottom right.
+- Levels (Kathmandu, Pokhara, Chitwan, Lumbini, Mustang, Everest) unlock with diamonds (first 3 free; costs are `COST` in `js/game.js`). Diamonds are rare: 1 per 25 coins in offline races, plus 2 for finishing. They also level up each runner (max level 10, cost 10 x current level).
+- Online countdown fix: everyone now starts on the same server time and always sees 3-2-1.
+- Character intro texts are the `INTRO` list in `js/game.js`; edit them freely.

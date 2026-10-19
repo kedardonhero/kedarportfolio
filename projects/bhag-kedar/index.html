@@ -9,16 +9,46 @@
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;800&family=Bungee&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css"></head><body>
 <canvas id="g" aria-label="Bhag Kedar game"></canvas>
-<div id="ui">
+<div id="dash" hidden>
+ <header>
+  <button id="pfb" class="pf" aria-label="My profile"><canvas id="avc" width="96" height="96"></canvas><span><b id="dn"></b><small id="du"></small></span></button>
+  <div class="lvl"><b id="dl"></b><i><u id="dx"></u></i></div>
+  <div class="dm" id="dm" title="Diamonds"></div>
+  <div class="ics"><button id="inst" class="ic" aria-label="Install app">📲<span> Install</span></button><button id="hw" class="ic" aria-label="How to play">📖</button><button id="se" class="ic" aria-label="Settings">⚙️</button></div>
+ </header>
+ <nav class="seg" id="dt"><button class="on">🏠 Home</button><button>🧑‍🎤 Characters</button><button>🗺️ Levels</button></nav>
+ <main>
+  <section id="t0">
+   <div class="hero"><div class="stage"><canvas id="pv" width="720" height="380"></canvas></div><div class="pn"><b id="cn"></b><span id="cp"></span><span id="bs"></span></div></div>
+   <div class="play">
+    <div class="lab">Place</div><div class="locs"></div>
+    <div id="dfp"><div class="lab">Difficulty</div><select id="df" aria-label="Difficulty"><option value="0">😌 Easy</option><option value="1" selected>🙂 Normal</option><option value="2">🔥 Hard</option></select></div>
+    <div id="offp"><div class="lab">Computer rivals</div><select id="nb" aria-label="Rivals"><option value="0">Practice</option><option value="1">1 rival</option><option value="2" selected>2 rivals</option><option value="3">3 rivals</option></select></div>
+    <div id="onp" hidden><div class="lab">Online</div><select id="ol" aria-label="Online type"><option value="0">🌍 Quick match</option><option value="1">🏠 Create room</option><option value="2">🔑 Join code</option></select><input id="cd" maxlength="6" placeholder="ROOM CODE" autocomplete="off" hidden style="text-transform:uppercase" aria-label="Room code"></div>
+    <p class="m" id="m0"></p>
+   </div>
+  </section>
+  <section id="t1" hidden>
+   <div class="cgrid" id="th"></div>
+   <div class="cdet"><div class="stage"><canvas id="pv2" width="720" height="380"></canvas></div><h3 id="cn2"></h3><p id="ci"></p><div class="pwr" id="cw"></div><div class="pwr lvb"><b id="cl"></b><span>Runners go up to level 10. Higher level = faster in offline races.</span></div><button id="lu" class="big alt">Level up</button><button id="set" class="big">Set as my runner</button></div>
+  </section>
+  <section id="t2" hidden>
+   <p class="m">The first 3 levels are free. Unlock the rest with 💎 diamonds. Diamonds are hard to find: earn them in offline races (1 💎 per 25 coins, +2 💎 for finishing).</p>
+   <div class="locs"></div>
+  </section>
+ </main>
+ <footer class="go"><select id="md" aria-label="Mode"><option value="0">🤖 Offline</option><option value="1">🌍 Online</option></select><button id="go" class="big">Start game</button></footer>
+</div>
+<div id="toast" hidden></div>
+<div id="ui" hidden>
  <div id="p1"><div class="logo"><div><h1>Bhag Kedar</h1><p class="tag">Dodge, jump, slide and win</p></div></div>
- <section id="s1" class="step"><h3>What’s your name?</h3><input id="nick" maxlength="10" placeholder="Type your name" autocomplete="off" aria-label="Your name"><div class="lab">Your country</div><select id="ct" aria-label="Your country"></select><p class="m" id="m9"></p><button id="n1" class="big">Continue</button></section>
- <section id="s2" class="step" hidden><h3>Choose your runner</h3><div class="stage"><button id="pr" class="arw" aria-label="Previous runner">‹</button><canvas id="pv" width="720" height="380"></canvas><button id="nx" class="arw" aria-label="Next runner">›</button></div><div class="pn"><b id="cn"></b><span id="cp"></span></div><div class="thumbs" id="th"></div><div class="two" style="margin-top:4px"><button id="ph" class="alt">📷 Add my photo</button><button id="phx" class="gh" hidden style="flex:0 0 34%">Remove</button></div><input id="pf" type="file" accept="image/*" hidden aria-label="Choose your photo"><p class="m" id="mph" style="margin:4px 0 0;font-size:13px;opacity:.8">Put your own face on your runner. Saved on this device.</p><div class="two"><button id="b2" class="gh">Back</button><button id="n2" class="big" style="flex:2">Continue</button></div></section>
- <section id="s3" class="step" hidden><h3 id="hi"></h3><button id="mo" class="big">🤖 Play offline<small>Race computer runners</small></button><button id="mn" class="big alt">🌍 Play online<small>Race your friends in a room</small></button><div class="two" style="margin-top:12px"><button id="so" class="gh">⏱ Practice</button><button id="hw" class="gh">📖 How to play</button><button id="se" class="gh" aria-label="Settings">⚙️</button></div><div class="stats" id="stt"></div><button id="inst" class="alt" hidden>📲 Install app</button><p class="m" id="ioshint" hidden>To install: tap <b>Share</b> then <b>Add to Home Screen</b>.</p><button id="b3" class="gh">Change runner</button></section>
- <section id="s4" class="step" hidden><h3>Offline race</h3><div class="lab">Location</div><div class="locs"></div><div class="lab">Difficulty</div><select id="df" aria-label="Difficulty"><option value="0">😌 Easy</option><option value="1" selected>🙂 Normal</option><option value="2">🔥 Hard</option></select><div class="lab">Computer rivals</div><select id="nb" aria-label="Rivals"><option value="1">1 rival</option><option value="2" selected>2 rivals</option><option value="3">3 rivals</option></select><button id="cpu" class="big">Start race</button><button id="b4" class="gh">Back</button></section>
- <section id="s5" class="step" hidden><h3>Play online</h3>
-  <div class="pan"><h3>Host a room</h3><p class="m">You choose the location and difficulty. Friends join with your code.</p><div class="lab">Location</div><div class="locs"></div><div class="lab">Difficulty</div><select id="df2" aria-label="Room difficulty"><option value="0">😌 Easy</option><option value="1" selected>🙂 Normal</option><option value="2">🔥 Hard</option></select><button id="mk" class="big alt">Create room</button></div>
-  <div class="pan"><h3>Join a friend</h3><div class="row"><input id="cd" maxlength="6" placeholder="ROOM CODE" autocomplete="off" style="text-transform:uppercase" aria-label="Room code"><button id="jn" class="alt">Join</button></div></div>
-  <button id="qm" class="gh">🌍 Quick match · anyone worldwide</button><p class="m" id="m0"></p><button id="b5" class="gh">Back</button></section></div>
+ <section id="s1" class="step"><h3 id="ph1">Create your player</h3>
+  <div class="lab">Your name</div><input id="nick" maxlength="20" placeholder="Your name" autocomplete="name" aria-label="Your name">
+  <div class="lab">Email</div><input id="em" type="email" maxlength="60" placeholder="you@email.com" autocomplete="email" inputmode="email" style="text-transform:none" aria-label="Email">
+  <div class="lab">Username (unique, you can change it later)</div><input id="un" maxlength="16" placeholder="username" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Username">
+  <div class="lab">Country</div><select id="ct" aria-label="Your country"></select>
+  <div class="two" style="margin-top:8px"><button id="ph" class="alt">📷 Add my photo</button><button id="phx" class="gh" hidden style="flex:0 0 34%">Remove</button></div><input id="pf" type="file" accept="image/*" hidden aria-label="Choose your photo"><p class="m" id="mph" style="font-size:13px;opacity:.8">Your face goes on your runner. Saved on this device.</p>
+  <p class="m" id="m9"></p><button id="n1" class="big">Enter game</button><button id="cn1" class="gh" hidden>Cancel</button></section></div>
  <div id="p2" hidden><div class="m" id="rl">Room code – send it to your friends</div><div id="rc"></div>
   <ul id="pl"></ul><button id="rd">I’m ready</button><button id="lv" class="gh">Leave room</button><p class="m" id="m1"></p></div>
  <div id="p3" hidden><h2 id="ttl"></h2><ul id="rs"></ul><p class="m" id="rst"></p><button id="ag">Race again</button><button id="lv2" class="gh">Leave</button></div>

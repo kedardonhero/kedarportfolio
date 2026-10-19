@@ -1,7 +1,7 @@
 /* Bhag Kedar service worker: lets the game install and run offline (solo / practice).
    Game files: network first (so updates arrive right away), cache as fallback.
    Fonts: cached after first load. Firebase / online play always goes to the network. */
-const V = "bk-v3";
+const V = "bk-v4";
 const SHELL = ["./", "index.html", "css/style.css", "js/game.js", "js/locations.js", "js/sounds.js",
   "js/firebase-config.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png",
   "icons/apple-touch-icon.png", "icons/favicon.png"];
