@@ -8,18 +8,22 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;800&family=Bungee&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css"></head><body>
+<div id="ld"><div class="ldc"><img class="ldi" src="icons/icon-192.png" alt=""><h1 class="ldh">Bhag Kedar</h1><div class="ldt" id="ldt">Loading…</div><div class="lds" id="lds"></div><div class="ldbar"><i id="ldb"></i></div><div class="ldp" id="ldp">0%</div><p class="ldtip" id="ldtip"></p></div></div>
+<div id="rot" hidden><div class="rotc"><div class="rotp">📱</div><h2>Turn your phone sideways</h2><p>Bhag Kedar plays best in landscape, like your favourite battle games.</p><button id="rotgo" class="gh">Play anyway</button></div></div>
+<div id="rhint">↻ Turn your phone sideways for the best view</div>
+<div id="fxb" hidden></div>
 <canvas id="g" aria-label="Bhag Kedar game"></canvas>
 <div id="dash" hidden>
  <header>
   <button id="pfb" class="pf" aria-label="My profile"><canvas id="avc" width="96" height="96"></canvas><span><b id="dn"></b><small id="du"></small></span></button>
   <div class="lvl"><b id="dl"></b><i><u id="dx"></u></i></div>
-  <div class="dm" id="dm" title="Diamonds"></div>
+  <div class="dm" id="dm" title="Diamonds"></div><div class="dm" id="cm" title="Coins collected"></div>
   <div class="ics"><button id="inst" class="ic" aria-label="Install app">📲<span> Install</span></button><button id="hw" class="ic" aria-label="How to play">📖</button><button id="se" class="ic" aria-label="Settings">⚙️</button></div>
  </header>
- <nav class="seg" id="dt"><button class="on">🏠 Home</button><button>🧑‍🎤 Characters</button><button>🗺️ Levels</button></nav>
+ <nav id="dt"><button class="on"><b>🏠</b><span>Home</span></button><button><b>🧑‍🎤</b><span>Characters</span></button><button><b>🗺️</b><span>Levels</span></button></nav>
  <main>
   <section id="t0">
-   <div class="hero"><div class="stage"><canvas id="pv" width="720" height="380"></canvas></div><div class="pn"><b id="cn"></b><span id="cp"></span><span id="bs"></span></div></div>
+   <div class="hero"><div class="stage"><canvas id="pv" width="600" height="800"></canvas></div><div class="pn"><b id="cn"></b><span id="cp"></span><span id="bs"></span></div></div>
    <div class="play">
     <div class="lab">Place</div><div class="locs"></div>
     <div id="dfp"><div class="lab">Difficulty</div><select id="df" aria-label="Difficulty"><option value="0">😌 Easy</option><option value="1" selected>🙂 Normal</option><option value="2">🔥 Hard</option></select></div>
@@ -30,7 +34,7 @@
   </section>
   <section id="t1" hidden>
    <div class="cgrid" id="th"></div>
-   <div class="cdet"><div class="stage"><canvas id="pv2" width="720" height="380"></canvas></div><h3 id="cn2"></h3><p id="ci"></p><div class="pwr" id="cw"></div><div class="pwr lvb"><b id="cl"></b><span>Runners go up to level 10. Higher level = faster in offline races.</span></div><button id="lu" class="big alt">Level up</button><button id="set" class="big">Set as my runner</button></div>
+   <div class="cdet"><div class="stage"><canvas id="pv2" width="600" height="800"></canvas></div><h3 id="cn2"></h3><p id="ci"></p><div class="pwr" id="cw"></div><div class="pwr lvb"><b id="cl"></b><span>Runners go up to level 10. Higher level = faster in offline races.</span></div><button id="lu" class="big alt">Level up</button><button id="set" class="big">Set as my runner</button></div>
   </section>
   <section id="t2" hidden>
    <p class="m">The first 3 levels are free. Unlock the rest with 💎 diamonds. Diamonds are hard to find: earn them in offline races (1 💎 per 25 coins, +2 💎 for finishing).</p>

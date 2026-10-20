@@ -118,3 +118,9 @@ Upload the changed files the same way as before. Installed apps pick up the new 
 - Levels (Kathmandu, Pokhara, Chitwan, Lumbini, Mustang, Everest) unlock with diamonds (first 3 free; costs are `COST` in `js/game.js`). Diamonds are rare: 1 per 25 coins in offline races, plus 2 for finishing. They also level up each runner (max level 10, cost 10 x current level).
 - Online countdown fix: everyone now starts on the same server time and always sees 3-2-1.
 - Character intro texts are the `INTRO` list in `js/game.js`; edit them freely.
+
+## Update v5: loading screen, sideways play, power status
+
+- A loading screen shows when the app opens and before every offline race (with a tip and the place name).
+- Phones: tapping Start asks the browser for full screen and sideways (landscape) play. The installed app is landscape-only (reinstall the app once so Android picks up the new setting). If a phone is held upright, a "Turn your phone sideways" screen appears with a Play anyway button.
+- Powers: a chip at the top shows "You used ..." with the time left, and another chip shows when a rival hits you (who, what, time left).
