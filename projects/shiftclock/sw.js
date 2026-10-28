@@ -1,4 +1,4 @@
-const C = 'sc-v2';
+const C = 'sc-v3';
 const FILES = ['./', 'index.html', 'style.css', 'app.js', 'firebase-config.js', 'pwa-install.js', 'manifest.webmanifest',
   'icon.svg', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png'];
 const LIBS = ['www.gstatic.com']; // Firebase SDK modules: kept so the app can still open offline
