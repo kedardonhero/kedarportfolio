@@ -39,3 +39,5 @@ body{font-size:16px}main{padding-bottom:110px}button{min-height:40px}.sm{min-hei
 .stat[data-a],.jc{cursor:pointer}.stat[data-a]:hover{border-color:var(--ac)}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px}
 .sw{display:flex;gap:10px;flex-wrap:wrap}.swb{width:40px;height:40px;min-height:0;border-radius:50%;padding:0;border:3px solid transparent}.swb.sel{border-color:var(--tx)}
 @media(max-width:600px){#bn button{font-size:13px;padding:10px 2px}}
+
+.chart{display:flex;gap:6px;align-items:flex-end;margin-top:12px}.cb{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px}.cb i{width:100%;border-radius:6px 6px 2px 2px;background:var(--ac);opacity:.35}.cb i.now{opacity:1}.cb span{font-size:10px;color:var(--mut)}
