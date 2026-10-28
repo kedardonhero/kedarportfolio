@@ -13,6 +13,8 @@ let accounts = [newCash()]; // for credit cards "balance" is the money you OWE
 let contacts = [];
 let loans = [];
 let transfers = [];
+let goals = [];  // savings goals: { id, name, target, saved }
+let bills = [];  // monthly bills: { id, name, amount, day, paid: { "2026-10": transactionId } }
 let savingsPlan = {};  // where each month's leftover is kept, e.g. { "2026-10": { cash: 300, bank: 750 } }
 let storeKey = "fintrack-state-guest"; // where this profile is saved in the browser
 let currentCurrency = "USD";
@@ -36,7 +38,7 @@ function formatMoney(amount) {
 
 // All app data in one object, so it can be saved locally and in the cloud
 function getState() {
-  return { transactions, budgets, expenseNames, accounts, contacts, loans, transfers, savingsPlan };
+  return { transactions, budgets, expenseNames, accounts, contacts, loans, transfers, savingsPlan, goals, bills };
 }
 function loadState(state) {
   transactions = state.transactions || [];
@@ -47,6 +49,8 @@ function loadState(state) {
   loans = state.loans || [];
   transfers = state.transfers || [];
   savingsPlan = state.savingsPlan || {};
+  goals = state.goals || [];
+  bills = state.bills || [];
   // keep names from older plans too
   Object.values(budgets).forEach((plan) => Object.keys(plan).forEach((n) => { if (!expenseNames.includes(n)) expenseNames.push(n); }));
 }
@@ -325,6 +329,8 @@ $("clear-all").addEventListener("click", () => {
   contacts = [];
   transfers = [];
   savingsPlan = {};
+  goals = [];
+  bills = [];
   saveData();
   render();
   fillCategories();
@@ -525,6 +531,7 @@ function render() {
   renderContactDetail();
   renderAccountDetail();
   renderCharts();
+  if (window.renderExtras) renderExtras(); // insights, bills, goals (extras.js)
   if ($("reports").classList.contains("active")) renderReport();
 }
 
