@@ -166,7 +166,7 @@
         ${tile(net >= 0 ? "Saved this month" : "Overspent this month", money(Math.abs(net)), net >= 0 ? "good" : "bad", rate !== null ? rate + "% of your income" : "Money in minus money spent")}
       </div>
       <h3 class="sub-h">Where your money is now</h3>
-      ${total > 0 ? `<div class="stack" role="img" aria-label="Where your money is">${parts.map((x) => `<span class="stk ${x[2]}" style="width:${(x[1] / total) * 100}%"></span>`).join("")}</div>` : ""}
+      ${total > 0 ? `<div class="stackbar" role="img" aria-label="Where your money is">${parts.map((x) => `<span class="stk ${x[2]}" style="width:${(x[1] / total) * 100}%"></span>`).join("")}</div>` : ""}
       <div class="tiles">
         ${tile("In bank", money(kindSum("checking")))}
         ${tile("In cash", money(kindSum("cash")))}

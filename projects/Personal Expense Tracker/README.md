@@ -28,6 +28,17 @@ A responsive personal finance dashboard built with HTML, CSS and vanilla JavaScr
 - Data persists after refresh; "Clear all data" with confirmation
 - Dark/light mode, sidebar navigation, mobile layout
 
+## What changed in this version
+
+- **Splash screen:** opens with the FinTrack logo and "Made by Kedar" for about 2 seconds (tap to skip).
+- **Fixed: Log in / Create account:** the forms were squashed to a 12px strip because a later CSS rule reused the class name `stack` for the net-worth bar. The bar is now `stackbar`. This also fixes the three forms on the Account page.
+- **Fixed: Edit/Delete after searching History:** typing in the search box and then clicking a row's button did nothing the first time (the table redrew when the box lost focus).
+- **Fixed: dark mode contrast** on the active menu item and the red badge counts.
+- **Fixed:** the sidebar text "Guest mode (this device only)" no longer breaks in the middle of a word.
+- **More robust:** if the chart or icon libraries cannot load (offline or blocked), the app still opens and works instead of crashing.
+- **Polish:** colour cues on the money cards, clearer hover states, focus rings on inputs, a branded logo badge, tidier headings and spacing. Light and dark mode both use the theme colours.
+- Service-worker cache bumped to `ft-v8` so phones pick up the update.
+
 ## Built with
 
 HTML5 · CSS3 · JavaScript (ES6) · [Chart.js](https://www.chartjs.org/) · [Lucide icons](https://lucide.dev/) · localStorage

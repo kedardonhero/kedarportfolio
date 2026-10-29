@@ -20,6 +20,16 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Splash: shows for about 2 seconds every time the app opens (tap to skip) -->
+  <div id="splash" role="status" aria-label="FinTrack, made by Kedar">
+    <div class="sp">
+      <img src="icon.svg" alt="" width="88" height="88">
+      <h1>FinTrack</h1>
+      <p>Made by Kedar</p>
+      <span class="sp-bar"><i></i></span>
+    </div>
+  </div>
+  <script>(function(){var s=document.getElementById("splash"),f=function(){if(!s)return;s.classList.add("out");var x=s;s=null;setTimeout(function(){x.remove()},450)};setTimeout(f,2000);s.addEventListener("click",f)})()</script>
   <!-- Sidebar (desktop) / bottom bar + top bar (mobile) -->
   <aside class="sidebar">
     <div class="logo"><i data-lucide="wallet"></i> FinTrack</div>
@@ -498,6 +508,11 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
+  <!-- If a CDN is blocked or offline, keep the app working (without icons or charts) instead of crashing -->
+  <script>
+    if (!window.lucide) window.lucide = { createIcons: function () {} };
+    if (!window.Chart) { window.Chart = function () { this.destroy = function () {}; this.update = function () {}; }; window.Chart.defaults = { font: {}, plugins: { legend: { labels: {} } } }; }
+  </script>
   <script src="script.js"></script>
   <script src="extras.js"></script>
 </body>

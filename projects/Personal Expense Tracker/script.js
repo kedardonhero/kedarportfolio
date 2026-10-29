@@ -1796,7 +1796,10 @@ $("report-pdf").addEventListener("click", () => {
   window.print();
   document.title = oldTitle;
 });
-["input", "change"].forEach((evt) => ["hist-search", "hist-account", "hist-all"].forEach((id) => $(id).addEventListener(evt, renderTable)));
+// Search redraws while typing only. (Listening to "change" too re-drew the table when the box lost focus,
+// which swapped the Edit/Delete buttons out from under the click, so the first click did nothing.)
+$("hist-search").addEventListener("input", renderTable);
+["hist-account", "hist-all"].forEach((id) => $(id).addEventListener("change", renderTable));
 
 // Quick start buttons on the Add page: "Paid by me" / "Paid by a friend"
 document.querySelectorAll("[data-share]").forEach((button) => {
