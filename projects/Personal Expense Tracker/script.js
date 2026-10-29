@@ -368,9 +368,9 @@ function renderSummary() {
   $("d-cash").textContent = formatMoney(kindSum("cash"));
   $("d-bank").textContent = formatMoney(kindSum("checking"));
   // Saved this month = income minus personal expenses, worked out automatically
-  const saved = Math.max(round2(income - expenses), 0), keep = savingsPlan[selectedMonth];
+  const saved = Math.max(round2(income - expenses), 0);
   $("d-saved").textContent = formatMoney(saved);
-  $("d-saved-note").textContent = keep ? "Cash " + formatMoney(keep.cash) + " · Bank " + formatMoney(keep.bank) : saved > 0 ? "Tap to choose where to keep it" : "Nothing saved yet";
+  $("d-saved-note").textContent = "In bank " + formatMoney(kindSum("checking"));
   $("d-owed").textContent = formatMoney(nw.owedToMe);
   $("d-owe").textContent = formatMoney(nw.iOwe);
   $("d-budget-left").textContent = planned > 0 ? formatMoney(round2(planned - expenses)) : "Not set";
@@ -1724,13 +1724,13 @@ function renderReport() {
   notes.push(diff > 0 ? `You saved ${formatMoney(diff)} more than last month.` : diff < 0 ? `You saved ${formatMoney(-diff)} less than last month.` : "You saved the same as last month.");
   if (r.income > 0) notes.push(`You spent ${Math.round((r.expenses / r.income) * 100)}% of your income.`);
   if (planned > 0) notes.push(r.expenses <= planned ? `You stayed within budget with ${formatMoney(planned - r.expenses)} to spare.` : `You went over budget by ${formatMoney(r.expenses - planned)}.`);
-  const keepPlan = savingsPlan[month];
-  if (keepPlan) notes.push(`Savings kept: ${formatMoney(keepPlan.cash)} in cash and ${formatMoney(keepPlan.bank)} in the bank.`);
+  const savedThisMonth = round2(r.income - r.expenses), bankNow = sum(accounts.filter((a) => a.kind === "checking").map((a) => a.balance));
+  notes.push((savedThisMonth >= 0 ? `Saved this month: ${formatMoney(savedThisMonth)} (money in minus money spent).` : `You spent ${formatMoney(-savedThisMonth)} more than you earned this month.`) + ` In your bank now: ${formatMoney(bankNow)}.`);
   $("rep-insights").innerHTML = notes.map((n) => `<li>${escapeHtml(n)}</li>`).join("");
 
   const card = (label, value, tone) => `<div class="card"><span class="label">${label}</span><strong class="${tone || ""}">${formatMoney(value)}</strong></div>`;
   $("rep-cards").innerHTML = card("Income", r.income, "income") + card("Personal expenses", r.expenses, "expense")
-    + card("Added to savings", r.saved) + card("Taken from savings", r.withdrawn) + card("Net savings", r.net, r.net < 0 ? "expense" : "income")
+    + card("Saved this month", savedThisMonth, savedThisMonth < 0 ? "expense" : "income") + card("In bank now", bankNow) + card("Added to savings", r.saved) + card("Taken from savings", r.withdrawn) + card("Net savings", r.net, r.net < 0 ? "expense" : "income")
     + card("My share of group expenses", groupShare) + card("Friends owe me (open)", nw.owedToMe, "income") + card("I owe friends (open)", nw.iOwe, "expense");
 
   // Budget vs actual and balances
@@ -1788,29 +1788,13 @@ $("report-pdf").addEventListener("click", () => {
 });
 ["input", "change"].forEach((evt) => ["hist-search", "hist-account", "hist-all"].forEach((id) => $(id).addEventListener(evt, renderTable)));
 
-// ---------- Savings: where this month's leftover is kept ----------
+// ---------- Savings: tapping the card opens the savings summary on the Budget page ----------
 $("save-card").addEventListener("click", () => {
-  const t = monthTotals(selectedMonth), saved = Math.max(round2(t.income - t.expenses), 0), keep = savingsPlan[selectedMonth] || {};
-  $("save-sub").textContent = monthName(selectedMonth) + ": income " + formatMoney(t.income) + " minus expenses " + formatMoney(t.expenses) + " = " + formatMoney(saved) + " saved.";
-  $("save-cash").value = keep.cash === undefined ? "" : keep.cash;
-  $("save-bank").value = keep.bank === undefined ? "" : keep.bank;
-  $("save-error").textContent = "";
-  $("save-dialog").showModal();
+  showView("budget");
+  const box = $("savings-summary");
+  if (box) box.scrollIntoView({ behavior: "smooth", block: "start" });
 });
 $("save-card").addEventListener("keydown", (e) => { if (e.key === "Enter") $("save-card").click(); });
-$("save-cancel").addEventListener("click", () => $("save-dialog").close());
-$("save-form").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const t = monthTotals(selectedMonth), saved = Math.max(round2(t.income - t.expenses), 0);
-  const cash = parseFloat($("save-cash").value || "0"), bank = parseFloat($("save-bank").value || "0");
-  if (isNaN(cash) || isNaN(bank) || cash < 0 || bank < 0) { $("save-error").textContent = "Enter amounts of 0 or more."; return; }
-  if (round2(cash + bank) > saved + 0.004) { $("save-error").textContent = "You only saved " + formatMoney(saved) + " this month."; return; }
-  savingsPlan[selectedMonth] = { cash: round2(cash), bank: round2(bank) };
-  saveData();
-  $("save-dialog").close();
-  render();
-  showToast("Savings plan saved");
-});
 // Quick start buttons on the Add page: "Paid by me" / "Paid by a friend"
 document.querySelectorAll("[data-share]").forEach((button) => {
   button.addEventListener("click", () => openLoanDialog("", button.dataset.share));
