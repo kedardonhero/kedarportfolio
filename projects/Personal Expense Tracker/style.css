@@ -407,8 +407,6 @@ dialog input[type="checkbox"], dialog input[type="radio"] { width: auto; margin:
 .hist-tools { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
 .hist-tools input[type="search"] { flex: 1; min-width: 160px; padding: 11px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text); }
 .head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.insights { list-style: none; padding: 0; margin: 0 0 16px; display: grid; gap: 8px; }
-.insights li { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 12px; padding: 12px 14px; }
 .chip-list { display: flex; flex-wrap: wrap; gap: 8px 16px; }
 #month-pick { padding: 7px 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; }
 .edit-btn:hover { color: var(--accent); background: var(--bg); }
@@ -514,17 +512,8 @@ input[type="email"], input[type="password"] {
 }
 @media (max-width: 360px) { .tb-by { font-size: 0.6rem; } .month-btn, .month-bar .filter-btn { padding: 9px 10px; font-size: 0.9rem; } }
 
-/* ---------- Extras: insights, bills, goals, backup ---------- */
-#bills-card, #insight-card, #bills-manage, #goals-card, #backup-card { margin: 16px 0; }
-.ins-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
-.ins { background: var(--bg); border-radius: 12px; padding: 12px; min-width: 0; }
-.ins strong { display: block; font-size: 1.15rem; overflow-wrap: anywhere; }
-.ins small { color: var(--muted); }
-.wd-bars { display: flex; gap: 8px; align-items: flex-end; }
-.wd { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; }
-.wd i { display: block; width: 100%; max-width: 38px; background: var(--border); border-radius: 6px 6px 2px 2px; }
-.wd i.top { background: var(--accent); }
-.wd span { font-size: 0.75rem; color: var(--muted); }
+/* ---------- Extras: bills, goals, backup ---------- */
+#bills-card, #bills-manage, #goals-card, #backup-card { margin: 16px 0; }
 .bill-row, .goal-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .bill-row { padding: 10px 0; border-bottom: 1px solid var(--border); }
 .bill-row:last-child { border-bottom: 0; }
@@ -543,5 +532,10 @@ input[type="email"], input[type="password"] {
 .goal-actions input { flex: 1; min-width: 90px; }
 .backup-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .file-btn { display: inline-block; cursor: pointer; padding: 12px 18px; }
-@media (max-width: 700px) { .x-form, .x-form-2 { grid-template-columns: 1fr; } .ins-grid { grid-template-columns: 1fr 1fr; } }
+.x-form-3 { grid-template-columns: 2fr 1fr 1fr auto; }
+@media (max-width: 700px) { .x-form, .x-form-2, .x-form-3 { grid-template-columns: 1fr; } .seg-tabs button { flex: 1; padding-left: 6px; padding-right: 6px; } }
 @media print { #backup-card { display: none !important; } }
+.seg-tabs { display: flex; gap: 8px; margin: 12px 0 16px; }
+.tab-off { display: none !important; }
+.goal-plan { margin: 4px 0 0; font-weight: 600; }
+.goal-actions .primary-btn, .goal-actions .filter-btn { height: 42px; }

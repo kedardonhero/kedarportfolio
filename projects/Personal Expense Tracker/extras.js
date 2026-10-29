@@ -1,11 +1,10 @@
 // ============================================================
-// FinTrack extras: spending insights, weekday bars, upcoming bills,
-// savings goals, and backup / restore.
+// FinTrack extras: upcoming bills, savings goals that really move money,
+// simple Budget tabs, and backup / restore.
 // Loaded after script.js, so it can use the same variables and helpers.
 // Everything is wrapped in a function so no names clash with script.js.
 // ============================================================
 (function () {
-  const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const thisMonth = () => today().slice(0, 7); // the real current month, e.g. "2026-10"
 
   function newCard(id, html) {
@@ -18,8 +17,7 @@
 
   // ---------- Build the new cards once ----------
   const billsCard = newCard("bills-card", '<h2>Upcoming bills</h2><div id="bills-list"></div>');
-  const insightCard = newCard("insight-card", '<h2>Spending insights</h2><div id="insight-body"></div>');
-  $("alerts").after(billsCard, insightCard); // on Home, under the alerts
+  $("alerts").after(billsCard); // on Home, under the alerts
 
   const billsManage = newCard("bills-manage", `<h2>Bills &amp; subscriptions</h2>
     <p class="hint">Add bills that repeat every month. They show on Home with a one-tap Pay button, which adds the expense for you.</p>
@@ -31,10 +29,11 @@
     </form>
     <p id="bill-error" class="error" role="alert"></p><div id="bill-manage-list"></div>`);
   const goalsCard = newCard("goals-card", `<h2>Savings goals</h2>
-    <p class="hint">Track what you are saving for. Goals are a tracker only: they do not move money between your accounts.</p>
-    <form id="goal-form" class="x-form x-form-2" novalidate>
-      <label>Goal<input id="goal-name" maxlength="30" placeholder="e.g. New laptop, Trip"></label>
+    <p class="hint">Pick something to save for. When you add money, it moves out of your cash or bank account into the goal, so all your balances stay correct.</p>
+    <form id="goal-form" class="x-form x-form-3" novalidate>
+      <label>What are you saving for?<input id="goal-name" maxlength="30" placeholder="e.g. Emergency fund, Laptop"></label>
       <label>Target amount<input id="goal-target" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0.00"></label>
+      <label>Finish by (optional)<input id="goal-date" type="date"></label>
       <button type="submit" class="primary-btn">Add goal</button>
     </form>
     <p id="goal-error" class="error" role="alert"></p><div id="goal-list"></div>`);
@@ -45,41 +44,6 @@
     <div class="backup-actions"><button type="button" class="primary-btn" id="backup-export">Download backup</button>
     <label class="mini-btn file-btn">Restore from file<input type="file" id="backup-file" accept="application/json,.json" hidden></label></div>`);
   $("reports").append(backupCard);
-
-  // ---------- 1 + 2. Spending insights and weekday bars ----------
-  function renderInsights() {
-    const body = $("insight-body");
-    const expenses = getMonthTransactions().filter((t) => t.type === "expense");
-    if (!expenses.length) { body.innerHTML = '<p class="empty">No expenses in ' + monthName(selectedMonth) + " yet.</p>"; return; }
-
-    const total = sum(expenses.map((t) => t.amount));
-    const [year, month] = selectedMonth.split("-").map(Number);
-    const daysInMonth = new Date(year, month, 0).getDate();
-    const isNow = selectedMonth === thisMonth();
-    const daysPassed = isNow ? Number(today().slice(8, 10)) : daysInMonth;
-
-    // Top category and biggest single expense
-    const byCat = getSpentByCategory();
-    const top = Object.entries(byCat).sort((a, b) => b[1] - a[1])[0];
-    const big = expenses.reduce((a, b) => (b.amount > a.amount ? b : a));
-    const spendDays = new Set(expenses.map((t) => t.date)).size;
-    const noSpend = Math.max(0, daysPassed - spendDays);
-
-    // Spending per weekday (0 = Sunday)
-    const byDay = [0, 0, 0, 0, 0, 0, 0];
-    expenses.forEach((t) => { byDay[new Date(t.date + "T00:00:00").getDay()] += t.amount; });
-    const maxDay = Math.max(...byDay);
-    const bars = byDay.map((v, i) => `<div class="wd"><i class="${v === maxDay ? "top" : ""}" style="height:${v > 0 ? Math.max(4, Math.round((v / maxDay) * 70)) : 2}px" title="${DAY_NAMES[i]}: ${formatMoney(round2(v))}"></i><span>${DAY_NAMES[i]}</span></div>`).join("");
-
-    body.innerHTML = `<div class="ins-grid">
-      <div class="ins"><span class="label">Daily average</span><strong>${formatMoney(round2(total / daysPassed))}</strong></div>
-      <div class="ins"><span class="label">${isNow ? "On track to spend" : "Total spent"}</span><strong>${formatMoney(round2(isNow ? (total / daysPassed) * daysInMonth : total))}</strong><small>${isNow ? "by the end of the month" : monthName(selectedMonth)}</small></div>
-      <div class="ins"><span class="label">Top category</span><strong>${escapeHtml(top[0])}</strong><small>${formatMoney(round2(top[1]))} (${Math.round((top[1] / total) * 100)}%)</small></div>
-      <div class="ins"><span class="label">Biggest expense</span><strong>${formatMoney(big.amount)}</strong><small>${escapeHtml(big.description)}</small></div>
-    </div>
-    <p class="hint" style="margin:0 0 8px">${noSpend} no-spend ${noSpend === 1 ? "day" : "days"} so far. You spend the most on <strong>${DAY_NAMES[byDay.indexOf(maxDay)]}s</strong>.</p>
-    <div class="wd-bars">${bars}</div>`;
-  }
 
   // ---------- 3. Upcoming bills ----------
   // A bill due on day 31 falls on the last day of shorter months
@@ -137,43 +101,85 @@
     showToast("Bill added");
   });
 
-  // ---------- 4. Savings goals ----------
+  // ---------- 4. Savings goals (money really moves) ----------
+  // Adding to a goal takes the money out of an account; taking out puts it back.
+  // So Available money, account statements and Net worth always add up.
+  const monthsUntil = (date) => Math.max(1, Math.ceil(daysBetween(today(), date) / 30.44));
+
   function renderGoals() {
     $("goal-list").innerHTML = goals.length ? goals.map((g) => {
+      const left = round2(Math.max(0, g.target - g.saved)), done = left <= 0.004;
       const pct = Math.min(100, Math.round((g.saved / g.target) * 100));
+      let plan = "";
+      if (done) plan = "Goal reached 🎉";
+      else if (g.date) plan = daysBetween(today(), g.date) < 0 ? "The finish date has passed." : "Save about " + formatMoney(round2(left / monthsUntil(g.date))) + " a month to finish by " + monthName(g.date.slice(0, 7)) + ".";
       return `<div class="goal-row">
-        <div class="goal-top"><strong>${escapeHtml(g.name)}</strong><span>${formatMoney(g.saved)} of ${formatMoney(g.target)}${g.saved >= g.target ? " 🎉" : ""}</span></div>
+        <div class="goal-top"><strong>${escapeHtml(g.name)}</strong><span>${pct}%</span></div>
         <div class="progress"><div class="bar" style="width:${pct}%"></div></div>
-        <div class="goal-actions"><input type="number" step="0.01" min="0" inputmode="decimal" placeholder="Amount" aria-label="Amount for ${escapeHtml(g.name)}" data-goal-amt="${g.id}">
-        <button type="button" class="mini-btn" data-goal-add="${g.id}">Add</button><button type="button" class="mini-btn" data-goal-take="${g.id}">Take out</button>
-        <button type="button" class="mini-btn danger-text" data-goal-del="${g.id}">Delete</button></div></div>`;
-    }).join("") : '<p class="empty">No goals yet. Add one above.</p>';
+        <p class="hint" style="margin:8px 0 0">${formatMoney(g.saved)} saved of ${formatMoney(g.target)}${done ? "" : " · " + formatMoney(left) + " to go"}</p>
+        ${plan ? `<p class="hint goal-plan">${plan}</p>` : ""}
+        <div class="goal-actions">${done ? "" : `<button type="button" class="primary-btn" data-goal-add="${g.id}">＋ Add money</button>`}${g.saved > 0 ? `<button type="button" class="filter-btn" data-goal-take="${g.id}">Take out</button>` : ""}<button type="button" class="mini-btn danger-text" data-goal-del="${g.id}">Delete</button></div></div>`;
+    }).join("") : '<p class="empty">No goals yet. Try "Emergency fund", "New laptop" or "Trip".</p>';
   }
 
   $("goal-form").addEventListener("submit", (e) => {
     e.preventDefault();
-    const name = $("goal-name").value.trim(), target = parseFloat($("goal-target").value), err = $("goal-error");
-    if (!name) { err.textContent = "Enter a name for the goal."; return; }
+    const name = $("goal-name").value.trim(), target = parseFloat($("goal-target").value), date = $("goal-date").value, err = $("goal-error");
+    if (!name) { err.textContent = "Enter what you are saving for."; return; }
     if (isNaN(target) || target <= 0) { err.textContent = "Enter a target amount greater than 0."; return; }
+    if (date && date < today()) { err.textContent = "Pick a finish date in the future, or leave it empty."; return; }
     err.textContent = "";
-    goals.push({ id: Date.now(), name, target: round2(target), saved: 0 });
+    goals.push({ id: Date.now(), name, target: round2(target), saved: 0, date, history: [] });
     e.target.reset();
     saveData();
     render();
     showToast("Goal added");
   });
 
-  function changeGoal(id, direction) {
-    const goal = goals.find((g) => g.id === id), input = document.querySelector('[data-goal-amt="' + id + '"]');
-    const amount = parseFloat(input && input.value);
-    if (!goal) return;
-    if (isNaN(amount) || amount <= 0) { showToast("Enter an amount greater than 0."); return; }
-    if (direction < 0 && amount > goal.saved + 0.004) { showToast("You only have " + formatMoney(goal.saved) + " in this goal."); return; }
-    goal.saved = Math.max(0, round2(goal.saved + direction * amount));
+  // Small pop-up for "Add money" / "Take out": pick the account and the amount
+  const goalDialog = document.createElement("dialog");
+  goalDialog.innerHTML = `<form id="gm-form" novalidate><h2 id="gm-title"></h2><p id="gm-sub" class="hint"></p>
+    <label class="field"><span id="gm-account-label"></span><select id="gm-account"></select></label>
+    <label class="field">Amount<input type="number" id="gm-amount" step="0.01" min="0" inputmode="decimal" placeholder="0.00"></label>
+    <p id="gm-error" class="error" role="alert"></p>
+    <div class="dialog-actions"><button type="button" id="gm-cancel" class="filter-btn">Cancel</button><button type="submit" class="primary-btn">Confirm</button></div></form>`;
+  document.body.append(goalDialog);
+  let moving = null; // { goalId, direction }  direction: 1 = add, -1 = take out
+
+  function openMove(goalId, direction) {
+    const g = goals.find((x) => x.id === goalId);
+    if (!g) return;
+    moving = { goalId, direction };
+    $("gm-title").textContent = (direction > 0 ? "Add money to " : "Take money out of ") + g.name;
+    $("gm-sub").textContent = direction > 0 ? formatMoney(round2(g.target - g.saved)) + " to go." : formatMoney(g.saved) + " is saved in this goal.";
+    $("gm-account-label").textContent = direction > 0 ? "Take it from" : "Put it back in";
+    $("gm-account").innerHTML = accounts.filter((a) => a.kind !== "credit").map((a) => `<option value="${a.id}">${escapeHtml(a.name)} (${formatMoney(a.balance)})</option>`).join("");
+    $("gm-amount").value = "";
+    $("gm-error").textContent = "";
+    goalDialog.showModal();
+  }
+
+  $("gm-cancel").addEventListener("click", () => goalDialog.close());
+  $("gm-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const g = goals.find((x) => x.id === moving.goalId), account = getAccount($("gm-account").value), err = $("gm-error");
+    const amount = round2(parseFloat($("gm-amount").value));
+    if (!g || !account) { goalDialog.close(); return; }
+    if (isNaN(amount) || amount <= 0) { err.textContent = "Enter an amount greater than 0."; return; }
+    if (moving.direction > 0) {
+      if (amount > account.balance + 0.004) { err.textContent = account.name + " only has " + formatMoney(account.balance) + "."; return; }
+      if (amount > round2(g.target - g.saved) + 0.004) { err.textContent = "You only need " + formatMoney(round2(g.target - g.saved)) + " more."; return; }
+    } else if (amount > g.saved + 0.004) { err.textContent = "Only " + formatMoney(g.saved) + " is saved in this goal."; return; }
+    const signed = moving.direction * amount;
+    moveMoney(account, -signed); // adding to a goal takes money out of the account
+    g.saved = Math.max(0, round2(g.saved + signed));
+    g.history = g.history || [];
+    g.history.push({ id: Date.now(), date: today(), amount: signed, accountId: account.id });
+    goalDialog.close();
     saveData();
     render();
-    showToast(goal.saved >= goal.target ? "Goal reached! 🎉" : "Goal updated");
-  }
+    showToast(g.saved >= g.target ? "Goal reached! 🎉" : signed > 0 ? "Added to " + g.name : "Moved back to " + account.name);
+  });
 
   // One click listener for all the buttons in the new cards
   document.addEventListener("click", (e) => {
@@ -185,11 +191,14 @@
       if (!confirm("Delete this bill?")) return;
       bills = bills.filter((x) => x.id !== Number(d.billDel));
       saveData(); render();
-    } else if (d.goalAdd) changeGoal(Number(d.goalAdd), 1);
-    else if (d.goalTake) changeGoal(Number(d.goalTake), -1);
+    } else if (d.goalAdd) openMove(Number(d.goalAdd), 1);
+    else if (d.goalTake) openMove(Number(d.goalTake), -1);
     else if (d.goalDel) {
+      const g = goals.find((x) => x.id === Number(d.goalDel));
+      if (!g) return;
+      if (g.saved > 0) { showToast("Take the money out first, then delete the goal."); return; }
       if (!confirm("Delete this goal?")) return;
-      goals = goals.filter((x) => x.id !== Number(d.goalDel));
+      goals = goals.filter((x) => x !== g);
       saveData(); render();
     }
   });
@@ -232,7 +241,34 @@
     reader.readAsText(file);
   });
 
+  // ---------- Budget page tabs: one thing at a time ----------
+  const tabBar = document.createElement("div");
+  tabBar.className = "seg-tabs";
+  tabBar.innerHTML = '<button type="button" class="filter-btn active" data-tab="plan">Monthly plan</button><button type="button" class="filter-btn" data-tab="bills">Bills</button><button type="button" class="filter-btn" data-tab="goals">Savings goals</button>';
+  const budgetTitle = document.querySelector("#budget h1");
+  budgetTitle.textContent = "Budget & savings";
+  budgetTitle.after(tabBar);
+  function showBudgetTab(tab) {
+    tabBar.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
+    [...$("budget").children].forEach((el) => {
+      if (el === tabBar || el === budgetTitle) return;
+      const belongsTo = el === billsManage ? "bills" : el === goalsCard ? "goals" : "plan";
+      el.classList.toggle("tab-off", belongsTo !== tab);
+    });
+  }
+  tabBar.addEventListener("click", (e) => { const b = e.target.closest("[data-tab]"); if (b) showBudgetTab(b.dataset.tab); });
+  showBudgetTab("plan");
+
   // script.js calls this at the end of every render()
-  window.renderExtras = function () { renderInsights(); renderBills(); renderGoals(); };
+  window.renderExtras = function () {
+    renderBills();
+    renderGoals();
+    // Home: tell the user how much is set aside, so Available money makes sense
+    const note = document.querySelector(".money-hero .hero-main small"), inGoals = sum(goals.map((g) => g.saved));
+    if (note) {
+      if (!note.dataset.base) note.dataset.base = note.textContent;
+      note.textContent = note.dataset.base + (inGoals > 0 ? " " + formatMoney(inGoals) + " is set aside in savings goals." : "");
+    }
+  };
   window.renderExtras();
 })();

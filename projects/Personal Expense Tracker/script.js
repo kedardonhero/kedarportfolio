@@ -531,7 +531,7 @@ function render() {
   renderContactDetail();
   renderAccountDetail();
   renderCharts();
-  if (window.renderExtras) renderExtras(); // insights, bills, goals (extras.js)
+  if (window.renderExtras) renderExtras(); // bills and savings goals (extras.js)
   if ($("reports").classList.contains("active")) renderReport();
 }
 
@@ -590,7 +590,8 @@ function getNetWorth() {
   const debt = sum(accounts.filter((a) => a.kind === "credit").map((a) => a.balance));
   const owedToMe = sum(loans.filter((l) => l.kind === "lent").map(remaining));
   const iOwe = sum(loans.filter((l) => l.kind !== "lent").map(remaining));
-  return { money, debt, owedToMe, iOwe, total: money - debt + owedToMe - iOwe };
+  const inGoals = sum(goals.map((g) => g.saved)); // money set aside in savings goals still belongs to you
+  return { money, debt, owedToMe, iOwe, inGoals, total: money + inGoals - debt + owedToMe - iOwe };
 }
 
 function accountRow(a) {
@@ -622,7 +623,7 @@ function renderNetWorth() {
   $("nw-checking").textContent = formatMoney(sumOf("checking"));
   $("nw-debt").textContent = formatMoney(n.debt);
   $("nw-savings").textContent = formatMoney(sumOf("savings"));
-  $("nw-note").textContent = `Includes loans: people owe you ${formatMoney(n.owedToMe)}, you owe ${formatMoney(n.iOwe)}`;
+  $("nw-note").textContent = `Includes loans: people owe you ${formatMoney(n.owedToMe)}, you owe ${formatMoney(n.iOwe)}${n.inGoals > 0 ? ". Savings goals: " + formatMoney(n.inGoals) : ""}`;
 
   const list = (kind) => accounts.filter((a) => a.kind === kind).map(accountRow).join("") || '<p class="empty">None yet.</p>';
   $("cash-list").innerHTML = list("cash");
@@ -1109,6 +1110,8 @@ function accountActivity(a) {
     (l.payments || []).filter((p) => p.accountId === a.id).forEach((p) =>
       add(p.id, p.date, (l.kind === "lent" ? "Payment received from " : "Payment to ") + l.person, l.note, "Loan payment", l.kind === "lent" ? p.amount : -p.amount));
   });
+  goals.forEach((g) => (g.history || []).filter((h) => h.accountId === a.id).forEach((h) =>
+    add(h.id, h.date, (h.amount > 0 ? "Saved to goal: " : "Taken from goal: ") + g.name, "", "Goal", -h.amount)));
   return items;
 }
 
