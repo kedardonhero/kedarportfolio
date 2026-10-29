@@ -542,10 +542,20 @@ function goToHistory(filter) {
   renderTable();
   showView("history");
 }
-const cardLinks = { "income-card": () => goToHistory("income"), "expense-card": () => goToHistory("expense"), "nw-card": () => showView("networth") };
+// Every card on Home opens its own pop-up (built in extras.js). If extras.js is missing, the old page links still work.
+const cardLinks = {
+  "income-card": () => (window.dashPopup ? dashPopup("income") : goToHistory("income")),
+  "expense-card": () => (window.dashPopup ? dashPopup("expense") : goToHistory("expense")),
+  "nw-card": () => (window.dashPopup ? dashPopup("networth") : showView("networth")),
+  "save-card": () => (window.dashPopup ? dashPopup("saved") : showView("budget")),
+  "budget-card": () => (window.dashPopup ? dashPopup("budget") : showView("budget")),
+  "owed-card": () => (window.dashPopup ? dashPopup("owed") : showView("loans")),
+  "owe-card": () => (window.dashPopup ? dashPopup("owe") : showView("loans")),
+  "avail-card": () => (window.dashPopup ? dashPopup("available") : showView("networth"))
+};
 Object.keys(cardLinks).forEach((id) => {
   $(id).addEventListener("click", cardLinks[id]);
-  $(id).addEventListener("keydown", (e) => { if (e.key === "Enter") cardLinks[id](); });
+  $(id).addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); cardLinks[id](); } });
 });
 
 // ---------- Accounts (cash, checking, credit) ----------
@@ -1788,13 +1798,6 @@ $("report-pdf").addEventListener("click", () => {
 });
 ["input", "change"].forEach((evt) => ["hist-search", "hist-account", "hist-all"].forEach((id) => $(id).addEventListener(evt, renderTable)));
 
-// ---------- Savings: tapping the card opens the savings summary on the Budget page ----------
-$("save-card").addEventListener("click", () => {
-  showView("budget");
-  const box = $("savings-summary");
-  if (box) box.scrollIntoView({ behavior: "smooth", block: "start" });
-});
-$("save-card").addEventListener("keydown", (e) => { if (e.key === "Enter") $("save-card").click(); });
 // Quick start buttons on the Add page: "Paid by me" / "Paid by a friend"
 document.querySelectorAll("[data-share]").forEach((button) => {
   button.addEventListener("click", () => openLoanDialog("", button.dataset.share));

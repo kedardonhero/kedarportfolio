@@ -58,7 +58,7 @@
         <span class="nudge-actions"><button type="button" class="primary-btn" id="nudge-go">Add email</button><button type="button" class="link-btn" id="nudge-later">Later</button></span>
       </div>
       <div class="card hero money-hero">
-        <div class="hero-main"><span class="label">Available money</span><strong id="d-avail">$0.00</strong><small>Cash + bank. Money friends owe you is not included.</small></div>
+        <div class="hero-main" id="avail-card" tabindex="0" role="button" aria-label="Available money details"><span class="label">Available money</span><strong id="d-avail">$0.00</strong><small>Cash + bank. Money friends owe you is not included.</small></div>
         <div class="hero-split">
           <div class="clickable" data-action="open-kind" data-id="cash" tabindex="0" role="button"><span class="label">Cash in hand</span><strong id="d-cash">$0.00</strong></div>
           <div class="clickable" data-action="open-kind" data-id="checking" tabindex="0" role="button"><span class="label">Bank</span><strong id="d-bank">$0.00</strong></div>
@@ -77,13 +77,13 @@
       <div class="cards">
         <div class="card clickable" id="income-card" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Income</span><strong id="total-income" class="income">$0.00</strong></div>
         <div class="card clickable" id="expense-card" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Expenses</span><strong id="total-expenses" class="expense">$0.00</strong></div>
-        <div class="card"><span class="label">Left budget</span><strong id="d-budget-left">Not set</strong><small id="d-budget-note"></small></div>
+        <div class="card clickable" id="budget-card" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Left budget</span><strong id="d-budget-left">Not set</strong><small id="d-budget-note"></small></div>
         <div class="card clickable" id="save-card" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Saved this month</span><strong id="d-saved" class="income">$0.00</strong><small id="d-saved-note"></small></div>
       </div>
       <h2 class="section-title">Friends &amp; net worth</h2>
       <div class="cards">
-        <div class="card"><span class="label">Friends owe me</span><strong id="d-owed" class="income">$0.00</strong></div>
-        <div class="card"><span class="label">I owe friends</span><strong id="d-owe" class="expense">$0.00</strong></div>
+        <div class="card clickable" id="owed-card" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Friends owe me</span><strong id="d-owed" class="income">$0.00</strong></div>
+        <div class="card clickable" id="owe-card" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">I owe friends</span><strong id="d-owe" class="expense">$0.00</strong></div>
         <div class="card clickable" id="nw-card" tabindex="0" role="button"><i data-lucide="chevron-right" class="go"></i><span class="label">Net worth</span><strong id="nw-dash">$0.00</strong></div>
       </div>
       <div class="charts">

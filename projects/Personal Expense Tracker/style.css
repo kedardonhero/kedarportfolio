@@ -611,3 +611,133 @@ input:focus-visible, select:focus-visible { outline: none; border-color: var(--a
 }
 @media (max-width: 380px) { .bill-form { grid-template-columns: 1fr; } .plan-tiles { grid-template-columns: 1fr; } }
 @media print { #backup-card { display: none !important; } }
+
+
+/* ============================================================
+   Budget & savings redesign + dashboard pop-ups
+   ============================================================ */
+#budget { max-width: 800px; }
+#budget .card { max-width: none; }
+.bs-tabs { display: flex; gap: 6px; padding: 5px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; margin: 6px 0 18px; overflow-x: auto; scrollbar-width: none; box-shadow: var(--shadow); }
+.bs-tabs::-webkit-scrollbar { display: none; }
+.bs-tab { flex: 1 1 0; min-width: max-content; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 10px 14px; border: 0; border-radius: 12px; background: transparent; color: var(--muted); font-weight: 700; font-size: 0.92rem; transition: background 0.2s, color 0.2s; }
+.bs-tab svg { width: 17px; height: 17px; }
+.bs-tab:hover { color: var(--text); }
+.bs-tab.active { background: var(--accent); color: var(--accent-text); box-shadow: 0 4px 14px rgba(21, 83, 214, 0.28); }
+.bs-count { background: var(--expense); color: #fff; border-radius: 999px; font-size: 0.7rem; min-width: 18px; height: 18px; display: inline-grid; place-items: center; padding: 0 5px; }
+.bs-count[hidden] { display: none; }
+.bs-panel { display: none; }
+.bs-panel.active { display: block; animation: bsIn 0.22s ease; }
+@keyframes bsIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.bs-panel > .card { margin: 0 0 16px; }
+.bs-panel > .hint { margin: 0 0 12px; }
+.bs-panel .card h2 { font-size: 1.1rem; margin-bottom: 10px; }
+
+/* Smarter input forms */
+.adv-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.adv-head h2 { margin: 0 !important; }
+.adv-head .hint { margin: 0; font-size: 0.85rem; }
+#plan-form.adv { display: flex; flex-direction: column; gap: 12px; align-items: stretch; grid-template-columns: none; }
+#plan-form.adv .primary-btn { height: 46px; }
+.bill-form.adv .chip-row { align-items: center; }
+.chip-label { margin: 0 !important; font-size: 0.85rem; }
+.amt { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); overflow: hidden; }
+.amt:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+.amt .cur { padding: 0 2px 0 13px; color: var(--muted); font-weight: 800; white-space: nowrap; }
+.amt input[type="number"] { border: 0 !important; background: transparent !important; flex: 1; min-width: 0; margin: 0 !important; outline: none !important; }
+.pf-preview { background: var(--bg); border: 1px dashed var(--border); border-radius: 12px; padding: 10px 14px; font-size: 0.88rem; display: flex; flex-direction: column; gap: 4px; min-height: 42px; justify-content: center; }
+.pf-preview .hint { margin: 0; }
+.warn-text { color: #b7791f; font-weight: 700; }
+.link-btn { background: none; border: 0; color: var(--accent); font-weight: 700; padding: 0 4px; text-decoration: underline; }
+.sort-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 14px 0 4px; }
+.sort-row .filter-btn { padding: 5px 12px; font-size: 0.82rem; }
+.plan-foot { margin: 8px 0 0 !important; font-size: 0.85rem; }
+.plan-row .badge { white-space: nowrap; }
+.plan-meta small { color: var(--muted); }
+
+/* Overview cards */
+.snap-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
+.snap-head h2 { margin: 0 !important; }
+.snap-main { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 2px 0 10px; }
+.snap-main strong { font-size: 2rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.snap-main.good strong { color: var(--income); }
+.snap-main.bad strong { color: var(--expense); }
+.snap-main span { color: var(--muted); font-weight: 600; }
+.snap-note { margin: 10px 0 0; font-size: 0.9rem; }
+.snap-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.snap-actions .primary-btn, .snap-actions .filter-btn { min-height: 42px; }
+.stack { display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: var(--bg); margin: 6px 0 12px; border: 1px solid var(--border); }
+.stk.c1 { background: #1553d6; } .stk.c2 { background: #0f8a5f; } .stk.c3 { background: #8b5cf6; } .stk.c4 { background: #d99614; }
+.mini-goal { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.mini-goal:last-child { border-bottom: 0; padding-bottom: 0; }
+.mini-goal .plan-top { margin-bottom: 6px; }
+.mini-goal .hint { margin: 4px 0 0; font-size: 0.82rem; }
+#bs-bills-mini .empty, #bs-goals-mini .empty { padding: 8px 0; }
+
+/* Dashboard pop-ups */
+.hero-main[role="button"] { cursor: pointer; border-radius: 12px; }
+.hero-main[role="button"]:hover { opacity: 0.92; }
+dialog.dash { width: min(520px, 94vw); max-height: 90vh; padding: 0; border-radius: 22px; overflow: auto; }
+dialog.dash[open] { animation: dashIn 0.2s ease; }
+@keyframes dashIn { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: none; } }
+.dash-wrap { padding: 20px 20px 16px; }
+.dash-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.dash-title { flex: 1; min-width: 0; }
+.dash-title h2 { margin: 0; font-size: 1.2rem; }
+.dash-title .hint { margin: 0; font-size: 0.85rem; }
+.dash-ico { width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; background: var(--bg); color: var(--accent); flex: none; }
+.dash-ico.good { background: rgba(15, 138, 95, 0.14); color: var(--income); }
+.dash-ico.bad { background: var(--warn-bg); color: var(--expense); }
+.dash-x { border: 0; background: var(--bg); width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+.dash-x:hover { background: var(--border); }
+.dash-hero { border-radius: 18px; padding: 16px 18px; background: var(--bg); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
+.dash-hero span { color: var(--muted); font-weight: 600; font-size: 0.85rem; }
+.dash-hero strong { font-size: 2.2rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.15; overflow-wrap: anywhere; }
+.dash-hero.good strong { color: var(--income); }
+.dash-hero.bad strong { color: var(--expense); }
+.dash-hero small { font-size: 0.82rem; color: var(--muted); }
+.dash-hero small span { display: inline; font-size: inherit; font-weight: 700; }
+.dash-wrap .progress.big { margin: 10px 0 0; }
+.dash-tiles { margin: 8px 0 4px; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+.dash-row { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.dash-row:last-child { border-bottom: 0; }
+.dash-row .hint { margin: 2px 0 0; font-size: 0.8rem; }
+.dash-bar { margin-bottom: 12px; }
+.dash-bar-top { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 6px; font-size: 0.92rem; }
+.dash-bar-top small { color: var(--muted); }
+.dash-plan { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.dash-plan:last-child { border-bottom: 0; }
+.dash-plan .plan-meta { margin-top: 6px; }
+.progress .bar.good { background: var(--income); }
+.dash-notes { list-style: none; padding: 0; margin: 14px 0 0; display: flex; flex-direction: column; gap: 8px; }
+.dash-notes li { padding: 10px 12px; border-radius: 12px; background: var(--bg); border: 1px solid var(--border); font-size: 0.9rem; }
+.dash-notes li.ok { background: rgba(15, 138, 95, 0.1); border-color: transparent; }
+.dash-notes li.warn { background: rgba(217, 150, 20, 0.14); border-color: transparent; }
+.dash-notes li.bad { background: var(--warn-bg); border-color: transparent; }
+.dash-person { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: transparent; border: 0; border-bottom: 1px solid var(--border); padding: 12px 6px; border-radius: 12px; }
+.dash-person:last-child { border-bottom: 0; }
+.dash-person:hover { background: var(--bg); }
+.dash-person .dp-name { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dash-person .avatar { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--bg); border: 1px solid var(--border); font-weight: 800; flex: none; }
+.dash-foot { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+.dash-foot .primary-btn, .dash-foot .filter-btn { flex: 1 1 140px; min-height: 44px; border-radius: 12px; }
+.dash-foot .filter-btn { border-radius: 12px; }
+
+@media (max-width: 700px) {
+  .bs-tab { padding: 10px 12px; font-size: 0.86rem; }
+  .bs-tab svg { display: none; }
+  .snap-main strong, .dash-hero strong { font-size: 1.8rem; }
+  .dash-wrap { padding: 16px 16px 14px; }
+  dialog.dash { max-height: 94vh; }
+}
+@media (max-width: 380px) { .bs-tab span { font-size: 0.8rem; } }
+
+/* The "* { margin: 0 }" reset removed the automatic centering of pop-ups. This puts every dialog back in the middle. */
+dialog { margin: auto; }
+.plan-actions { margin-top: 18px; }
+@media (max-width: 700px) {
+  .plan-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .plan-tiles .tile { padding: 9px 8px; }
+  .plan-tiles .tile strong { font-size: 0.92rem; white-space: nowrap; overflow-wrap: normal; }
+  .plan-tiles .tile .label { font-size: 0.74rem; }
+}
