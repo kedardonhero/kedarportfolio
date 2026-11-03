@@ -14,6 +14,7 @@ let contacts = [];
 let loans = [];
 let transfers = [];
 let goals = [];  // savings goals: { id, name, target, saved }
+let splitwise = { seen: {}, map: {}, countShare: true };  // Splitwise sync bookkeeping (see splitwise.js)
 let bills = [];  // monthly bills: { id, name, amount, day, paid: { "2026-10": transactionId } }
 let savingsPlan = {};  // where each month's leftover is kept, e.g. { "2026-10": { cash: 300, bank: 750 } }
 let storeKey = "fintrack-state-guest"; // where this profile is saved in the browser
@@ -38,7 +39,7 @@ function formatMoney(amount) {
 
 // All app data in one object, so it can be saved locally and in the cloud
 function getState() {
-  return { transactions, budgets, expenseNames, accounts, contacts, loans, transfers, savingsPlan, goals, bills };
+  return { transactions, budgets, expenseNames, accounts, contacts, loans, transfers, savingsPlan, goals, bills, splitwise };
 }
 function loadState(state) {
   transactions = state.transactions || [];
@@ -51,6 +52,7 @@ function loadState(state) {
   savingsPlan = state.savingsPlan || {};
   goals = state.goals || [];
   bills = state.bills || [];
+  splitwise = Object.assign({ seen: {}, map: {}, countShare: true }, state.splitwise || {});
   // keep names from older plans too
   Object.values(budgets).forEach((plan) => Object.keys(plan).forEach((n) => { if (!expenseNames.includes(n)) expenseNames.push(n); }));
 }

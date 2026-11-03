@@ -26,6 +26,7 @@ A responsive personal finance dashboard built with HTML, CSS and vanilla JavaScr
 - Guest mode asks the same set-up questions as an account (budget, bank accounts, cash), and you can skip them
 - Simple phone layout: tables turn into cards, menu icons sit in a top bar
 - Data persists after refresh; "Clear all data" with confirmation
+- Splitwise sync: press Connect Splitwise on the Loans page and friends' expenses import automatically as loans (free GitHub Actions job + Firestore)
 - Dark/light mode, sidebar navigation, mobile layout
 
 ## What changed in this version
@@ -61,6 +62,9 @@ fintrack/
 ├── index.html   # page structure
 ├── style.css    # layout, themes, responsive design
 ├── script.js    # app logic, localStorage, charts
+├── splitwise.js # Splitwise sync (turns synced expenses into loans)
+├── scripts/     # splitwise-sync.js, the job that talks to Splitwise
+├── .github/workflows/splitwise-sync.yml  # runs the job about every 10 minutes
 └── README.md
 ```
 
@@ -135,3 +139,7 @@ service cloud.firestore {
 6. Push the files to GitHub again. Log in with the same username and password on any device to load your data.
 
 How it works: new accounts use your real email for Firebase Authentication. Older accounts use a private pseudo-email (`name@fintrack.app`) made from the username until a real email is added. Your data is saved as one document per user, keyed by the account id. If you edit on two devices at once, the last change saved wins.
+
+## Splitwise sync (free)
+
+On the Loans page, paste your Splitwise API key and press **Connect Splitwise**. A scheduled GitHub Actions job reads new and changed expenses from Splitwise and saves them in Firestore; the app turns them into loans (who owes whom), payments, and optionally your own share as an expense. Setup steps are in `SETUP-SPLITWISE.md`.

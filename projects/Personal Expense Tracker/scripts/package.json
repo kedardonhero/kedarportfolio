@@ -1,0 +1,1 @@
+{ "name": "fintrack-sync", "private": true, "dependencies": { "firebase-admin": "^12.0.0" } }
