@@ -1,18 +1,21 @@
 name: Splitwise sync
 on:
   schedule:
-    - cron: "*/10 * * * *"   # about every 10 minutes (GitHub may run it a few minutes late)
-  workflow_dispatch: {}       # lets you press "Run workflow" for an instant sync
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
 concurrency: splitwise-sync
 jobs:
   sync:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: projects/Personal Expense Tracker/scripts
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
-      - run: npm install --prefix scripts --no-audit --no-fund
-      - run: node scripts/splitwise-sync.js
+      - run: npm install --no-audit --no-fund
+      - run: node splitwise-sync.js
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
