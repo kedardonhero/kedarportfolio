@@ -206,7 +206,7 @@ html.theme-anim *::after {
   transform-origin: left;
   transition: transform 0.3s var(--ease);
 }
-.navbar-nav .nav-link:hover::after,
+.navbar-nav .nav-link:hover { color: var(--accent-text); }
 .navbar-nav .nav-link.active::after { transform: scaleX(1); }
 
 .navBtn {
@@ -272,7 +272,7 @@ html.theme-anim *::after {
   letter-spacing: 0.02em;
   color: var(--muted);
   margin-bottom: 0.4rem;
-  animation: heroIn 0.9s var(--ease) both;
+  animation: heroIn 0.35s var(--ease) both;
 }
 .homeContent h1 {
   font-size: clamp(2.6rem, 6.4vw, 5rem);
@@ -280,14 +280,14 @@ html.theme-anim *::after {
   letter-spacing: -0.035em;
   line-height: 1.02;
   margin: 0 0 0.9rem;
-  animation: heroIn 0.9s 0.12s var(--ease) both;
+  animation: heroIn 0.35s 0.04s var(--ease) both;
 }
 .heroRole {
   font-size: clamp(1.3rem, 2.8vw, 2rem);
   font-weight: 600;
   min-height: 1.3em;
   margin: 0 0 0.6rem;
-  animation: heroIn 0.9s 0.24s var(--ease) both;
+  animation: heroIn 0.35s 0.08s var(--ease) both;
 }
 .element,
 .typed-cursor { color: var(--accent-text); }
@@ -296,13 +296,13 @@ html.theme-anim *::after {
   font-size: 1.15rem;
   color: var(--muted);
   margin: 0.4rem 0 1.8rem;
-  animation: heroIn 0.9s 0.36s var(--ease) both;
+  animation: heroIn 0.35s 0.12s var(--ease) both;
 }
 .heroBtns {
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
-  animation: heroIn 0.9s 0.48s var(--ease) both;
+  animation: heroIn 0.35s 0.16s var(--ease) both;
 }
 .heroBtns .btn { padding: 0.8rem 2.2rem; transition: transform 0.25s, box-shadow 0.25s, background-color 0.25s; }
 .heroBtns .btn:hover { transform: translateY(-3px); }
@@ -315,7 +315,7 @@ html.theme-anim *::after {
 .btn-ghost:hover { color: var(--text); background: var(--surface-2); border-color: var(--accent); }
 
 /* code card */
-.heroVisual { animation: heroIn 1s 0.55s var(--ease) both; }
+.heroVisual { animation: heroIn 0.4s 0.1s var(--ease) both; }
 .codeCard {
   position: relative;
   max-width: 460px;
@@ -389,7 +389,7 @@ html.theme-anim *::after {
 }
 .scrollHint:hover { color: var(--accent-text); }
 @keyframes heroIn {
-  from { opacity: 0; transform: translateY(24px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
 }
 @keyframes nudge {
@@ -399,8 +399,8 @@ html.theme-anim *::after {
 /* ---------- 5. Scroll reveal (only armed when JS + motion allowed) ---------- */
 .armed .reveal {
   opacity: 0;
-  transform: translateY(18px);
-  transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+  transform: translateY(10px);
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
 }
 .armed .reveal.in-view { opacity: 1; transform: none; }
 
@@ -1003,6 +1003,118 @@ html.theme-anim *::after {
   .aboutCard, .contactCard { padding-left: 20px; padding-right: 20px; }
   .stat .tile { padding: 18px 18px; }
 }
+
+/* ---------- 17. Recruiter-focused homepage additions ---------- */
+/* hero links: GitHub + LinkedIn icons and a text link to contact */
+.heroLinks {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+  animation: heroIn 0.35s 0.2s var(--ease) both;
+}
+.heroLinks .heroContact { margin-left: 8px; font-weight: 600; color: var(--accent-text); }
+.heroLinks .heroContact:hover { text-decoration: underline; }
+@media (max-width: 767.98px) { .heroLinks { justify-content: center; } }
+
+/* featured projects */
+.featCard .thumb { display: block; }
+.featBody { flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 20px 22px 22px; }
+.featBody h3 { font-size: 1.3rem; margin: 0; }
+.featBody h3 a { color: inherit; }
+.featBody h3 a:hover { color: var(--accent-text); }
+.featBody .projDesc { color: var(--muted); font-size: 0.97rem; margin: 0; }
+.featTech { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.featTech li {
+  padding: 2px 10px;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.featLinks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 6px; }
+
+/* more projects: compact rows so small exercises don't compete with the featured three */
+.moreHead { font-size: 1.4rem; margin: clamp(48px, 7vw, 72px) 0 6px; }
+.moreNote { color: var(--muted); margin: 0 0 20px; max-width: 62ch; }
+.moreList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.moreList li + li { border-top: 1px solid var(--border); }
+.moreList a {
+  display: grid;
+  grid-template-columns: minmax(150px, 220px) 1fr auto auto;
+  align-items: center;
+  gap: 6px 18px;
+  padding: 14px 20px;
+  color: inherit;
+}
+.moreList a:hover { background: var(--surface-2); color: inherit; }
+.moreList .mTitle { font-family: var(--font-display); font-weight: 700; }
+.moreList .mDesc { color: var(--muted); font-size: 0.93rem; }
+.moreList .mDate { color: var(--muted); font-size: 0.85rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.moreList i { color: var(--accent-text); }
+@media (max-width: 767.98px) {
+  .moreList a { grid-template-columns: 1fr auto; }
+  .moreList .mDesc { grid-column: 1 / -1; grid-row: 2; }
+  .moreList .mDate { grid-row: 1; grid-column: 2; }
+  .moreList a > i { display: none; }
+}
+
+/* skills grouped by evidence */
+.skillCard, .expCard {
+  height: 100%;
+  padding: 28px 26px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+.skillCard h3, .expCard h3 { font-size: 1.2rem; margin-bottom: 14px; }
+.skillChips { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0 0 16px; padding: 0; }
+.skillChips li {
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.usedIn { margin: 0; font-size: 0.92rem; color: var(--muted); }
+.usedIn a { color: var(--accent-text); font-weight: 600; }
+.usedIn a:hover { text-decoration: underline; }
+
+/* experience cards */
+.expCard h3 { margin-bottom: 6px; }
+.expWho { margin: 0; font-weight: 600; }
+.expWhen { margin: 0 0 12px; color: var(--muted); font-size: 0.9rem; }
+.expCard p:last-child { margin: 0; color: var(--muted); font-size: 0.97rem; }
+.expCard p:last-child a { color: var(--accent-text); font-weight: 600; }
+
+/* testimonials: two cards on desktop, with a one-line relationship under each name */
+@media (min-width: 992px) {
+  .sayTrack.cols2 { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 840px; margin-inline: auto; }
+}
+.who small {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: rgb(255 255 255 / 0.75);
+}
+
+/* footer links */
+.footer a { color: rgb(255 255 255 / 0.85); }
+.footer a:hover { color: #fff; text-decoration: underline; }
 
 /* ---------- 16. Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {

@@ -6,7 +6,12 @@
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#f7f8fb" />
     <title>Kedar Nath Sapkota | Software Developer</title>
-    <meta name="description" content="Portfolio of Kedar Nath Sapkota, Computer Science student at Louisiana Tech seeking an internship." />
+    <meta name="description" content="Computer Science student at Louisiana Tech seeking an internship. Projects: a first-prize IoT smart trash bin, an online runner game and an expense tracker." />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Kedar Nath Sapkota | Software Developer" />
+    <meta property="og:description" content="Computer Science student at Louisiana Tech seeking an internship. Projects: a first-prize IoT smart trash bin, an online runner game and an expense tracker." />
+    <meta property="og:url" content="https://kedarnathsapkota.com.np/" />
+    <meta name="twitter:card" content="summary" />
 
     <!-- Theme engine: runs before first paint so there is no light/dark flash -->
     <script>
@@ -118,9 +123,6 @@
             <button type="button" class="navBtn" id="themeToggle" aria-label="Switch to dark theme">
               <i class="bi bi-moon-stars-fill" aria-hidden="true"></i>
             </button>
-            <button type="button" class="navBtn" data-bs-toggle="offcanvas" data-bs-target="#themePanel" aria-controls="themePanel" aria-label="Customize theme">
-              <i class="bi bi-palette-fill" aria-hidden="true"></i>
-            </button>
           </div>
 
           <button
@@ -137,9 +139,10 @@
           <div class="collapse navbar-collapse" id="navMenu">
             <ul class="navbar-nav ms-lg-auto mb-0">
               <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
-              <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
-              <li class="nav-item"><a class="nav-link" href="#services">Services</a></li>
               <li class="nav-item"><a class="nav-link" href="#work">Work</a></li>
+              <li class="nav-item"><a class="nav-link" href="#skills">Skills</a></li>
+              <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+              <li class="nav-item"><a class="nav-link" href="#experience">Experience</a></li>
               <li class="nav-item"><a class="nav-link" href="#blog">Tech Journey</a></li>
               <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
             </ul>
@@ -155,8 +158,13 @@
             <h2 class="heroRole"><span class="element"></span></h2>
             <p class="heroSub">Computer Science student at Louisiana Tech, looking for a software engineering internship.</p>
             <div class="heroBtns">
-              <a href="#work" class="btn btn-primary btn-lg rounded-pill">View my work</a>
-              <a href="#contact" class="btn btn-ghost btn-lg rounded-pill">Contact me</a>
+              <a href="#work" class="btn btn-primary btn-lg rounded-pill">View projects</a>
+              <a href="resume/Kedar-Nath-Sapkota-Resume.pdf" class="btn btn-ghost btn-lg rounded-pill" download><i class="bi bi-download" aria-hidden="true"></i> Download résumé</a>
+            </div>
+            <div class="heroLinks">
+              <a class="socialItem" href="https://github.com/kedardonhero" target="_blank" rel="noopener" aria-label="Kedar on GitHub (opens in a new tab)"><i class="bi bi-github" aria-hidden="true"></i></a>
+              <a class="socialItem" href="https://www.linkedin.com/in/kedarnathsapkota" target="_blank" rel="noopener" aria-label="Kedar on LinkedIn (opens in a new tab)"><i class="bi bi-linkedin" aria-hidden="true"></i></a>
+              <a class="heroContact" href="#contact">Contact me</a>
             </div>
           </div>
           <div class="col-lg-5 heroVisual" aria-hidden="true">
@@ -178,6 +186,126 @@
     </header>
 
     <main>
+      <!-- ================= FEATURED PROJECTS ================= -->
+      <section class="section" id="work">
+        <div class="container">
+          <div class="sectionHead reveal">
+            <h2>Featured projects</h2>
+            <p>Three projects I can walk through from start to finish: what I built, how it works and what I would change.</p>
+          </div>
+          <div class="row g-4">
+
+            <div class="col-md-6 col-lg-4 reveal">
+              <article class="projCard featCard">
+                <a class="thumb fit" href="case-studies/smart-trash-bin.html" tabindex="-1" aria-hidden="true"><img src="images/case-studies/smart-trash-bin-1.png" alt="Smart Trash Bin dashboard with campus map and bin list" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='images/smart-trash-bin.png';this.alt='Smart Trash Bin project image'" /></a>
+                <div class="featBody">
+                  <div class="projMeta"><span class="chip"><i class="bi bi-trophy" aria-hidden="true"></i> First prize</span><span>Dec 2025 – Mar 2026</span></div>
+                  <h3><a href="case-studies/smart-trash-bin.html">Smart Trash Bin</a></h3>
+                  <p class="projDesc">Arduino sensors and a Raspberry Pi send fill levels to a Flask API, and a live dashboard shows every bin on a campus map with alerts. Built for CSC 132 at Louisiana Tech. The web demo simulates the sensors.</p>
+                  <ul class="featTech" aria-label="Technologies used"><li>Arduino</li><li>Raspberry Pi</li><li>Python</li><li>Flask</li><li>Leaflet</li></ul>
+                  <div class="featLinks">
+                    <a class="btn btn-primary btn-sm rounded-pill px-3" href="projects/Smart%20Trash%20Bin/index.html" target="_blank" rel="noopener">Live demo</a>
+                    <a class="btn btn-outline-secondary btn-sm rounded-pill px-3" href="case-studies/smart-trash-bin.html">Case study</a>
+                    <a class="btn btn-outline-secondary btn-sm rounded-pill px-3" href="https://github.com/kedardonhero/kedarportfolio/tree/HEAD/projects/Smart%20Trash%20Bin" target="_blank" rel="noopener"><i class="bi bi-github" aria-hidden="true"></i> Source code</a>
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            <div class="col-md-6 col-lg-4 reveal">
+              <article class="projCard featCard">
+                <a class="thumb" href="case-studies/bhag-kedar.html" tabindex="-1" aria-hidden="true"><img src="images/case-studies/bhag-kedar-2.png" alt="Bhag Kedar race in progress" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='images/bhag-kedar-card.jpg';this.alt='Bhag Kedar artwork of a runner chased by a police officer in front of a Himalayan temple'" /></a>
+                <div class="featBody">
+                  <div class="projMeta"><span class="chip"><i class="bi bi-download" aria-hidden="true"></i> Installable app</span><span>Oct 2026</span></div>
+                  <h3><a href="case-studies/bhag-kedar.html">Bhag Kedar</a></h3>
+                  <p class="projDesc">An endless-runner game with six world locations, computer rivals and online races through Firebase. Installable as an app, and solo races work offline.</p>
+                  <ul class="featTech" aria-label="Technologies used"><li>JavaScript</li><li>HTML5 Canvas</li><li>Firebase</li><li>Service worker</li></ul>
+                  <div class="featLinks">
+                    <a class="btn btn-primary btn-sm rounded-pill px-3" href="projects/bhag-kedar/index.html" target="_blank" rel="noopener">Live demo</a>
+                    <a class="btn btn-outline-secondary btn-sm rounded-pill px-3" href="case-studies/bhag-kedar.html">Case study</a>
+                    <a class="btn btn-outline-secondary btn-sm rounded-pill px-3" href="https://github.com/kedardonhero/kedarportfolio/tree/HEAD/projects/bhag-kedar" target="_blank" rel="noopener"><i class="bi bi-github" aria-hidden="true"></i> Source code</a>
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            <div class="col-md-6 col-lg-4 reveal">
+              <article class="projCard featCard">
+                <a class="thumb" href="case-studies/expense-tracker.html" tabindex="-1" aria-hidden="true"><img src="images/case-studies/expense-tracker-1.png" alt="Expense tracker dashboard with totals and spending chart" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='images/personal_expense.png';this.alt='Personal Expense Tracker dashboard'" /></a>
+                <div class="featBody">
+                  <div class="projMeta"><span class="chip"><i class="bi bi-download" aria-hidden="true"></i> Installable app</span><span>Jun – Aug 2026</span></div>
+                  <h3><a href="case-studies/expense-tracker.html">Personal Expense Tracker</a></h3>
+                  <p class="projDesc">Add income and expenses, see totals update instantly and view spending by category in a chart. Data is saved in the browser.</p>
+                  <ul class="featTech" aria-label="Technologies used"><li>JavaScript</li><li>Chart.js</li><li>localStorage</li></ul>
+                  <div class="featLinks">
+                    <a class="btn btn-primary btn-sm rounded-pill px-3" href="projects/Personal%20Expense%20Tracker/index.html" target="_blank" rel="noopener">Live demo</a>
+                    <a class="btn btn-outline-secondary btn-sm rounded-pill px-3" href="case-studies/expense-tracker.html">Case study</a>
+                    <a class="btn btn-outline-secondary btn-sm rounded-pill px-3" href="https://github.com/kedardonhero/kedarportfolio/tree/HEAD/projects/Personal%20Expense%20Tracker" target="_blank" rel="noopener"><i class="bi bi-github" aria-hidden="true"></i> Source code</a>
+                  </div>
+                </div>
+              </article>
+            </div>
+
+          </div>
+
+          <h3 class="moreHead reveal">More projects</h3>
+          <p class="moreNote reveal">Smaller builds, including my early practice projects. Each one has a short case study.</p>
+          <ul class="moreList reveal">
+            <li><a href="case-studies/shift-time-tracker.html"><span class="mTitle">Shift Time Tracker</span><span class="mDesc">Clock in and out of shifts and see the hours you worked each day and week.</span><span class="mDate">1 Oct 2026</span><i class="bi bi-arrow-right" aria-hidden="true"></i></a></li>
+            <li><a href="case-studies/amazon-clone.html"><span class="mTitle">Amazon Clone Website</span><span class="mDesc">A front-end study of an e-commerce layout: header, search, product grid and footer.</span><span class="mDate">24 May 2024</span><i class="bi bi-arrow-right" aria-hidden="true"></i></a></li>
+            <li><a href="case-studies/samb-clone.html"><span class="mTitle">SAMB Clone Website</span><span class="mDesc">A responsive front-end recreation of a business website to practise layout and structure.</span><span class="mDate">21 May 2024</span><i class="bi bi-arrow-right" aria-hidden="true"></i></a></li>
+            <li><a href="case-studies/calculator.html"><span class="mTitle">Calculator</span><span class="mDesc">A button-driven calculator that handles chained operations, decimals and divide-by-zero.</span><span class="mDate">8 May 2024</span><i class="bi bi-arrow-right" aria-hidden="true"></i></a></li>
+            <li><a href="case-studies/rock-paper-scissors.html"><span class="mTitle">Rock Paper Scissors</span><span class="mDesc">Play against the computer and keep score using a simple rules lookup.</span><span class="mDate">5 Mar 2024</span><i class="bi bi-arrow-right" aria-hidden="true"></i></a></li>
+            <li><a href="case-studies/tic-tac-toe.html"><span class="mTitle">Tic Tac Toe</span><span class="mDesc">A two-player game that detects wins and draws from a simple board array.</span><span class="mDate">18 Feb 2024</span><i class="bi bi-arrow-right" aria-hidden="true"></i></a></li>
+            <li><a href="case-studies/number-guessing-game.html"><span class="mTitle">Number Guessing Game</span><span class="mDesc">A browser game where you guess a hidden number with higher or lower hints.</span><span class="mDate">1 Feb 2024</span><i class="bi bi-arrow-right" aria-hidden="true"></i></a></li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ================= SKILLS ================= -->
+      <section class="section" id="skills">
+        <div class="container">
+          <div class="sectionHead reveal">
+            <h2>Technical skills</h2>
+            <p>Grouped by what I use them for, with links to the projects where I used them.</p>
+          </div>
+          <div class="row g-4">
+            <div class="col-md-6 reveal">
+              <div class="skillCard">
+                <div class="svcIcon"><i class="bi bi-braces" aria-hidden="true"></i></div>
+                <h3>Languages</h3>
+                <ul class="skillChips"><li>Python</li><li>Java</li><li>JavaScript</li><li>HTML/CSS</li><li>MySQL</li></ul>
+                <p class="usedIn">Used in <a href="case-studies/smart-trash-bin.html">Smart Trash Bin</a> (Python), <a href="case-studies/bhag-kedar.html">Bhag Kedar</a> and <a href="case-studies/expense-tracker.html">Expense Tracker</a> (JavaScript).</p>
+              </div>
+            </div>
+            <div class="col-md-6 reveal">
+              <div class="skillCard">
+                <div class="svcIcon"><i class="bi bi-window-stack" aria-hidden="true"></i></div>
+                <h3>Web and backend</h3>
+                <ul class="skillChips"><li>Flask</li><li>Django</li><li>FastAPI</li><li>Chart.js</li><li>Leaflet</li><li>Firebase Realtime Database</li><li>Service workers</li><li>localStorage</li></ul>
+                <p class="usedIn">Used in <a href="case-studies/smart-trash-bin.html">Smart Trash Bin</a> (Flask API, Leaflet map), <a href="case-studies/bhag-kedar.html">Bhag Kedar</a> (Firebase, service worker) and <a href="case-studies/expense-tracker.html">Expense Tracker</a> (Chart.js, localStorage).</p>
+              </div>
+            </div>
+            <div class="col-md-6 reveal">
+              <div class="skillCard">
+                <div class="svcIcon"><i class="bi bi-cpu" aria-hidden="true"></i></div>
+                <h3>Hardware and IoT</h3>
+                <ul class="skillChips"><li>Arduino</li><li>Raspberry Pi</li><li>Ultrasonic sensor</li><li>Load cell (HX711)</li><li>Serial communication</li></ul>
+                <p class="usedIn">Used in <a href="case-studies/smart-trash-bin.html">Smart Trash Bin</a>.</p>
+              </div>
+            </div>
+            <div class="col-md-6 reveal">
+              <div class="skillCard">
+                <div class="svcIcon"><i class="bi bi-tools" aria-hidden="true"></i></div>
+                <h3>Tools and other</h3>
+                <ul class="skillChips"><li>Git</li><li>GitHub</li><li>GitLab</li><li>Docker</li><li>OpenCV</li><li>Pygame</li><li>Tkinter</li><li>Qt</li><li>IT support</li><li>Cybersecurity fundamentals</li></ul>
+                <p class="usedIn">My Git workflow is in <a href="journey/from-learning-to-building.html">From learning to building</a>. IT support comes from my <a href="#experience">help desk role</a>.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- ================= ABOUT ================= -->
       <section class="section pb-0" id="about">
         <div class="container">
@@ -187,12 +315,12 @@
                 <div class="portraitWrap"><img class="portrait" src="images/pppp.jpg" alt="Portrait of Kedar Nath Sapkota" /></div>
                 <ul class="facts">
                   <li>
-                    <i class="bi bi-person" aria-hidden="true"></i>
-                    <div><small>Name</small>Kedar Nath Sapkota</div>
+                    <i class="bi bi-mortarboard" aria-hidden="true"></i>
+                    <div><small>Education</small>B.S. in Computer Science, Louisiana Tech University (Dec 2024 – present)</div>
                   </li>
                   <li>
-                    <i class="bi bi-braces" aria-hidden="true"></i>
-                    <div><small>Profile</small>Computer Science Student | Software &amp; Web Developer</div>
+                    <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                    <div><small>Location</small>Ruston, Louisiana</div>
                   </li>
                   <li>
                     <i class="bi bi-envelope" aria-hidden="true"></i>
@@ -200,7 +328,7 @@
                   </li>
                   <li>
                     <i class="bi bi-telephone" aria-hidden="true"></i>
-                    <div><small>Phone</small><a href="tel:3185481014">3185481014</a></div>
+                    <div><small>Phone</small><a href="tel:+13185481014">(318) 548-1014</a></div>
                   </li>
                 </ul>
               </div>
@@ -208,275 +336,53 @@
               <div class="aboutMe col-lg-7">
                 <h2>About me</h2>
                 <p>
-                  I’m a Computer Science student at Louisiana Tech University with a strong interest in software development, web development, and technology. I enjoy turning ideas into real projects and continuously improving my skills through hands-on learning and problem-solving.
+                  I’m a Computer Science student at Louisiana Tech University and worked as an ICT Help Desk Agent there until October 2026. I build in Python, Java and JavaScript, and I like projects that connect software to the real world, such as a sensor-based smart trash bin that won first prize.
                 </p>
                 <p>
-                  I have experience working with technologies such as Java, Python, HTML, CSS, and JavaScript, and I’m always excited to explore new tools and technologies. Whether I’m building a website, developing a program, or solving a challenging problem, I enjoy learning how things work and finding better ways to build them.
+                  Before university I taught science, technology and basic coding to secondary students in Kathmandu. I’m looking for an internship where I can work on real code with an experienced team.
                 </p>
-                <p>
-                  I’m currently focused on growing as a developer, building meaningful projects, and gaining real-world experience. I’m always open to internships, collaborations, and opportunities where I can learn, contribute, and grow.
-                </p>
-
-                <h3>Skills</h3>
-                <div class="skillsGrid">
-                  <div>
-                    <div class="skillTop"><span>HTML</span><span>85%</span></div>
-                    <div class="skillBar" role="progressbar" aria-label="HTML" aria-valuemin="0" aria-valuemax="100" aria-valuenow="85"><span style="--w: 85%"></span></div>
-                  </div>
-                  <div>
-                    <div class="skillTop"><span>CSS3</span><span>75%</span></div>
-                    <div class="skillBar" role="progressbar" aria-label="CSS3" aria-valuemin="0" aria-valuemax="100" aria-valuenow="75"><span style="--w: 75%"></span></div>
-                  </div>
-                  <div>
-                    <div class="skillTop"><span>Python</span><span>90%</span></div>
-                    <div class="skillBar" role="progressbar" aria-label="Python" aria-valuemin="0" aria-valuemax="100" aria-valuenow="90"><span style="--w: 90%"></span></div>
-                  </div>
-                  <div>
-                    <div class="skillTop"><span>JavaScript</span><span>90%</span></div>
-                    <div class="skillBar" role="progressbar" aria-label="JavaScript" aria-valuemin="0" aria-valuemax="100" aria-valuenow="90"><span style="--w: 90%"></span></div>
-                  </div>
-                  <div>
-                    <div class="skillTop"><span>Java</span><span>60%</span></div>
-                    <div class="skillBar" role="progressbar" aria-label="Java" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60"><span style="--w: 60%"></span></div>
-                  </div>
-                </div>
+                <p><a href="resume/Kedar-Nath-Sapkota-Resume.pdf" download><i class="bi bi-download" aria-hidden="true"></i> Download my résumé (PDF)</a></p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- ================= SERVICES ================= -->
-      <section class="section" id="services">
+      <!-- ================= EXPERIENCE ================= -->
+      <section class="section" id="experience">
         <div class="container">
           <div class="sectionHead reveal">
-            <h2>Services</h2>
-            <p>I build captivating websites and powerful web applications, tailored to your needs.</p>
+            <h2>Experience and recognition</h2>
+            <p>My roles and awards. My personal projects are listed under Work.</p>
           </div>
           <div class="row g-4">
-            <div class="col-md-6 col-lg-4 reveal">
-              <div class="svc">
-                <div class="svcIcon"><i class="bi bi-window-stack" aria-hidden="true"></i></div>
-                <h3>Web design</h3>
-                <p>Web design is the art and science of creating visually appealing and user-friendly websites. It encompasses a range of disciplines, including graphic design, interface design, and user experience design.</p>
-              </div>
+            <div class="col-lg-4 reveal">
+              <article class="expCard">
+                <div class="svcIcon"><i class="bi bi-headset" aria-hidden="true"></i></div>
+                <h3>ICT Help Desk Agent</h3>
+                <p class="expWho">Louisiana Tech University, Ruston, LA</p>
+                <p class="expWhen">Jan 2025 – Oct 2026</p>
+                <p>Helped users with computer issues, Wi-Fi, software, printers and university accounts. Installed, updated and configured software and equipment, and worked with the IT team on daily operations.</p>
+              </article>
             </div>
-            <div class="col-md-6 col-lg-4 reveal">
-              <div class="svc">
-                <div class="svcIcon"><i class="bi bi-browser-chrome" aria-hidden="true"></i></div>
-                <h3>Web development</h3>
-                <p>Web development refers to the process of building and maintaining websites and web applications. It encompasses a variety of tasks, including front-end development, back-end development, and full-stack development.</p>
-              </div>
+            <div class="col-lg-4 reveal">
+              <article class="expCard">
+                <div class="svcIcon"><i class="bi bi-easel" aria-hidden="true"></i></div>
+                <h3>Science &amp; Technology Teacher</h3>
+                <p class="expWho">KMC Secondary School, Kathmandu, Nepal</p>
+                <p class="expWhen">2023 – 2024</p>
+                <p>Taught science, technology and basic coding to secondary students, with simple lessons and hands-on activities that build logical thinking and problem solving.</p>
+              </article>
             </div>
-            <div class="col-md-6 col-lg-4 reveal">
-              <div class="svc">
-                <div class="svcIcon"><i class="bi bi-bar-chart" aria-hidden="true"></i></div>
-                <h3>Teaching</h3>
-                <p>Teaching web development involves guiding students through the intricacies of building websites and web applications, empowering them with the knowledge and skills needed to succeed in this dynamic environment through skills and education.</p>
-              </div>
+            <div class="col-lg-4 reveal">
+              <article class="expCard">
+                <div class="svcIcon"><i class="bi bi-trophy" aria-hidden="true"></i></div>
+                <h3>First prize, Smart Trash Bin</h3>
+                <p class="expWho">CSC 132 project, Louisiana Tech University</p>
+                <p class="expWhen">Dec 2025 – Mar 2026</p>
+                <p>Awarded first place for creativity, innovation and practical application of technology. <a href="case-studies/smart-trash-bin.html">Read the case study</a>.</p>
+              </article>
             </div>
-            <div class="col-md-6 col-lg-4 reveal">
-              <div class="svc">
-                <div class="svcIcon"><i class="bi bi-phone" aria-hidden="true"></i></div>
-                <h3>Responsive design</h3>
-                <p>Responsive design is an approach to web design aimed at creating websites and web applications that provide an optimal viewing and interaction experience across a wide range of devices and screen sizes, from smartphones to tablets and desktops.</p>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-4 reveal">
-              <div class="svc">
-                <div class="svcIcon"><i class="bi bi-palette" aria-hidden="true"></i></div>
-                <h3>Graphic design</h3>
-                <p>Graphic designers use their creativity and technical skills to convey messages, evoke emotions, and solve visual problems. They work closely with clients or stakeholders to understand their objectives and target audience, then translate those insights into compelling visual solutions.</p>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-4 reveal">
-              <div class="svc">
-                <div class="svcIcon"><i class="bi bi-code-slash" aria-hidden="true"></i></div>
-                <h3>Software development</h3>
-                <p>I build efficient and practical software solutions using Java and Python, with a focus on clean code, problem-solving, and creating applications that solve real-world problems.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ================= STATS ================= -->
-      <section class="info" aria-label="Highlights">
-        <div class="container">
-          <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3 g-lg-4 reveal">
-            <div class="col stat"><div class="tile">
-              <div class="infoIcon"><i class="bi bi-check" aria-hidden="true"></i></div>
-              <div class="statText"><p class="statNum">10</p>
-              <span class="statLabel">Works completed</span></div>
-            </div></div>
-            <div class="col stat"><div class="tile">
-              <div class="infoIcon"><i class="bi bi-journal-richtext" aria-hidden="true"></i></div>
-              <div class="statText"><p class="statNum">2</p>
-              <span class="statLabel">Years of experience</span></div>
-            </div></div>
-            <div class="col stat"><div class="tile">
-              <div class="infoIcon"><i class="bi bi-people" aria-hidden="true"></i></div>
-              <div class="statText"><p class="statNum">5</p>
-              <span class="statLabel">Total clients</span></div>
-            </div></div>
-            <div class="col stat"><div class="tile">
-              <div class="infoIcon"><i class="bi bi-award" aria-hidden="true"></i></div>
-              <div class="statText"><p class="statNum">1</p>
-              <span class="statLabel">Award won</span></div>
-            </div></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ================= PORTFOLIO ================= -->
-      <section class="section" id="work">
-        <div class="container">
-          <div class="sectionHead reveal">
-            <h2>Portfolio</h2>
-            <p>Here are some of my projects.</p>
-          </div>
-          <div class="row g-4">
-
-            <div class="col-md-6 col-lg-4 reveal">
-              <a href="case-studies/bhag-kedar.html" class="projCard">
-                <div class="thumb"><img src="images/bhag-kedar-card.jpg" alt="Bhag Kedar game project" loading="lazy" decoding="async" /></div>
-                <div class="projBody">
-                  <div>
-                    <h3>Bhag Kedar</h3>
-                    <div class="projMeta"><span class="chip">Game Development</span><span class="chip"><i class="bi bi-download" aria-hidden="true"></i> Installable app</span><span>Oct 2026</span></div>
-                    <p class="projDesc">An endless-runner game with six world locations, computer rivals and online races with friends anywhere.</p>
-                  </div>
-                  <span class="projGo"><i class="bi bi-arrow-up-right" aria-hidden="true"></i></span>
-                </div>
-              </a>
-            </div>
-
-            <div class="col-md-6 col-lg-4 reveal">
-              <a href="case-studies/smart-trash-bin.html" class="projCard">
-                <div class="thumb fit"><img src="images/smart-trash-bin.png" alt="Smart Trash Bin project" loading="lazy" decoding="async" /></div>
-                <div class="projBody">
-                  <div>
-                    <h3>Smart Trash Bin</h3>
-                    <div class="projMeta"><span class="chip">Computer Science Project</span><span>2026</span></div>
-                    <p class="projDesc">Dashboard that tracks how full each bin is, where it sits, and which ones need emptying first.</p>
-                  </div>
-                  <span class="projGo"><i class="bi bi-arrow-up-right" aria-hidden="true"></i></span>
-                </div>
-              </a>
-            </div>
-
-            <div class="col-md-6 col-lg-4 reveal">
-              <a href="case-studies/expense-tracker.html" class="projCard">
-                <div class="thumb"><img src="images/personal_expense.png" alt="Personal Expense Tracker project" loading="lazy" decoding="async" /></div>
-                <div class="projBody">
-                  <div>
-                    <h3>Personal Expense Tracker</h3>
-                    <div class="projMeta"><span class="chip">Web Design</span><span class="chip"><i class="bi bi-download" aria-hidden="true"></i> Installable app</span><span>1 Oct 2026</span></div>
-                    <p class="projDesc">Add income and expenses, see totals update instantly, and view spending by category in a chart.</p>
-                  </div>
-                  <span class="projGo"><i class="bi bi-arrow-up-right" aria-hidden="true"></i></span>
-                </div>
-              </a>
-            </div>
-
-            <div class="col-md-6 col-lg-4 reveal">
-              <a href="case-studies/shift-time-tracker.html" class="projCard">
-                <div class="thumb"><img src="images/shiftclock-picture.jpg" alt="Shift Time Tracker project" loading="lazy" decoding="async" /></div>
-                <div class="projBody">
-                  <div>
-                    <h3>Shift Time Tracker</h3>
-                    <div class="projMeta"><span class="chip">Web Design</span><span class="chip"><i class="bi bi-download" aria-hidden="true"></i> Installable app</span><span>1 Oct 2026</span></div>
-                    <p class="projDesc">Clock in and out of shifts and see how many hours you worked each day and week.</p>
-                  </div>
-                  <span class="projGo"><i class="bi bi-arrow-up-right" aria-hidden="true"></i></span>
-                </div>
-              </a>
-            </div>
-
-            <div class="col-md-6 col-lg-4 reveal">
-              <a href="case-studies/samb-clone.html" class="projCard">
-                <div class="thumb"><img src="images/hero.jpg" alt="SAMB clone website" loading="lazy" decoding="async" /></div>
-                <div class="projBody">
-                  <div>
-                    <h3>SAMB Clone Website</h3>
-                    <div class="projMeta"><span class="chip">Web Design</span><span>21 May 2024</span></div>
-                    <p class="projDesc">A responsive front-end recreation of a business website to practise layout and structure.</p>
-                  </div>
-                  <span class="projGo"><i class="bi bi-arrow-up-right" aria-hidden="true"></i></span>
-                </div>
-              </a>
-            </div>
-
-            <div class="col-md-6 col-lg-4 reveal">
-              <a href="case-studies/amazon-clone.html" class="projCard">
-                <div class="thumb"><img src="images/Amazon-1.jpg" alt="Amazon clone website" loading="lazy" decoding="async" /></div>
-                <div class="projBody">
-                  <div>
-                    <h3>Amazon Clone Website</h3>
-                    <div class="projMeta"><span class="chip">Web Design</span><span>24 May 2024</span></div>
-                    <p class="projDesc">A front-end study of an e-commerce layout: header, search, product grid and footer.</p>
-                  </div>
-                  <span class="projGo"><i class="bi bi-arrow-up-right" aria-hidden="true"></i></span>
-                </div>
-              </a>
-            </div>
-
-            <div class="col-md-6 col-lg-4 reveal">
-              <a href="case-studies/number-guessing-game.html" class="projCard">
-                <div class="thumb"><img src="images/work-3.jpg" alt="Number Guessing Game" loading="lazy" decoding="async" /></div>
-                <div class="projBody">
-                  <div>
-                    <h3>Number Guessing Game</h3>
-                    <div class="projMeta"><span class="chip">Web Design</span><span>1 Feb 2024</span></div>
-                    <p class="projDesc">A browser game where you guess a hidden number with higher or lower hints.</p>
-                  </div>
-                  <span class="projGo"><i class="bi bi-arrow-up-right" aria-hidden="true"></i></span>
-                </div>
-              </a>
-            </div>
-
-            <div class="col-md-6 col-lg-4 reveal">
-              <a href="case-studies/tic-tac-toe.html" class="projCard">
-                <div class="thumb"><img src="images/work-4.jpg" alt="Tic Tac Toe" loading="lazy" decoding="async" /></div>
-                <div class="projBody">
-                  <div>
-                    <h3>Tic Tac Toe</h3>
-                    <div class="projMeta"><span class="chip">Web Design</span><span>18 Feb 2024</span></div>
-                    <p class="projDesc">A two-player game that detects wins and draws from a simple board array.</p>
-                  </div>
-                  <span class="projGo"><i class="bi bi-arrow-up-right" aria-hidden="true"></i></span>
-                </div>
-              </a>
-            </div>
-
-            <div class="col-md-6 col-lg-4 reveal">
-              <a href="case-studies/rock-paper-scissors.html" class="projCard">
-                <div class="thumb"><img src="images/work-5.jpg" alt="Rock Paper Scissors" loading="lazy" decoding="async" /></div>
-                <div class="projBody">
-                  <div>
-                    <h3>Rock Paper Scissors</h3>
-                    <div class="projMeta"><span class="chip">Web Design</span><span>5 March 2024</span></div>
-                    <p class="projDesc">Play against the computer and keep score using a simple rules lookup.</p>
-                  </div>
-                  <span class="projGo"><i class="bi bi-arrow-up-right" aria-hidden="true"></i></span>
-                </div>
-              </a>
-            </div>
-
-            <div class="col-md-6 col-lg-4 reveal">
-              <a href="case-studies/calculator.html" class="projCard">
-                <div class="thumb"><img src="images/work-6.jpg" alt="Calculator" loading="lazy" decoding="async" /></div>
-                <div class="projBody">
-                  <div>
-                    <h3>Calculator</h3>
-                    <div class="projMeta"><span class="chip">Web Design</span><span>8 May 2024</span></div>
-                    <p class="projDesc">A button-driven calculator that handles chained operations, decimals and divide-by-zero.</p>
-                  </div>
-                  <span class="projGo"><i class="bi bi-arrow-up-right" aria-hidden="true"></i></span>
-                </div>
-              </a>
-            </div>
-
           </div>
         </div>
       </section>
@@ -486,14 +392,15 @@
         <div class="container">
           <div class="sayHead reveal">
             <h2 id="sayTitle">What people say</h2>
-            <p>Kind words from people I've learned and worked with.</p>
+            <p>Feedback from people who have seen my work.</p>
           </div>
-          <div class="sayTrack reveal" id="sayTrack" role="region" aria-label="Testimonials" tabindex="0">
+          <div class="sayTrack cols2 reveal" id="sayTrack" role="region" aria-label="Testimonials" tabindex="0">
             <figure class="quoteCard">
               <i class="bi bi-quote quoteMark" aria-hidden="true"></i>
               <blockquote><p>Kedar is a very hardworking and genuine developer. I love the work of this man, his dedication and commitment towards his work. I wish he gets many many success later.</p></blockquote>
               <figcaption>
                 <span class="avatar"><img src="images/baby.jpg" alt="Rasmina Bhattrai" loading="lazy" /></span>
+                <!-- TODO: add one line under the name saying how Rasmina knows your work, e.g. <small>Classmate</small> -->
                 <span class="who">Rasmina Bhattrai</span>
               </figcaption>
             </figure>
@@ -502,15 +409,7 @@
               <blockquote><p>Kedar is a dedicated and curious student who takes initiative in his learning. He asks thoughtful questions, works hard on his projects, and shows real growth as a developer. I am confident he will do well in his career.</p></blockquote>
               <figcaption>
                 <span class="avatar"><img src="images/cherry-kevin.jpg" alt="Professor Kevin Cherry" loading="lazy" /></span>
-                <span class="who">Professor Kevin Cherry</span>
-              </figcaption>
-            </figure>
-            <figure class="quoteCard">
-              <i class="bi bi-quote quoteMark" aria-hidden="true"></i>
-              <blockquote><p>Just a quick note to express my heartfelt gratitude for your kindness and support. Your encouragement has been a beacon of light during challenging times. Thank you for being there!</p></blockquote>
-              <figcaption>
-                <span class="avatar"><img src="images/amit.jpg" alt="Amit Parajuli" loading="lazy" /></span>
-                <span class="who">Amit Parajuli</span>
+                <span class="who">Professor Kevin Cherry<small>Professor, Louisiana Tech University</small></span>
               </figcaption>
             </figure>
           </div>
@@ -618,14 +517,15 @@
                 </p>
                 <ul class="contactList">
                   <li><i class="bi bi-geo-alt" aria-hidden="true"></i><span>Ruston Louisiana 71270</span></li>
-                  <li><i class="bi bi-phone" aria-hidden="true"></i><a href="tel:+3185481014">+3185481014</a></li>
+                  <li><i class="bi bi-phone" aria-hidden="true"></i><a href="tel:+13185481014">(318) 548-1014</a></li>
                   <li><i class="bi bi-envelope" aria-hidden="true"></i><a href="mailto:eyeamkedar@gmail.com">eyeamkedar@gmail.com</a></li>
                 </ul>
                 <div class="social">
+                  <a class="socialItem" href="https://www.linkedin.com/in/kedarnathsapkota" target="_blank" rel="noopener" aria-label="LinkedIn (opens in a new tab)"><i class="bi bi-linkedin"></i></a>
+                  <a class="socialItem" href="https://github.com/kedardonhero" target="_blank" rel="noopener" aria-label="GitHub (opens in a new tab)"><i class="bi bi-github"></i></a>
                   <a class="socialItem" href="https://www.facebook.com/kedarrr.0018" target="_blank" rel="noopener" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
                   <a class="socialItem" href="https://www.instagram.com/kedarrr_18" target="_blank" rel="noopener" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
                   <a class="socialItem" href="https://x.com/cool_dude008" target="_blank" rel="noopener" aria-label="X (Twitter)"><i class="bi bi-twitter-x"></i></a>
-                  <a class="socialItem" href="https://www.linkedin.com/in/kedarnathsapkota" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
                 </div>
               </div>
             </div>
@@ -637,53 +537,10 @@
     <footer class="footer">
       <p>© <span id="year">2026</span> Kedar Nath Sapkota. All rights reserved.</p>
       <p>Designed by Kedar Nath Sapkota</p>
-      <p><a href="privacy.html">Privacy Policy</a></p>
+      <p><a href="privacy.html">Privacy Policy</a> &middot; <a href="resume/Kedar-Nath-Sapkota-Resume.pdf" download>Résumé</a> &middot; <a href="https://github.com/kedardonhero" target="_blank" rel="noopener">GitHub</a></p>
     </footer>
 
     <a href="#home" class="toTop" id="toTop" aria-label="Back to top"><i class="bi bi-arrow-up"></i></a>
-
-    <!-- ================= THEME PANEL ================= -->
-    <div class="offcanvas offcanvas-end themePanel" tabindex="-1" id="themePanel" aria-labelledby="themePanelTitle">
-      <div class="offcanvas-header">
-        <h2 class="offcanvas-title h5" id="themePanelTitle">Customize</h2>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-      </div>
-      <div class="offcanvas-body">
-
-        <div class="group">
-          <span class="label" id="modeLabel">Mode</span>
-          <p class="hint">System follows your device setting.</p>
-          <div class="seg" role="radiogroup" aria-labelledby="modeLabel">
-            <input class="visually-hidden" type="radio" name="mode" id="m-light" value="light" />
-            <label for="m-light"><i class="bi bi-sun" aria-hidden="true"></i>Light</label>
-            <input class="visually-hidden" type="radio" name="mode" id="m-dark" value="dark" />
-            <label for="m-dark"><i class="bi bi-moon-stars" aria-hidden="true"></i>Dark</label>
-            <input class="visually-hidden" type="radio" name="mode" id="m-auto" value="auto" />
-            <label for="m-auto"><i class="bi bi-circle-half" aria-hidden="true"></i>System</label>
-          </div>
-        </div>
-
-        <div class="group">
-          <span class="label">Accent color</span>
-          <p class="hint">Changes buttons, links, highlights and the hero glow.</p>
-          <div class="swatches">
-            <button type="button" class="swatch" data-color="#0078ff" style="--c: #0078ff" aria-label="Azure" aria-pressed="false"></button>
-            <button type="button" class="swatch" data-color="#7c5cff" style="--c: #7c5cff" aria-label="Violet" aria-pressed="false"></button>
-            <button type="button" class="swatch" data-color="#12b886" style="--c: #12b886" aria-label="Emerald" aria-pressed="false"></button>
-            <button type="button" class="swatch" data-color="#f59f00" style="--c: #f59f00" aria-label="Amber" aria-pressed="false"></button>
-            <button type="button" class="swatch" data-color="#f43f6e" style="--c: #f43f6e" aria-label="Rose" aria-pressed="false"></button>
-            <label class="swatch swatchCustom" title="Pick any color">
-              <i class="bi bi-eyedropper" aria-hidden="true"></i>
-              <input type="color" id="customColor" value="#0078ff" aria-label="Custom accent color" />
-            </label>
-          </div>
-        </div>
-
-        <button type="button" class="btn btn-outline-secondary w-100 rounded-pill" id="themeReset">
-          <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Reset to default
-        </button>
-      </div>
-    </div>
 
     <script src="https://unpkg.com/typed.js@2.1.0/dist/typed.umd.js"></script>
     <script
@@ -703,66 +560,63 @@
         autoInsertCss: true,
       });
 
-      // ---------- Theme panel wiring ----------
+      // ---------- Light / dark toggle ----------
       (function () {
         var T = window.KNS;
         var toggle = document.getElementById("themeToggle");
-        var toggleIcon = toggle.querySelector("i");
-        var modeInputs = document.querySelectorAll('input[name="mode"]');
-        var swatches = document.querySelectorAll(".swatch[data-color]");
-        var custom = document.getElementById("customColor");
-        var customWrap = custom.closest(".swatch");
-
+        var icon = toggle.querySelector("i");
         function sync() {
-          var s = T.state;
           var dark = T.resolved() === "dark";
-          toggleIcon.className = "bi " + (dark ? "bi-sun-fill" : "bi-moon-stars-fill");
+          icon.className = "bi " + (dark ? "bi-sun-fill" : "bi-moon-stars-fill");
           toggle.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
-          modeInputs.forEach(function (i) { i.checked = i.value === s.mode; });
-          var matched = false;
-          swatches.forEach(function (b) {
-            var on = b.dataset.color.toLowerCase() === s.accent.toLowerCase();
-            b.setAttribute("aria-pressed", on);
-            if (on) matched = true;
-          });
-          customWrap.classList.toggle("is-active", !matched);
-          custom.value = s.accent;
         }
-
         toggle.addEventListener("click", function () {
           T.set({ mode: T.resolved() === "dark" ? "light" : "dark" });
         });
-        modeInputs.forEach(function (i) {
-          i.addEventListener("change", function () { T.set({ mode: i.value }); });
-        });
-        swatches.forEach(function (b) {
-          b.addEventListener("click", function () { T.set({ accent: b.dataset.color }); });
-        });
-        custom.addEventListener("input", function () { T.set({ accent: custom.value }); });
-        document.getElementById("themeReset").addEventListener("click", function () { T.reset(); });
         document.addEventListener("themechange", sync);
         sync();
       })();
 
-      // ---------- Navbar, scroll-spy, back to top ----------
+      // ---------- Navbar, current-section highlight, back to top ----------
       (function () {
         var nav = document.getElementById("nav");
         var toTop = document.getElementById("toTop");
         var menu = document.getElementById("navMenu");
+        var links = Array.prototype.slice.call(menu.querySelectorAll(".nav-link"));
+        var pairs = links.map(function (a) {
+          return { link: a, el: document.querySelector(a.getAttribute("href")) };
+        }).filter(function (p) { return p.el; });
+        var ticking = false;
 
+        // exactly one link is current: the last section whose top has passed the reading line
+        function spy() {
+          var line = window.innerHeight * 0.35;
+          var current = pairs[0];
+          pairs.forEach(function (p) {
+            if (p.el.getBoundingClientRect().top <= line) current = p;
+          });
+          if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+            current = pairs[pairs.length - 1];
+          }
+          pairs.forEach(function (p) {
+            var on = p === current;
+            p.link.classList.toggle("active", on);
+            if (on) p.link.setAttribute("aria-current", "true");
+            else p.link.removeAttribute("aria-current");
+          });
+        }
         function onScroll() {
           var y = window.scrollY;
           nav.classList.toggle("scrolled", y > 40);
           toTop.classList.toggle("show", y > 600);
+          if (!ticking) {
+            ticking = true;
+            requestAnimationFrame(function () { spy(); ticking = false; });
+          }
         }
         window.addEventListener("scroll", onScroll, { passive: true });
+        window.addEventListener("resize", onScroll);
         onScroll();
-
-        new bootstrap.ScrollSpy(document.body, {
-          target: "#navMenu",
-          rootMargin: "-45% 0px -50% 0px",
-          threshold: [0],
-        });
 
         // solid nav while the mobile menu is open
         menu.addEventListener("show.bs.collapse", function () { nav.classList.add("open"); });

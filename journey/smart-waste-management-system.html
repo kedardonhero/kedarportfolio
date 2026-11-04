@@ -88,6 +88,7 @@
         return min(height_pct, weight_pct)
 
     return base</code></pre>
+<p>This rule is a compromise, not a guarantee. If the height reads 100% and the weight reads 0%, the result is 70%, which is below my 80% threshold for Full, so that bin would show as Half. The <a href="../case-studies/smart-trash-bin.html">case study</a> explains this limit and how I would test and fix it.</p>
 <h2>Layer 3: the server decides what silence means</h2>
 <p>The Pi sends the fill level with an HTTP PUT request every two seconds. The Flask server saves it with a timestamp. The most important design decision here is what to do when data stops arriving. A bin that last reported "40%" three hours ago is not a 40% bin; it is a bin we know nothing about. So the server calculates a status from the time of the last reading and marks the bin offline if nothing has arrived for 10 seconds. The dashboard shows it in grey and leaves it out of alerts.</p>
 
@@ -98,7 +99,7 @@
 <h2>Design problems the system had to solve</h2>
 <ul>
   <li><strong>Noisy distance readings.</strong> Handled with the three-sample median and an invalid-reading marker.</li>
-  <li><strong>Sensors that disagree.</strong> Handled with the fusion rules above.</li>
+  <li><strong>Sensors that disagree.</strong> Reduced with the fusion rules above, though they can still under-report a full bin in some cases.</li>
   <li><strong>A display that jumps around.</strong> Smoothing on the Pi keeps the percentage from swinging with every reading.</li>
   <li><strong>Silent bins.</strong> Offline bins are shown in grey and left out of alerts.</li>
 </ul>

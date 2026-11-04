@@ -43,10 +43,11 @@
   <span class="chip">Computer Science Project</span>
   <h1>Smart Trash Bin</h1>
   <p class="lead">A full IoT system: Arduino sensors measure how full a bin is, a Raspberry Pi sends the data to a Flask API, and a live dashboard shows every bin on a campus map with alerts.</p>
-  <p class="metaRow"><span><i class="bi bi-calendar3"></i>2026</span><span><i class="bi bi-person"></i>Solo project: design and development</span></p>
+  <p class="metaRow"><span><i class="bi bi-calendar3"></i>Dec 2025 – Mar 2026</span><span><i class="bi bi-person"></i>Solo project: design and development</span><span><i class="bi bi-trophy"></i>First prize, CSC 132 project at Louisiana Tech</span></p>
   <div class="chipRow" aria-label="Technologies used"><span class="chip">Arduino (C++)</span><span class="chip">Raspberry Pi</span><span class="chip">Python</span><span class="chip">Flask</span><span class="chip">JavaScript</span><span class="chip">Leaflet</span><span class="chip">HTML/CSS</span></div>
   <div class="btnRow">
     <a class="btn btn-primary rounded-pill px-4" href="../projects/Smart%20Trash%20Bin/index.html" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> Open live demo</a>
+    <a class="btn btn-outline-secondary rounded-pill px-4" href="https://github.com/kedardonhero/kedarportfolio/tree/HEAD/projects/Smart%20Trash%20Bin" target="_blank" rel="noopener"><i class="bi bi-github" aria-hidden="true"></i> Source code</a>
     <a class="btn btn-outline-secondary rounded-pill px-4" href="../index.html#work">All projects</a>
   </div>
   <figure><img src="../images/smart-trash-bin.png" alt="Smart Trash Bin dashboard showing bin status" /><figcaption>Smart Trash Bin dashboard showing bin status</figcaption></figure>
@@ -68,7 +69,7 @@
 }</code></pre><p><strong>2. The Raspberry Pi turns readings into a fill level.</strong> A Python script reads the serial line, converts each sensor to a percentage using calibration values (55 cm is empty, 8 cm is full, 0 to 10 kg for weight), smooths each with an exponential moving average, and fuses the two.</p><pre class="codeBlock"><code>def fuse(height_pct, weight_pct):
     base = min(height_pct, weight_pct)
 
-    # if either sensor says &quot;full&quot;, don&#x27;t under-report
+    # if either sensor reads 85% or more, lift the result to at least 70% of the higher reading
     if height_pct &gt;= 85 or weight_pct &gt;= 85:
         return max(base, 0.70 * max(height_pct, weight_pct))
 
@@ -76,7 +77,7 @@
     if height_pct &lt;= 10 and weight_pct &lt;= 10:
         return min(height_pct, weight_pct)
 
-    return base</code></pre><p>Fusion matters because each sensor can be wrong on its own: an ultrasonic sensor can read a pile that is tall but light, and a load cell can read a heavy item at the bottom of an otherwise empty bin. Taking the lower value avoids false alarms, and the strong-full rule stops that from hiding a bin that is really full.</p><p><strong>3. A Flask API stores and serves the data.</strong> The Pi sends the fill level with an HTTP PUT every two seconds. The Flask server saves each bin to a JSON file, rejects duplicate IDs, and decides whether a bin is online or offline by checking how long ago it last reported.</p><pre class="codeBlock"><code>OFFLINE_AFTER_SECONDS = 10
+    return base</code></pre><p>Fusion matters because each sensor can be wrong on its own: an ultrasonic sensor can read a pile that is tall but light, and a load cell can read a heavy item at the bottom of an otherwise empty bin. Taking the lower value avoids false alarms, and the strong-full rule partly offsets that: when either sensor reads 85% or more, the result is lifted to at least 70% of the higher reading. It does not guarantee that a full bin is reported as Full (see Known limitations below).</p><p><strong>3. A Flask API stores and serves the data.</strong> The Pi sends the fill level with an HTTP PUT every two seconds. The Flask server saves each bin to a JSON file, rejects duplicate IDs, and decides whether a bin is online or offline by checking how long ago it last reported.</p><pre class="codeBlock"><code>OFFLINE_AFTER_SECONDS = 10
 
 def compute_status(last_seen_iso):
     last = datetime.fromisoformat(last_seen_iso.replace(&quot;Z&quot;, &quot;+00:00&quot;))
@@ -85,11 +86,15 @@ def compute_status(last_seen_iso):
 
   <div class="shotsWrap"><h2>Screenshots</h2><div class="shots"><figure><img src="../images/case-studies/smart-trash-bin-1.png" alt="Smart Trash Bin dashboard with campus map and bin list" loading="lazy" onerror="var s=this.closest('.shotsWrap');this.closest('figure').remove();if(s&&!s.querySelector('figure'))s.remove()" /><figcaption>Dashboard with campus map and bin status list</figcaption></figure><figure><img src="../images/case-studies/smart-trash-bin-2.png" alt="Smart Trash Bin sensor pipeline panel" loading="lazy" onerror="var s=this.closest('.shotsWrap');this.closest('figure').remove();if(s&&!s.querySelector('figure'))s.remove()" /><figcaption>The sensor pipeline panel in the live demo</figcaption></figure></div></div>
 
+  <h2>Known limitations</h2>
+  <p><strong>The fusion rule can under-report a full bin.</strong> If the ultrasonic sensor reads 100% but the load cell reads 0% (for example, a tall pile of very light packaging), the rule returns 0.70 × 100 = 70%. That is below the 80% threshold for Full, so the bin shows as Half and no full-bin alert fires. The rule reduces the problem; it does not remove it. The live demo uses the same rule, so it behaves the same way.</p>
+  <p><strong>Other limits.</strong> The portfolio demo simulates its sensor readings, the PIN check lives in the browser, and bin data is kept in a JSON file rather than a database.</p>
+
   <h2>Technical lessons</h2>
   <ul><li><strong>Raw sensor data is never clean.</strong> The median-of-three filter, the invalid-reading check and the EMA smoothing each removed a different kind of noise.</li><li><strong>Combining two imperfect sensors beats trusting one.</strong> The fusion rules came from thinking about how each sensor fails in the real world.</li><li><strong>Decide what silence means.</strong> A bin that stops reporting should show as Offline, not as its last value. That is why the server computes status from the time of the last reading.</li><li><strong>Design alerts for people.</strong> Repeating once a minute, with a timed acknowledge, keeps the warning noticeable without becoming noise.</li><li><strong>Separate the layers.</strong> Sensors, Pi script, API and dashboard communicate through a simple CSV line and a small JSON API, so each one could be tested and changed on its own.</li></ul>
 
   <h2>What I would improve next</h2>
-  <ul><li>Replace the JSON file with a real database and keep reading history, so the dashboard can show fill-rate trends and predict when a bin will be full</li><li>Add real authentication with accounts and roles; the demo's PIN check lives in the browser and is not real security</li><li>Suggest an efficient collection route across only the bins that need emptying</li><li>Move from a hard-coded server address to a secure hosted API with HTTPS</li></ul>
+  <ul><li>Test the fusion rule against a table of sensor combinations, then revise it so a bin that either sensor reads as full for several readings in a row is reported as Full</li><li>Replace the JSON file with a real database and keep reading history, so the dashboard can show fill-rate trends and predict when a bin will be full</li><li>Add real authentication with accounts and roles; the demo's PIN check lives in the browser and is not real security</li><li>Suggest an efficient collection route across only the bins that need emptying</li><li>Move from a hard-coded server address to a secure hosted API with HTTPS</li></ul>
 <div class="pager"><a href="bhag-kedar.html"><small>&larr; Previous project</small>Bhag Kedar</a><a class="next" href="expense-tracker.html"><small>Next project &rarr;</small>Personal Expense Tracker</a></div>
 </article>
     </div></main>
