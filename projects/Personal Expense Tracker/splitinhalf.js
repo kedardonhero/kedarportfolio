@@ -4,8 +4,8 @@
 // the loans, payments and (optionally) your share as an expense. People are matched to your contacts by name.
 (function () {
   if (typeof db === "undefined" || !db) return;
-  var warned = false;
-  function fail(err) { console.warn("Split in Half sync:", err); if (!warned) { warned = true; if (typeof showToast === "function") showToast("Split in Half sync problem: " + (err && (err.code || err.message) || "unknown")); } }
+  var warned = false, lastErr = "";
+  function fail(err) { lastErr = (err && (err.code || err.message)) || "unknown"; console.warn("Split in Half sync:", err); if (!warned) { warned = true; if (typeof showToast === "function") showToast("Split in Half sync problem: " + (err && (err.code || err.message) || "unknown")); } }
   var uid = null, unsubs = [], groups = {}, raw = {}, watching = {}, items = {};
 
   function num(s) { var h = 7; for (var i = 0; i < s.length; i++) h = (h * 131 + s.charCodeAt(i)) % 1e12; return String(h); }
@@ -53,6 +53,27 @@
     }, fail));
   }
 
+
+  // ---------- On-screen status (so no console is needed) ----------
+  var page = document.getElementById("loans"), hero = page && page.querySelector(".hero"), line = null;
+  if (hero) {
+    var box = document.createElement("div"); box.className = "card";
+    box.innerHTML = '<h2>Split in Half</h2><p id="sih-status" class="hint"></p>';
+    hero.after(box); line = box.querySelector("#sih-status");
+  }
+  function paintStatus() {
+    if (!line) return;
+    if (typeof cloudUser === "undefined" || !cloudUser) { line.textContent = "Log in to an account (not guest mode) to sync Split in Half."; return; }
+    var n = 0; try { n = loans.filter(function (l) { return l.swId && /Split in Half/.test(l.note || ""); }).length; } catch (e) {}
+    var t = "Logged in as " + (cloudUser.email || "?") + ". Groups found: " + Object.keys(groups).length +
+      ". Expenses read: " + Object.keys(items).length + ". Loans imported: " + n + ".";
+    if (lastErr) t += " PROBLEM: " + lastErr + " (publish the Firestore rules in the Personal Expense Tracker project).";
+    else if (!Object.keys(groups).length) t += " No groups found for this login. Make sure Split in Half uses this same account.";
+    else if (!window.__ftFeed) t += " The Splitwise connector file is missing. Upload the new splitwise.js.";
+    else if (!n) t += " No loans yet: an expense only creates a loan when another person is in it.";
+    line.textContent = t;
+  }
+
   window.__sihDebug = function () { return { signedIn: !!uid, groups: Object.keys(groups).length, expensesSeen: Object.keys(items).length, feedHook: typeof window.__ftFeed }; };
 
   // Same rhythm as splitwise.js: wait until the account is loaded, then keep the importer topped up.
@@ -60,5 +81,6 @@
     var u = (typeof cloudUser !== "undefined" && cloudUser) ? cloudUser.uid : null;
     if (u !== uid) attach(u);
     if (u && window.__ftFeed) window.__ftFeed(Object.keys(items).map(function (k) { return items[k]; }));
+    paintStatus();
   }, 3000);
 })();
