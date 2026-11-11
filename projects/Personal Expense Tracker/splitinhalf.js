@@ -4,6 +4,8 @@
 // the loans, payments and (optionally) your share as an expense. People are matched to your contacts by name.
 (function () {
   if (typeof db === "undefined" || !db) return;
+  var warned = false;
+  function fail(err) { console.warn("Split in Half sync:", err); if (!warned) { warned = true; if (typeof showToast === "function") showToast("Split in Half sync problem: " + (err && (err.code || err.message) || "unknown")); } }
   var uid = null, unsubs = [], groups = {}, raw = {}, watching = {}, items = {};
 
   function num(s) { var h = 7; for (var i = 0; i < s.length; i++) h = (h * 131 + s.charCodeAt(i)) % 1e12; return String(h); }
@@ -44,12 +46,14 @@
               } else raw[d.id][c.doc.id] = c.doc.data();
             });
             rebuild(d.id);
-          }, function () {}));
+          }, fail));
         }
       });
       Object.keys(raw).forEach(rebuild);   // names may have changed
-    }, function () {}));
+    }, fail));
   }
+
+  window.__sihDebug = function () { return { signedIn: !!uid, groups: Object.keys(groups).length, expensesSeen: Object.keys(items).length, feedHook: typeof window.__ftFeed }; };
 
   // Same rhythm as splitwise.js: wait until the account is loaded, then keep the importer topped up.
   setInterval(function () {
