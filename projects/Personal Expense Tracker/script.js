@@ -1171,6 +1171,7 @@ const COUNTRIES = [
   ["New Zealand", "NZD"], ["Brazil", "BRL"], ["Mexico", "MXN"], ["Argentina", "ARS"], ["Colombia", "COP"],
 ];
 $("su-country").innerHTML = '<option value="">Select your country…</option>' + COUNTRIES.map(([name, code]) => `<option value="${name}">${name} (${code})</option>`).join("");
+$("gc-country").innerHTML = $("su-country").innerHTML;
 
 // Firebase is only used when firebase-config.js has real keys
 const cloudConfig = window.FINTRACK_FIREBASE;
@@ -1188,7 +1189,7 @@ const fakeEmail = (username) => username + "@fintrack.app";
 // Friendly text for Firebase errors. "where" says which form the error came from.
 function authMessage(error, where) {
   const c = error.code;
-  if (c === "auth/email-already-in-use") return where === "signup" ? "An account with that email already exists. Log in instead, or use \"Forgot password?\"." : "That email is already used by another account.";
+  if (c === "auth/email-already-in-use") return where === "signup" ? "An account with that email already exists. Log in instead, or use \"Forgot password?\". If you signed up with Google, tap Continue with Google." : "That email is already used by another account.";
   if (c === "auth/invalid-email") return "That email address does not look right.";
   if (c === "auth/weak-password") return "Use a password with at least 6 characters.";
   if (c === "auth/network-request-failed") return "No connection. Check your internet and try again.";
@@ -1294,6 +1295,9 @@ async function openAccount(user) {
       profile = { username: saved.username, country: saved.country, currency: saved.currency };
       loadState(JSON.parse(saved.data || "{}"));
       lastSeen = saved.updatedAt || 0;
+    } else if (!localStorage.getItem(storeKey)) {   // brand-new account (nothing in the cloud, nothing on this device)
+      askCountry();
+      return;
     } else {
       throw new Error("no cloud data");
     }
@@ -1315,6 +1319,8 @@ function showWelcome() {
   const note = cloudReady ? "" : "Accounts are saved on this device only.";
   $("cloud-note").textContent = note;
   $("signup-note").textContent = note;
+  $("google-btn").hidden = !cloudReady;
+  $("gl-error").textContent = "";
   lucide.createIcons();
 }
 function startSession() {
@@ -1332,7 +1338,7 @@ function startSession() {
 
 // Welcome screen buttons: login / signup / guest / back
 function showWelcomePanel(name) {
-  ["choice", "login", "signup", "forgot"].forEach((p) => { $("welcome-" + p).hidden = p !== name; });
+  ["choice", "login", "signup", "forgot", "country"].forEach((p) => { $("welcome-" + p).hidden = p !== name; });
 }
 document.querySelectorAll("[data-welcome]").forEach((button) => {
   button.addEventListener("click", () => {
@@ -1393,6 +1399,43 @@ $("welcome-login").addEventListener("submit", async (e) => {
   }
 });
 
+// Continue with Google. If the Google email matches an existing account, Firebase uses that same account
+// (Authentication > Settings > User account linking > "Link accounts that use the same email"), so no data is lost.
+$("google-btn").addEventListener("click", async () => {
+  const msg = $("gl-error"); msg.textContent = "";
+  if (!cloudReady) return;
+  try {
+    await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());   // onAuthStateChanged continues from here
+  } catch (err) {
+    const c = err.code;
+    if (c === "auth/popup-closed-by-user" || c === "auth/cancelled-popup-request") return;
+    msg.textContent =
+      c === "auth/account-exists-with-different-credential" ? "That email already has a FinTrack account. Log in with your password first, then open Account and tap Connect Google. Your data stays safe." :
+      c === "auth/popup-blocked" ? "Your browser blocked the Google window. Allow pop-ups for this site and try again." :
+      c === "auth/operation-not-allowed" ? "Google sign-in is not turned on in Firebase yet." :
+      c === "auth/unauthorized-domain" ? "This website address is not in Firebase's Authorized domains list yet." :
+      authMessage(err, "google");
+  }
+});
+
+// A brand-new account has no profile yet: ask for the country (sets the currency), then continue like a normal sign-up
+function askCountry() {
+  $("gc-error").textContent = "";
+  $("welcome").hidden = false;
+  showWelcomePanel("country");
+}
+$("welcome-country").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const country = COUNTRIES.find(([cname]) => cname === $("gc-country").value);
+  const user = auth && auth.currentUser;
+  if (!country) { $("gc-error").textContent = "Choose your country."; return; }
+  if (!user) return;
+  const raw = (user.displayName || (user.email || "").split("@")[0] || "").replace(/[^\p{L}\p{N} _.'-]/gu, "").slice(0, 30).trim();
+  pendingProfile = { username: validName(raw) ? raw : "Me", country: country[0], currency: country[1] };
+  openAccount(user);
+});
+$("gc-cancel").addEventListener("click", () => { if (auth) auth.signOut(); });
+
 // Forgot password: Firebase emails a reset link to the address on the account
 $("welcome-forgot").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -1447,9 +1490,32 @@ async function renderAccount() {
   $("acct-email-label").textContent = legacy ? "Your email" : "New email";
   $("acct-email-btn").textContent = legacy ? "Add email" : "Change email";
   $("acct-resend").hidden = legacy || cloudUser.emailVerified;
+  const g = (cloudUser.providerData || []).find((p) => p.providerId === "google.com");
+  $("acct-google-now").textContent = g
+    ? "Google is connected (" + g.email + "). You can log in with Google or with your password. Same account, same data."
+    : "Connect your Google account to log in with one tap. It attaches to this account, so all your data stays exactly where it is.";
+  $("acct-google-btn").hidden = !!g;
+  $("acct-google-msg").textContent = "";
   ["acct-name-msg", "acct-email-msg", "acct-pw-msg"].forEach((id) => { $(id).textContent = ""; });
   ["acct-email", "acct-email-pw", "acct-pw-old", "acct-pw-new", "acct-pw-new2"].forEach((id) => { $(id).value = ""; });
 }
+$("acct-google-btn").addEventListener("click", async () => {
+  const msg = $("acct-google-msg"); msg.textContent = "";
+  try {
+    await cloudUser.linkWithPopup(new firebase.auth.GoogleAuthProvider());   // adds Google to THIS account (same uid, same data)
+    showToast("Google connected.");
+    renderAccount();
+  } catch (err) {
+    const c = err.code;
+    if (c === "auth/popup-closed-by-user" || c === "auth/cancelled-popup-request") return;
+    msg.textContent =
+      c === "auth/credential-already-in-use" ? "That Google account is already used by a different FinTrack account. Choose another Google account, or log in with that one instead." :
+      c === "auth/provider-already-linked" ? "Google is already connected to this account." :
+      c === "auth/popup-blocked" ? "Your browser blocked the Google window. Allow pop-ups for this site and try again." :
+      c === "auth/requires-recent-login" ? "For safety, log out, log in again, then try once more." :
+      authMessage(err, "google");
+  }
+});
 $("account-btn").addEventListener("click", () => showView("account-page"));
 
 // Firebase asks for the current password before sensitive changes

@@ -318,6 +318,12 @@
         </form>
       </div>
       <div class="card acct-card">
+        <h2>Google sign-in</h2>
+        <p id="acct-google-now" class="hint"></p>
+        <p id="acct-google-msg" class="error" role="alert"></p>
+        <button type="button" class="primary-btn" id="acct-google-btn">Connect Google</button>
+      </div>
+      <div class="card acct-card">
         <h2>Email</h2>
         <p id="acct-email-now" class="hint"></p>
         <form id="acct-email-form" class="stack" novalidate>
@@ -369,6 +375,8 @@
       <div id="welcome-choice">
         <button class="primary-btn block" data-welcome="login">Log in</button>
         <button class="mini-btn block" data-welcome="signup">Create account</button>
+        <button class="filter-btn block" id="google-btn" type="button"><i data-lucide="log-in"></i> Continue with Google</button>
+        <p id="gl-error" class="error" role="alert"></p>
         <button class="filter-btn block" data-welcome="guest">Continue as guest</button>
         <button class="filter-btn block" data-install hidden>Install app on this device</button>
         <p id="cloud-note" class="hint"></p>
@@ -391,6 +399,13 @@
         <p id="su-error" class="error" role="alert"></p>
         <button type="submit" class="primary-btn">Create account</button>
         <button type="button" class="filter-btn" data-welcome="choice">Back</button>
+      </form>
+      <form id="welcome-country" class="stack" hidden novalidate>
+        <p class="hint">Almost done. Choose your country so FinTrack uses the right currency.</p>
+        <label>Country (sets your currency)<select id="gc-country"></select></label>
+        <p id="gc-error" class="error" role="alert"></p>
+        <button type="submit" class="primary-btn">Continue</button>
+        <button type="button" class="filter-btn" id="gc-cancel">Use a different account</button>
       </form>
       <form id="welcome-forgot" class="stack" hidden novalidate>
         <p class="hint">Enter the email on your account and we will send you a link to choose a new password.</p>
@@ -516,5 +531,6 @@
   <script src="script.js"></script>
   <script src="extras.js"></script>
   <script src="splitwise.js"></script>
+  <script src="splitinhalf.js"></script>
 </body>
 </html>

@@ -5,6 +5,8 @@
 (function () {
   if (typeof db === "undefined" || !db) return;
   var cache = {}, rev = 0, mergedRev = -1, meta = {}, unsubs = [], attachedUid = null;
+  // Other sources (Split in Half) hand their expenses to the same importer through this hook.
+  window.__ftFeed = function (items) { var ch = false; items.forEach(function (it) { var o = cache[it.id]; if (!o || o.updated !== it.updated || !!o.deleted !== !!it.deleted) { cache[it.id] = it; ch = true; } }); if (ch) rev++; };
 
   // ---------- Card on the Loans page ----------
   var page = document.getElementById("loans");
@@ -115,7 +117,7 @@
       var c = contactFor(u), old = olds.find(function (l) { return l.contactId === c.id; });
       loans.push({ id: base + (k++), kind: kind, contactId: c.id, person: c.name, accountId: "",
         payments: old ? old.payments : [], amount: amount, total: it.cost, split: it.users.length > 2,
-        parts: it.users.length, paid: old ? old.paid : 0, note: it.desc + " (Splitwise)", date: it.date || today(), swId: it.id });
+        parts: it.users.length, paid: old ? old.paid : 0, note: it.desc + " (" + (it.src || "Splitwise") + ")", date: it.date || today(), swId: it.id });
     };
     if (myNet > 0.004) {            // I paid more than my share: the others owe me
       others.forEach(function (u) { var n = round2(u.paid - u.owed); if (n < -0.004) make(u, "lent", -n); });
@@ -126,7 +128,7 @@
     }
     if (splitwise.countShare !== false && me.owed > 0.004) {
       transactions.push({ id: base + 7200000, type: "expense", amount: round2(me.owed), category: "Other",
-        description: it.desc + " (Splitwise)", date: it.date || today(), accountId: "", shared: true, swId: it.id });
+        description: it.desc + " (" + (it.src || "Splitwise") + ")", date: it.date || today(), accountId: "", shared: true, swId: it.id });
     }
   }
 
@@ -138,7 +140,7 @@
       .sort(function (a, b) { return (a.date || "").localeCompare(b.date || "") || a.id.localeCompare(b.id); })
       .forEach(function (it) { applyOne(it, stats); splitwise.seen[it.id] = stamp(it); });
     saveData(); render();
-    showToast("Splitwise: " + ids.length + " update" + (ids.length > 1 ? "s" : "") + (stats.skipped ? " (" + stats.skipped + " skipped: other currency)" : ""));
+    showToast("Synced: " + ids.length + " update" + (ids.length > 1 ? "s" : "") + (stats.skipped ? " (" + stats.skipped + " skipped: other currency)" : ""));
   }
 
   // Check every few seconds. Merge only after this device has loaded the account's cloud data,
