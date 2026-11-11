@@ -20,8 +20,8 @@
     });
     var involved = users.some(function (u) { return u.id === uid; });
     return { id: num(id), me: uid, src: "Split in Half", desc: e.desc || "Split in Half", cost: cost, cur: "",
-      date: ymd(e.t || Date.now()), payment: e.kind === "payment", deleted: !!gone || !involved,
-      updated: [e.t, e.amount, e.desc, e.payer, JSON.stringify(split)].join("|"), users: users };
+      date: ymd(e.t || Date.now()), payment: e.kind === "payment", deleted: !!gone || !involved, cat: e.cat || "",
+      updated: [e.t, e.amount, e.desc, e.payer, JSON.stringify(split)].concat(e.cat ? [e.cat] : []).join("|"), users: users };
   }
   window.__sihConv = function (g, id, e, gone, me) { uid = me; groups[g] = groups[g] || {}; return conv(g, id, e, gone); };
 

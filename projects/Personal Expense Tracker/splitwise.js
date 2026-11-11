@@ -89,6 +89,19 @@
   }
   var stamp = function (it) { return (it.updated || "") + (it.deleted ? "|del" : ""); };
 
+  // Category sent by Split in Half: use the FinTrack category with the same name, or create it. "Miscellaneous" becomes "Other".
+  function catFor(c) {
+    c = String(c || "").trim();
+    if (!c || /^miscellaneous$/i.test(c)) return "Other";
+    try {
+      var hit = getExpenseCategories().find(function (x) { return x.toLowerCase() === c.toLowerCase(); });
+      if (hit) return hit;
+      expenseNames.push(c);
+      if (typeof fillCategories === "function") fillCategories();
+    } catch (e) {}
+    return c;
+  }
+
   function applyOne(it, stats) {
     var first = splitwise.seen[it.id] === undefined;
     var olds = loans.filter(function (l) { return l.swId === it.id; });
@@ -127,7 +140,7 @@
       pos.forEach(function (u) { make(u, "paid-for-me", round2(-myNet * (u.paid - u.owed) / tot)); });
     }
     if (splitwise.countShare !== false && me.owed > 0.004) {
-      transactions.push({ id: base + 7200000, type: "expense", amount: round2(me.owed), category: "Other",
+      transactions.push({ id: base + 7200000, type: "expense", amount: round2(me.owed), category: catFor(it.cat),
         description: it.desc + " (" + (it.src || "Splitwise") + ")", date: it.date || today(), accountId: "", shared: true, swId: it.id });
     }
   }
