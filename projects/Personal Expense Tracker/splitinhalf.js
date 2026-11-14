@@ -58,15 +58,20 @@
   var page = document.getElementById("loans"), hero = page && page.querySelector(".hero"), line = null;
   if (hero) {
     var box = document.createElement("div"); box.className = "card";
-    box.innerHTML = '<h2>Split in Half</h2><p id="sih-status" class="hint"></p>';
+    box.innerHTML = '<h2>Split in Half</h2><p id="sih-status" class="hint"></p>' +
+      '<label class="check"><input type="checkbox" id="sih-share"> Count my share of each bill as my own expense (Groceries, Rent, ...)</label>';
     hero.after(box); line = box.querySelector("#sih-status");
+    var sh = box.querySelector("#sih-share");
+    sh.onchange = function () { splitwise.countShare = sh.checked; if (window.__ftBackfill) window.__ftBackfill(); saveData(); };
   }
   function paintStatus() {
     if (!line) return;
     if (typeof cloudUser === "undefined" || !cloudUser) { line.textContent = "Log in to an account (not guest mode) to sync Split in Half."; return; }
     var n = 0; try { n = loans.filter(function (l) { return l.swId && /Split in Half/.test(l.note || ""); }).length; } catch (e) {}
+    var ex = 0; try { ex = transactions.filter(function (x) { return x.swId && /Split in Half/.test(x.description || ""); }).length; } catch (e) {}
+    var sh2 = document.getElementById("sih-share"); if (sh2) sh2.checked = splitwise.countShare !== false;
     var t = "Logged in as " + (cloudUser.email || "?") + ". Groups found: " + Object.keys(groups).length +
-      ". Expenses read: " + Object.keys(items).length + ". Loans imported: " + n + ".";
+      ". Expenses read: " + Object.keys(items).length + ". Loans imported: " + n + ". Counted as your expenses: " + ex + (splitwise.countShare === false ? " (the switch below is off)" : "") + ".";
     if (lastErr) t += " PROBLEM: " + lastErr + " (publish the Firestore rules in the Personal Expense Tracker project).";
     else if (!Object.keys(groups).length) t += " No groups found for this login. Make sure Split in Half uses this same account.";
     else if (!window.__ftFeed) t += " The Splitwise connector file is missing. Upload the new splitwise.js.";

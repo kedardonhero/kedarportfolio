@@ -8,6 +8,10 @@
   // Other sources (Split in Half) hand their expenses to the same importer through this hook.
   window.__ftFeed = function (items) { var ch = false; items.forEach(function (it) { var o = cache[it.id]; if (!o || o.updated !== it.updated || !!o.deleted !== !!it.deleted) { cache[it.id] = it; ch = true; } }); if (ch) rev++; };
 
+  // Re-run every already-imported bill (not payments, which must only be applied once) so your share is counted as an expense.
+  // Loans keep their payments; expenses are replaced, never duplicated.
+  window.__ftBackfill = function () { Object.keys(cache).forEach(function (id) { if (!cache[id].payment) delete splitwise.seen[id]; }); rev++; };
+
   // ---------- Card on the Loans page ----------
   var page = document.getElementById("loans");
   var hero = page && page.querySelector(".hero");
@@ -64,7 +68,7 @@
       splitwise.linked = false; saveData(); paint(); showToast("Splitwise disconnected");
     });
   };
-  $s("sw-share").onchange = function () { splitwise.countShare = $s("sw-share").checked; saveData(); };
+  $s("sw-share").onchange = function () { splitwise.countShare = $s("sw-share").checked; window.__ftBackfill(); saveData(); };
 
   // ---------- Listen to what the sync job saved ----------
   function attach(uid) {
@@ -161,6 +165,8 @@
   setInterval(function () {
     var uid = cloudUser ? cloudUser.uid : null;
     if (uid !== attachedUid) attach(uid);
+    // One time per account: bills imported before this feature get their share counted as an expense too.
+    if (uid && lastSeen > 0 && profile && !splitwise.backfilled && Object.keys(cache).length) { splitwise.backfilled = true; window.__ftBackfill(); }
     if (uid && lastSeen > 0 && profile && rev !== mergedRev) { mergedRev = rev; merge(); }
     paint();
   }, 3000);

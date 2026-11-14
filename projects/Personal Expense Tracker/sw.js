@@ -1,4 +1,4 @@
-const C = 'ft-v11';
+const C = 'ft-v12';
 const FILES = ['./', 'index.html', 'style.css', 'script.js', 'extras.js', 'splitwise.js', 'splitinhalf.js', 'firebase-config.js', 'pwa-install.js', 'manifest.webmanifest',
   'icon.svg', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png'];
 // Libraries and fonts FinTrack loads from CDNs. Cached so the app still opens offline.
