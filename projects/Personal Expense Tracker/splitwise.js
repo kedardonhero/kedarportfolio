@@ -62,8 +62,8 @@
       saveData(); paint(); showToast("Splitwise connected. First sync soon.");
     }).catch(function () { $s("sw-msg").textContent = "Could not save the key. Check your connection and rules."; });
   };
-  $s("sw-off").onclick = function () {
-    if (!confirm("Disconnect Splitwise? Loans already imported stay in FinTrack.")) return;
+  $s("sw-off").onclick = async function () {
+    if (!(await askConfirm("Disconnect Splitwise? Loans already imported stay in FinTrack.", "Disconnect"))) return;
     db.collection("splitwiseLinks").doc(cloudUser.uid).delete().then(function () {
       splitwise.linked = false; saveData(); paint(); showToast("Splitwise disconnected");
     });

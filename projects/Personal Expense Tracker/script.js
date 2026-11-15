@@ -243,8 +243,8 @@ function stopEditing() {
 }
 
 // ---------- 6. Deleting ----------
-function deleteTransaction(id) {
-  if (!confirm("Delete this transaction?")) return;
+async function deleteTransaction(id) {
+  if (!(await askConfirm("Delete this transaction?", "Delete"))) return;
   const removed = transactions.find((t) => t.id === id);
   if (removed) applyEffect(removed, -1); // undo its effect on the account
   transactions = transactions.filter((t) => t.id !== id);
@@ -295,8 +295,8 @@ $("plan-form").addEventListener("submit", (event) => {
 });
 
 // Remove one expense from the viewed month's plan
-function removeFromPlan(name) {
-  if (!confirm(`Remove ${name} from this month's plan?`)) return;
+async function removeFromPlan(name) {
+  if (!(await askConfirm(`Remove ${name} from this month's plan?`, "Remove"))) return;
   delete budgets[selectedMonth][name];
   if (Object.keys(budgets[selectedMonth]).length === 0) delete budgets[selectedMonth];
   saveData();
@@ -321,8 +321,8 @@ $("copy-plan").addEventListener("click", () => {
 });
 
 // ---------- 8. Clear all data ----------
-$("clear-all").addEventListener("click", () => {
-  if (!confirm("This will delete ALL transactions and plans. Continue?")) return;
+$("clear-all").addEventListener("click", async () => {
+  if (!(await askConfirm("This will delete ALL transactions and plans. Continue?", "Clear all"))) return;
   transactions = [];
   budgets = {};
   expenseNames = [];
@@ -711,7 +711,7 @@ document.addEventListener("click", async (e) => {
     if (result === null) return; // cancelled
     account.balance = result.amount;
   } else if (action === "delete-account") {
-    if (!confirm("Delete " + account.name + "? Its past transactions stay in History.")) return;
+    if (!(await askConfirm("Delete " + account.name + "? Its past transactions stay in History.", "Delete"))) return;
     accounts = accounts.filter((a) => a.id !== id);
   } else if (action === "pay-card" || action === "deposit") {
     // Fill in the "Move money" form for you
@@ -754,11 +754,11 @@ document.addEventListener("click", async (e) => {
     return;
   } else if (action === "delete-contact") {
     if (loans.some((l) => l.contactId === id && remaining(l) > 0)) { showToast("Settle up with them first"); return; }
-    if (!confirm("Delete this contact and their settled history?")) return;
+    if (!(await askConfirm("Delete this contact and their settled history?", "Delete"))) return;
     contacts = contacts.filter((c) => c.id !== id);
     loans = loans.filter((l) => l.contactId !== id);
   } else if (action === "delete-loan") {
-    if (!confirm("Delete this loan?")) return;
+    if (!(await askConfirm("Delete this loan?", "Delete"))) return;
     loans = loans.filter((l) => l.id !== Number(id));
   } else return;
   saveData();
@@ -1047,7 +1047,7 @@ async function settleUp(contactId) {
   const net = personBalance(contactId).net;
   if (Math.abs(net) < 0.005) {   // you owe each other the same amount
     if (!hasOpen(contactId)) { showToast("Already settled up"); return; }
-    if (!confirm(c.name + " and you owe each other the same amount. Cancel them out?")) return;
+    if (!(await askConfirm(c.name + " and you owe each other the same amount. Cancel them out?", "Cancel them out"))) return;
     offsetAll(contactId);
     saveData(); render(); showToast("Settled up with " + c.name);
     return;
@@ -1070,6 +1070,31 @@ async function settleUp(contactId) {
 // ---------- Amount pop-up (replaces the plain browser prompt) ----------
 // Shows a dialog. Returns { amount, accountId } or null if cancelled.
 // Pass accountLabel (like "Paid from") to also ask which account is used.
+// In-app confirmation pop-up (replaces the browser's confirm(), which shows the website address at the top).
+function askConfirm(message, okLabel = "Delete", title = "Are you sure?") {
+  return new Promise((resolve) => {
+    let d = document.getElementById("confirm-dialog");
+    if (!d) {
+      d = document.createElement("dialog");
+      d.id = "confirm-dialog";
+      d.setAttribute("aria-labelledby", "cd-title");
+      d.innerHTML = '<form method="dialog"><h2 id="cd-title"></h2><p id="cd-msg" class="hint"></p><div class="dialog-actions"><button type="button" id="cd-no" class="filter-btn">Cancel</button><button type="button" id="cd-yes" class="primary-btn danger-btn"></button></div></form>';
+      document.body.appendChild(d);
+    }
+    let done = false;
+    const finish = (v) => { if (done) return; done = true; if (d.open) d.close(); resolve(v); };
+    $("cd-title").textContent = title;
+    $("cd-msg").textContent = message;
+    $("cd-yes").textContent = okLabel;
+    $("cd-yes").onclick = () => finish(true);
+    $("cd-no").onclick = () => finish(false);
+    d.oncancel = (e) => { e.preventDefault(); finish(false); };   // Esc key
+    d.onclose = () => finish(false);
+    d.showModal();
+    $("cd-no").focus();
+  });
+}
+
 function askAmount(title, label, start, min = 0, max = Infinity, accountLabel = "") {
   return new Promise((resolve) => {
     const dialog = $("amount-dialog"), input = $("dialog-amount"), error = $("dialog-error");
@@ -1885,3 +1910,6 @@ startSession();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 }
+
+// Keep the app steady like a native app: no pinch zoom (iPhone ignores user-scalable=no).
+["gesturestart", "gesturechange", "gestureend"].forEach((t) => document.addEventListener(t, (e) => e.preventDefault(), { passive: false }));

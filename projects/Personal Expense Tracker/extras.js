@@ -413,7 +413,7 @@
       </details>
       <div class="dialog-actions"><button type="button" class="filter-btn" data-bd="close">Close</button></div>`;
   }
-  billDialog.addEventListener("click", (e) => {
+  billDialog.addEventListener("click", async (e) => {
     const act = e.target.closest("[data-bd]");
     if (!act) return;
     const b = bills.find((x) => x.id === openBillId), err = $("bd-error"), ym = thisMonth();
@@ -446,7 +446,7 @@
       Object.assign(b, { name, amount: round2(amount), day, method: $("bd-default").value });
       saveData(); render(); drawBill(); showToast("Bill updated");
     } else if (what === "delete") {
-      if (!confirm("Delete " + b.name + "? Payments you already made stay in your history.")) return;
+      if (!(await askConfirm("Delete " + b.name + "? Payments you already made stay in your history.", "Delete"))) return;
       bills = bills.filter((x) => x !== b);
       billDialog.close(); saveData(); render();
     }
@@ -568,9 +568,9 @@
       <span><button type="button" class="filter-btn" id="ge-cancel">Cancel</button> <button type="submit" class="primary-btn">Save</button></span></div></form>`;
     goalEditDialog.showModal();
     $("ge-cancel").addEventListener("click", () => goalEditDialog.close());
-    $("ge-delete").addEventListener("click", () => {
+    $("ge-delete").addEventListener("click", async () => {
       if (g.saved > 0) { $("ge-error").textContent = "Take the " + money(g.saved) + " out first, then you can delete this goal."; return; }
-      if (!confirm("Delete this goal?")) return;
+      if (!(await askConfirm("Delete this goal?", "Delete"))) return;
       goals = goals.filter((x) => x !== g);
       goalEditDialog.close(); saveData(); render();
     });
@@ -634,7 +634,7 @@
     e.target.value = ""; // lets you pick the same file again later
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       try {
         const data = JSON.parse(reader.result).data;
         const lists = ["transactions", "accounts", "contacts", "loans", "transfers", "goals", "bills", "expenseNames"];
@@ -643,7 +643,7 @@
           lists.some((k) => data[k] !== undefined && !Array.isArray(data[k])) ||
           maps.some((k) => data[k] !== undefined && (!data[k] || typeof data[k] !== "object" || Array.isArray(data[k])));
         if (bad) throw new Error("not a backup");
-        if (!confirm("Replace ALL your current data with this backup (" + data.transactions.length + " transactions)?")) return;
+        if (!(await askConfirm("Replace ALL your current data with this backup (" + data.transactions.length + " transactions)?", "Replace"))) return;
         loadState(data);
         saveData();
         fillCategories();

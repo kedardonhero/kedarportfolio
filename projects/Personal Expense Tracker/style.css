@@ -816,3 +816,18 @@ th { text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.72rem; font
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* ---- Polish: steady like a native app, no zoom, tidy inputs ---- */
+html, body { overscroll-behavior: none; touch-action: pan-x pan-y; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { -webkit-tap-highlight-color: transparent; }
+@media (max-width: 800px) {
+  input, select, textarea { font-size: 16px !important; }   /* 16px stops the iPhone zooming in when you tap a field */
+  input[type="date"], input[type="month"] { min-height: 44px; display: block; width: 100%; -webkit-appearance: none; appearance: none; text-align: left; }
+}
+.danger-btn, .primary-btn.danger-btn { background: var(--expense); border-color: var(--expense); color: #fff; box-shadow: none; }
+#confirm-dialog { width: min(360px, 92vw); }
+#confirm-dialog .hint { margin: 6px 0 4px; font-size: 1rem; line-height: 1.45; }
+#confirm-dialog .dialog-actions { justify-content: stretch; }
+#confirm-dialog .dialog-actions button { flex: 1; min-height: 46px; }
+.welcome-card button { font-size: 1rem; }
+@media (max-width: 420px) { .bs-tab { padding: 10px 8px; font-size: 0.82rem; gap: 4px; } }
