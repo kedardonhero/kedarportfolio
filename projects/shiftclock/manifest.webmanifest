@@ -1,10 +1,12 @@
 {
+  "id": "./",
   "name": "ShiftClock",
   "short_name": "ShiftClock",
   "description": "Hours, schedules and pay for every job you work.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#0e1116",
   "theme_color": "#0e1116",
   "categories": ["productivity", "business"],
