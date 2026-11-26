@@ -1,0 +1,17 @@
+const C="halves-v21",SHELL=["./","index.html","app.js","firebase-config.js","manifest.webmanifest","icon.svg","icon-192.png","icon-512.png","apple-touch-icon.png"];
+self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(SHELL)));self.skipWaiting()});
+self.addEventListener("activate",e=>e.waitUntil((async()=>{
+  for(const k of await caches.keys())if(k!==C)await caches.delete(k);
+  await self.clients.claim();
+  for(const c of await self.clients.matchAll())c.postMessage("updated");
+})()));
+self.addEventListener("fetch",e=>{
+  const u=new URL(e.request.url);
+  if(e.request.method!=="GET"||!(u.origin===location.origin||u.hostname==="www.gstatic.com"))return;
+  e.respondWith((async()=>{
+    const hit=await caches.match(e.request,{ignoreSearch:true});
+    const net=fetch(e.request).then(r=>{if(r&&r.ok){const cp=r.clone();caches.open(C).then(c=>c.put(e.request,cp))}return r}).catch(()=>hit||Response.error());
+    if(hit){e.waitUntil(net.catch(()=>0));return hit}
+    return net;
+  })());
+});

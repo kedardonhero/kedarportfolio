@@ -413,7 +413,7 @@
       </details>
       <div class="dialog-actions"><button type="button" class="filter-btn" data-bd="close">Close</button></div>`;
   }
-  billDialog.addEventListener("click", async (e) => {
+  billDialog.addEventListener("click", (e) => {
     const act = e.target.closest("[data-bd]");
     if (!act) return;
     const b = bills.find((x) => x.id === openBillId), err = $("bd-error"), ym = thisMonth();
@@ -446,7 +446,7 @@
       Object.assign(b, { name, amount: round2(amount), day, method: $("bd-default").value });
       saveData(); render(); drawBill(); showToast("Bill updated");
     } else if (what === "delete") {
-      if (!(await askConfirm("Delete " + b.name + "? Payments you already made stay in your history.", "Delete"))) return;
+      if (!confirm("Delete " + b.name + "? Payments you already made stay in your history.")) return;
       bills = bills.filter((x) => x !== b);
       billDialog.close(); saveData(); render();
     }
@@ -461,13 +461,13 @@
       let plan = "";
       if (done) plan = "Goal reached 🎉";
       else if (g.date) plan = daysBetween(today(), g.date) < 0 ? "The finish date has passed." : "Save about " + money(round2(left / monthsUntil(g.date))) + " a month to finish by " + monthName(g.date.slice(0, 7)) + ".";
-      const hist = (g.history || []).slice(-6).reverse().map((h) => `<li><span>${prettyDate(h.date)} · ${h.amount > 0 ? "Added from" : "Taken out to"} ${esc(accountName(h.accountId) || "an account")}</span><strong class="${h.amount > 0 ? "income" : "expense"}">${h.amount > 0 ? "+" : "−"}${money(Math.abs(h.amount))}</strong></li>`).join("");
+      const hist = (g.history || []).slice(-6).reverse().map((h) => `<li><span>${prettyDate(h.date)} · ${h.kind === "spent" ? "Spent on " + esc(h.note || "an expense") : h.kind === "refund" ? "Refunded (expense deleted)" : (h.amount > 0 ? "Added from" : "Taken out to") + " " + esc(accountName(h.accountId) || "an account")}</span><strong class="${h.amount > 0 ? "income" : "expense"}">${h.amount > 0 ? "+" : "−"}${money(Math.abs(h.amount))}</strong></li>`).join("");
       return `<div class="goal-row">
         <div class="goal-top"><strong>${esc(g.name)}</strong><span>${pct}%</span></div>
         <div class="progress"><div class="bar" style="width:${pct}%"></div></div>
         <p class="hint" style="margin:8px 0 0">${money(g.saved)} saved of ${money(g.target)}${done ? "" : " · " + money(left) + " to go"}</p>
         ${plan ? `<p class="hint goal-plan">${plan}</p>` : ""}
-        <div class="goal-actions">${done ? "" : `<button type="button" class="primary-btn" data-goal-add="${g.id}">＋ Add money</button>`}${g.saved > 0 ? `<button type="button" class="filter-btn" data-goal-take="${g.id}">Take out</button>` : ""}<button type="button" class="filter-btn" data-goal-edit="${g.id}">Edit</button></div>
+        <div class="goal-actions">${done ? "" : `<button type="button" class="primary-btn" data-goal-add="${g.id}">＋ Add money</button>`}${g.saved > 0 ? `<button type="button" class="filter-btn" data-goal-take="${g.id}">Take out</button>` : ""}${g.saved > 0 ? `<button type="button" class="filter-btn" data-goal-spend="${g.id}">Spend</button>` : ""}<button type="button" class="filter-btn" data-goal-edit="${g.id}">Edit</button></div>
         ${hist ? `<details class="goal-hist"><summary>Recent activity</summary><ul>${hist}</ul></details>` : ""}</div>`;
     }).join("") : '<p class="empty">No goals yet. Try "Emergency fund", "New laptop" or "Trip".</p>';
   }
@@ -552,6 +552,51 @@
     showToast(g.saved >= g.target ? "Goal reached! 🎉" : signed > 0 ? "Added to " + g.name : "Moved back to " + account.name);
   });
 
+  // Spend from a goal: the saved money pays for a real expense (counts in reports, no bank or cash balance changes)
+  const spendDialog = newDialog("goal-spend-dialog");
+  spendDialog.innerHTML = `<form id="gs-form" novalidate><h2 id="gs-title"></h2><p id="gs-sub" class="hint"></p>
+    <label class="field">What did you spend it on?<input type="text" id="gs-desc" maxlength="60" autocomplete="off" placeholder="e.g. New laptop"></label>
+    <label class="field">Amount<input type="number" id="gs-amount" step="0.01" min="0" inputmode="decimal" placeholder="0.00"></label>
+    <label class="field">Category<select id="gs-cat"></select></label>
+    <label class="field">Date<input type="date" id="gs-date"></label>
+    <p id="gs-error" class="error" role="alert"></p>
+    <div class="dialog-actions"><button type="button" id="gs-cancel" class="filter-btn">Cancel</button><button type="submit" class="primary-btn">Spend from goal</button></div></form>`;
+  let spendingGoal = null;
+  function openSpend(goalId) {
+    const g = goals.find((x) => x.id === goalId);
+    if (!g) return;
+    spendingGoal = goalId;
+    $("gs-title").textContent = "Spend from " + g.name;
+    $("gs-sub").textContent = money(g.saved) + " is saved in this goal. It becomes an expense and your bank and cash stay as they are.";
+    $("gs-desc").value = g.name;
+    $("gs-amount").value = "";
+    $("gs-cat").innerHTML = getExpenseCategories().map((c) => `<option>${esc(c)}</option>`).join("");
+    $("gs-date").value = today();
+    $("gs-error").textContent = "";
+    spendDialog.showModal();
+  }
+  $("gs-cancel").addEventListener("click", () => spendDialog.close());
+  $("gs-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const g = goals.find((x) => x.id === spendingGoal), err = $("gs-error");
+    if (!g) { spendDialog.close(); return; }
+    const amount = round2(parseFloat($("gs-amount").value)), desc = $("gs-desc").value.trim(), date = $("gs-date").value;
+    if (isNaN(amount) || amount <= 0) { err.textContent = "Enter an amount greater than 0."; return; }
+    if (amount > g.saved + 0.004) { err.textContent = "Only " + money(g.saved) + " is saved in this goal."; return; }
+    if (!desc) { err.textContent = "Enter what you spent it on."; return; }
+    if (!date) { err.textContent = "Choose a date."; return; }
+    const txId = Date.now();
+    transactions.push({ id: txId, type: "expense", amount, category: $("gs-cat").value, description: desc + " (from goal: " + g.name + ")", date, accountId: "", goalId: g.id });
+    g.saved = Math.max(0, round2(g.saved - amount));
+    g.history = g.history || [];
+    g.history.push({ id: txId + 1, date, amount: -amount, accountId: "", kind: "spent", note: desc, txId });
+    selectedMonth = date.slice(0, 7);
+    spendDialog.close();
+    saveData();
+    render();
+    showToast("Spent " + money(amount) + " from " + g.name);
+  });
+
   // Edit a goal (name, target, finish date) or delete it
   const goalEditDialog = newDialog("goal-edit-dialog");
   let editingGoal = null;
@@ -568,9 +613,9 @@
       <span><button type="button" class="filter-btn" id="ge-cancel">Cancel</button> <button type="submit" class="primary-btn">Save</button></span></div></form>`;
     goalEditDialog.showModal();
     $("ge-cancel").addEventListener("click", () => goalEditDialog.close());
-    $("ge-delete").addEventListener("click", async () => {
+    $("ge-delete").addEventListener("click", () => {
       if (g.saved > 0) { $("ge-error").textContent = "Take the " + money(g.saved) + " out first, then you can delete this goal."; return; }
-      if (!(await askConfirm("Delete this goal?", "Delete"))) return;
+      if (!confirm("Delete this goal?")) return;
       goals = goals.filter((x) => x !== g);
       goalEditDialog.close(); saveData(); render();
     });
@@ -587,7 +632,7 @@
 
   // ---------- One click listener for the buttons in the new pieces ----------
   document.addEventListener("click", (e) => {
-    const b = e.target.closest("[data-bs-tab],[data-bs-go],[data-dash],[data-qa],[data-plan-last],[data-plan-sort],[data-bday],[data-bill-idea],[data-goal-idea],[data-gtarget],[data-gmonths],[data-bill-open],[data-plan-chip],[data-plan-copy],[data-plan-edit],[data-plan-add],[data-goal-add],[data-goal-take],[data-goal-edit]");
+    const b = e.target.closest("[data-bs-tab],[data-bs-go],[data-dash],[data-qa],[data-plan-last],[data-plan-sort],[data-bday],[data-bill-idea],[data-goal-idea],[data-gtarget],[data-gmonths],[data-bill-open],[data-plan-chip],[data-plan-copy],[data-plan-edit],[data-plan-add],[data-goal-add],[data-goal-take],[data-goal-spend],[data-goal-edit]");
     if (!b) return;
     const d = b.dataset;
     if (d.bsTab) setTab(d.bsTab);
@@ -612,6 +657,7 @@
     }
     else if (d.goalAdd) openMove(Number(d.goalAdd), 1);
     else if (d.goalTake) openMove(Number(d.goalTake), -1);
+    else if (d.goalSpend) openSpend(Number(d.goalSpend));
     else if (d.goalEdit) openGoalEdit(Number(d.goalEdit));
   });
   document.addEventListener("keydown", (e) => {
@@ -634,7 +680,7 @@
     e.target.value = ""; // lets you pick the same file again later
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = async () => {
+    reader.onload = () => {
       try {
         const data = JSON.parse(reader.result).data;
         const lists = ["transactions", "accounts", "contacts", "loans", "transfers", "goals", "bills", "expenseNames"];
@@ -643,7 +689,7 @@
           lists.some((k) => data[k] !== undefined && !Array.isArray(data[k])) ||
           maps.some((k) => data[k] !== undefined && (!data[k] || typeof data[k] !== "object" || Array.isArray(data[k])));
         if (bad) throw new Error("not a backup");
-        if (!(await askConfirm("Replace ALL your current data with this backup (" + data.transactions.length + " transactions)?", "Replace"))) return;
+        if (!confirm("Replace ALL your current data with this backup (" + data.transactions.length + " transactions)?")) return;
         loadState(data);
         saveData();
         fillCategories();
