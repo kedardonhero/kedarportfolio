@@ -92,7 +92,7 @@ function getMonthTransactions() {
 function getSpentByCategory() {
   const totals = {};
   getMonthTransactions()
-    .filter((t) => t.type === "expense")
+    .filter((t) => t.type === "expense" && !t.goalId)
     .forEach((t) => { totals[t.category] = (totals[t.category] || 0) + t.amount; });
   return totals;
 }
@@ -1771,8 +1771,12 @@ const transferKind = (id, name) => { const a = id ? getAccount(id) : accounts.fi
 // Income, personal expenses and savings moves for one month
 function monthTotals(month) {
   const tx = transactions.filter((t) => t.date.startsWith(month));
-  const byCategory = {};
-  tx.filter((t) => t.type === "expense").forEach((t) => { byCategory[t.category] = round2((byCategory[t.category] || 0) + t.amount); });
+  const byCategory = {}, budgetCat = {};
+  tx.filter((t) => t.type === "expense").forEach((t) => {
+    byCategory[t.category] = round2((byCategory[t.category] || 0) + t.amount);
+    if (!t.goalId) budgetCat[t.category] = round2((budgetCat[t.category] || 0) + t.amount);   // goal-funded spending is not part of the monthly budget
+  });
+  const budgetUsed = round2(sum(Object.values(budgetCat)));
   let saved = 0, withdrawn = 0;
   transfers.filter((t) => t.date.startsWith(month)).forEach((t) => {   // moving money into or out of savings
     const from = transferKind(t.fromId, t.from), to = transferKind(t.toId, t.to);
@@ -1780,7 +1784,7 @@ function monthTotals(month) {
     if (from === "savings" && to !== "savings") withdrawn += t.amount;
   });
   return { income: round2(sum(tx.filter((t) => t.type === "income").map((t) => t.amount))), expenses: round2(sum(Object.values(byCategory))),
-    byCategory: byCategory, saved: round2(saved), withdrawn: round2(withdrawn), net: round2(saved - withdrawn) };
+    byCategory: byCategory, budgetCat: budgetCat, budgetUsed: budgetUsed, fromGoals: round2(sum(Object.values(byCategory)) - budgetUsed), saved: round2(saved), withdrawn: round2(withdrawn), net: round2(saved - withdrawn) };
 }
 
 // Balance at the end of a month = today's balance minus everything that happened after that month
@@ -1817,8 +1821,8 @@ function renderReport() {
     + card("My share of group expenses", groupShare) + card("Friends owe me (open)", nw.owedToMe, "income") + card("I owe friends (open)", nw.iOwe, "expense");
 
   // Budget vs actual and balances
-  const names = [...new Set([...Object.keys(plan), ...Object.keys(r.byCategory)])];
-  $("rep-cats").innerHTML = names.map((n) => { const s = r.byCategory[n] || 0, p = plan[n] || 0;
+  const names = [...new Set([...Object.keys(plan), ...Object.keys(r.budgetCat)])];
+  $("rep-cats").innerHTML = names.map((n) => { const s = r.budgetCat[n] || 0, p = plan[n] || 0;
     return `<tr><td>${escapeHtml(n)}</td><td class="right">${formatMoney(s)}</td><td class="right">${p ? formatMoney(p) : "—"}</td><td class="right ${p && s > p ? "expense" : ""}">${p ? formatMoney(round2(p - s)) : "—"}</td></tr>`; }).join("")
     || '<tr><td colspan="4" class="empty">No spending or plan yet.</td></tr>';
   $("rep-accts").innerHTML = accounts.map((a) => `<tr><td>${escapeHtml(a.name)}${a.kind === "credit" ? " (owed)" : ""}</td><td class="right">${formatMoney(openingBalance(a, month))}</td><td class="right">${formatMoney(closingBalance(a, month))}</td></tr>`).join("");

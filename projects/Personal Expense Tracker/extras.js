@@ -137,7 +137,7 @@
 
   // ---------- Overview tab ----------
   function renderSnapshot() {
-    const planned = round2(sum(Object.values(getPlan()))), used = monthTotals(selectedMonth).expenses;
+    const planned = round2(sum(Object.values(getPlan()))), used = monthTotals(selectedMonth).budgetUsed;
     if (planned <= 0) {
       snapshotCard.innerHTML = `<div class="snap-head"><h2>Budget in ${monthName(selectedMonth)}</h2></div>
         <p class="empty">No plan for ${monthName(selectedMonth)} yet.</p>
@@ -149,6 +149,7 @@
       <div class="snap-main ${left >= 0 ? "good" : "bad"}"><strong>${money(Math.abs(left))}</strong><span>${left >= 0 ? "left to spend" : "over your plan"}</span></div>
       <div class="progress big"><div class="bar ${left < 0 ? "over" : ""}" style="width:${pct}%"></div></div>
       <div class="plan-meta"><span>${money(used)} spent</span><span>${money(planned)} planned</span></div>
+      ${monthTotals(selectedMonth).fromGoals > 0 ? `<p class="hint">${money(monthTotals(selectedMonth).fromGoals)} paid from savings goals is not counted against this budget.</p>` : ""}
       ${p && left > 0 ? `<p class="snap-note">About <strong>${money(p.daily)}</strong> a day for the next ${plural(p.daysLeft, "day")}.</p>` : ""}
       <div class="snap-actions"><button type="button" class="primary-btn" data-bs-go="plan">Edit plan</button><button type="button" class="filter-btn" data-dash="expense">Where it went</button></div>`;
   }
@@ -461,7 +462,7 @@
       let plan = "";
       if (done) plan = "Goal reached 🎉";
       else if (g.date) plan = daysBetween(today(), g.date) < 0 ? "The finish date has passed." : "Save about " + money(round2(left / monthsUntil(g.date))) + " a month to finish by " + monthName(g.date.slice(0, 7)) + ".";
-      const hist = (g.history || []).slice(-6).reverse().map((h) => `<li><span>${prettyDate(h.date)} · ${h.kind === "spent" ? "Spent on " + esc(h.note || "an expense") : h.kind === "refund" ? "Refunded (expense deleted)" : (h.amount > 0 ? "Added from" : "Taken out to") + " " + esc(accountName(h.accountId) || "an account")}</span><strong class="${h.amount > 0 ? "income" : "expense"}">${h.amount > 0 ? "+" : "−"}${money(Math.abs(h.amount))}</strong></li>`).join("");
+      const hist = (g.history || []).slice(-6).reverse().map((h) => `<li><span>${prettyDate(h.date)} · ${h.kind === "spent" ? "Spent on " + esc(h.note || "an expense") : h.kind === "refund" ? "Refunded (expense deleted)" : h.kind === "adjust" ? "Corrected by hand" : (h.amount > 0 ? "Added from" : "Taken out to") + " " + esc(accountName(h.accountId) || "an account")}</span><strong class="${h.amount > 0 ? "income" : "expense"}">${h.amount > 0 ? "+" : "−"}${money(Math.abs(h.amount))}</strong></li>`).join("");
       return `<div class="goal-row">
         <div class="goal-top"><strong>${esc(g.name)}</strong><span>${pct}%</span></div>
         <div class="progress"><div class="bar" style="width:${pct}%"></div></div>
@@ -608,6 +609,7 @@
       <label class="field">Name<input type="text" id="ge-name" maxlength="30" value="${esc(g.name)}"></label>
       <label class="field">Target amount<input id="ge-target" type="number" step="0.01" min="0" inputmode="decimal" value="${g.target}"></label>
       <label class="field">Finish by (optional)<input id="ge-date" type="date" value="${g.date || ""}"></label>
+      <label class="field">Saved so far (fix it here if the amount is wrong)<input id="ge-saved" type="number" step="0.01" min="0" inputmode="decimal" value="${g.saved}"></label>
       <p id="ge-error" class="error" role="alert"></p>
       <div class="dialog-actions spread"><button type="button" class="mini-btn danger-text" id="ge-delete">Delete goal</button>
       <span><button type="button" class="filter-btn" id="ge-cancel">Cancel</button> <button type="submit" class="primary-btn">Save</button></span></div></form>`;
@@ -624,7 +626,11 @@
       const name = $("ge-name").value.trim(), target = parseFloat($("ge-target").value), date = $("ge-date").value, err = $("ge-error");
       if (!name) { err.textContent = "Enter a name."; return; }
       if (isNaN(target) || target <= 0) { err.textContent = "Enter a target amount greater than 0."; return; }
-      if (target < g.saved - 0.004) { err.textContent = "The target cannot be less than the " + money(g.saved) + " already saved."; return; }
+      const saved = round2(parseFloat($("ge-saved").value));
+      if (isNaN(saved) || saved < 0) { err.textContent = "Saved amount cannot be negative."; return; }
+      if (target < saved - 0.004) { err.textContent = "The target cannot be less than the " + money(saved) + " saved."; return; }
+      const diff = round2(saved - g.saved);
+      if (Math.abs(diff) > 0.004) { g.history = g.history || []; g.history.push({ id: Date.now(), date: today(), amount: diff, accountId: "", kind: "adjust" }); g.saved = saved; }
       Object.assign(g, { name, target: round2(target), date });
       goalEditDialog.close(); saveData(); render(); showToast("Goal updated");
     });
@@ -756,7 +762,7 @@
   }
 
   function budgetPopup() {
-    const plan = getPlan(), spent = getSpentByCategory(), planned = round2(sum(Object.values(plan))), used = monthTotals(selectedMonth).expenses;
+    const plan = getPlan(), spent = getSpentByCategory(), planned = round2(sum(Object.values(plan))), used = monthTotals(selectedMonth).budgetUsed;
     if (planned <= 0) return shell({ icon: "target", title: "Left budget", sub: monthName(selectedMonth), label: "No plan yet", value: "—",
       body: `<p class="empty">You have not planned any spending for ${monthName(selectedMonth)}. Add what you expect to pay (rent, groceries...) and FinTrack will show how much is left.</p>`,
       foot: [["Create your plan", "tab", "plan", "primary-btn"], ["Copy last month's plan", "copy"]] });
