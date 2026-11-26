@@ -3,7 +3,7 @@
    - Firebase SDK files (versioned, never change): cache first.
    - Firestore / Auth network calls are left alone: Firebase has its own offline storage.
    Bump V when you want to force-clear old caches. */
-const V = 'shiftclock-v3';
+const V = 'shiftclock-v4';
 const SHELL = ['./', 'index.html', 'style.css', 'app.js', 'firebase-config.js', 'pwa-install.js',
   'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 

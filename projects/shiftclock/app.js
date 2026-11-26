@@ -79,6 +79,54 @@ function csvAll(k,o){const I=pInfo(k,o),r=[['Job','Date','In','Out','Break (min)
  r.push([],['Total','','','','',I.h.toFixed(2),'',I.tp.toFixed(2),'','',I.v.toFixed(2)]);dlCsv(r,'shiftclock-'+pLabel(I).replace(/[^a-z0-9]+/gi,'-')+'.csv')}
 
 // ---------- render ----------
+// ---------- hours report (PDF receipt, no libraries, works offline) ----------
+const pdfTxt=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\u202f\u00a0]/g,' ').replace(/[^\x20-\x7e]/g,'?');
+const pdfEsc=s=>s.replace(/[\\()]/g,'\\$&');
+const rpad=(a,b,n)=>{a=pdfTxt(a);b=pdfTxt(b);return a.slice(0,Math.max(0,n-b.length-1)).padEnd(n-b.length)+b};
+const ctr=(a,n)=>{a=pdfTxt(a);return' '.repeat(Math.max(0,Math.floor((n-a.length)/2)))+a};
+function pdfBuild(lines,W){
+ const M=14,LEAD=1.35,PER=900,pages=[];
+ for(let i=0;i<lines.length;i+=PER)pages.push(lines.slice(i,i+PER));
+ const o=[null,'<</Type/Catalog/Pages 2 0 R>>',null,'<</Type/Font/Subtype/Type1/BaseFont/Courier/Encoding/WinAnsiEncoding>>','<</Type/Font/Subtype/Type1/BaseFont/Courier-Bold/Encoding/WinAnsiEncoding>>'],kids=[];
+ for(const pg of pages){
+  const h=Math.ceil(pg.reduce((a,l)=>a+l.s*LEAD,0)+M*2);let y=h-M,c='';
+  const an=[];
+  for(const l of pg){y-=l.s*LEAD;if(l.t.trim())c+=`BT /F${l.f} ${l.s} Tf ${M} ${y.toFixed(2)} Td (${pdfEsc(pdfTxt(l.t))}) Tj ET\n`;
+   if(l.u){const cw=.6*l.s,x0=M+(l.t.length-l.t.trimStart().length)*cw,x1=x0+l.t.trim().length*cw;an.push(o.length);o.push(`<</Type/Annot/Subtype/Link/Rect[${x0.toFixed(1)} ${(y-2).toFixed(1)} ${x1.toFixed(1)} ${(y+l.s).toFixed(1)}]/Border[0 0 0]/A<</S/URI/URI(${pdfEsc(l.u)})>>>>`)}}
+  const pi=o.length;o.push(`<</Type/Page/Parent 2 0 R/MediaBox[0 0 ${W} ${h}]/Resources<</Font<</F1 3 0 R/F2 4 0 R>>>>/Contents ${pi+1} 0 R${an.length?'/Annots['+an.map(n=>n+' 0 R').join(' ')+']':''}>>`,`<</Length ${c.length}>>\nstream\n${c}endstream`);kids.push(pi+' 0 R')}
+ o[2]=`<</Type/Pages/Kids[${kids.join(' ')}]/Count ${kids.length}>>`;
+ let out='%PDF-1.4\n';const off=[];
+ for(let i=1;i<o.length;i++){off[i]=out.length;out+=`${i} 0 obj\n${o[i]}\nendobj\n`}
+ const x=out.length;
+ out+=`xref\n0 ${o.length}\n0000000000 65535 f \n`+off.slice(1).map(n=>String(n).padStart(10,'0')+' 00000 n \n').join('')+`trailer\n<</Size ${o.length}/Root 1 0 R>>\nstartxref\n${x}\n%%EOF`;
+ return new Blob([out],{type:'application/pdf'})}
+const rMin=l=>l.reduce((a,x)=>a+Math.round(hr(x)*60),0)/60;
+const rMoney=n=>'$'+(Math.round(n*100)/100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+const rAmt=(j,l)=>Math.round(rMin(l)*(+j.rate||0)*100)/100;
+const rSum=G=>({h:G.reduce((a,g)=>a+rMin(g.l),0),a:G.reduce((a,g)=>a+rAmt(g.j,g.l),0),n:G.reduce((a,g)=>a+g.l.length,0)});
+function rGroups(){const f=$('#rf').value,t=$('#rt').value;if(!f||!t)return null;const ids=[...document.querySelectorAll('.rjc:checked')].map(x=>x.value),a=+pd(f),b=nextDay(+pd(t));
+ return jobs.filter(j=>ids.includes(j.id)).map(j=>({j,l:E.filter(x=>x.job===j.id&&x.end&&x.start>=a&&x.start<b).sort((p,q)=>p.start-q.start)})).filter(g=>g.l.length)}
+function rptLines(G,f,t){
+ const D='-'.repeat(36),L=[],multi=G.length>1,add=(s,fn=1,sz=9,u)=>L.push({t:s,f:fn,s:sz,u}),fm=s=>pd(s).toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'});
+ add(ctr('SHIFTCLOCK',23),2,14);if(prof.name)add(ctr(prof.name,36));if(!multi)add(ctr(G[0].j.name,36));add(ctr(fm(f)+' - '+fm(t),36));add(D);
+ G.forEach((g,i)=>{if(multi)add(pdfTxt(g.j.name).slice(0,36),2);
+  for(const x of g.l){const nx=new Date(x.start).toDateString()!==new Date(x.end).toDateString();
+   add(fd(x.start));add(rpad(ft(x.start)+' - '+ft(x.end)+(nx?' +1':''),fh(hr(x)),36));add('',1,5)}
+  if(multi){add(rpad('Subtotal '+fh(rMin(g.l)),rMoney(rAmt(g.j,g.l)),36),2);if(i<G.length-1)add(D)}});
+ const s=rSum(G);add(D);add(rpad('TOTAL HOURS',fh(s.h),27),2,12);add(rpad('AMOUNT',rMoney(s.a),27),2,12);add(D);
+ add('',1,5);add(ctr('Made with ShiftClock',36),2);add(ctr('Free to use',36));add('',1,5);add(ctr('Try it at',36));add(ctr('kedarnathsapkota.com.np',36),2,9,'https://kedarnathsapkota.com.np/projects/shiftclock/index.html');return L}
+function rUpd(){const s=$('#rs'),n=$('#rn');if(!s)return;
+ if(!document.querySelector('.rjc:checked')){s.textContent='--';n.textContent='Select at least one job';return}
+ const G=rGroups();if(!G||$('#rf').value>$('#rt').value){s.textContent='--';n.textContent='Pick a valid date range';return}
+ const m=rSum(G);s.textContent=fh(m.h);n.textContent=m.n+(m.n===1?' shift':' shifts')+' · '+rMoney(m.a)}
+function rptPreset(k){const t=T(),w=pStart('w',0),m=pStart('m',0);const[a,b]=k==='tw'?[w,t]:k==='lw'?[pStart('w',-1),new Date(prevDay(+w))]:k==='tm'?[m,t]:[pStart('m',-1),new Date(prevDay(+m))];$('#rf').value=ymd(a);$('#rt').value=ymd(b);rUpd()}
+function rptDlg(jid){if(!jobs.length)return alert('Add a job first');const sel=jobs.some(j=>j.id===jid)?jid:jobs[0].id;
+ ask('Hours report',`<div class="row" style="margin-bottom:4px"><label>Jobs in this PDF</label>${jobs.length>1?'<button class="sm" data-a="rall">Select all</button>':''}</div>${jobs.map(j=>`<label class="row" style="justify-content:flex-start;gap:10px;color:var(--tx);font-size:15px;padding:6px 0"><input type="checkbox" class="rjc" value="${j.id}" ${j.id===sel?'checked':''} style="width:20px;height:20px;margin:0;padding:0">${dot(j)}${esc(j.name)}</label>`).join('')}<label style="display:block;margin-top:10px">From</label><input id="rf" type="date" value="${ymd(pStart('w',0))}"><label>To</label><input id="rt" type="date" value="${ymd(new Date())}"><div class="sw" style="margin-bottom:12px">${[['tw','This week'],['lw','Last week'],['tm','This month'],['lm','Last month']].map(([k,l])=>`<button class="sm" data-a="rp" data-i="${k}">${l}</button>`).join('')}</div><div class="card" style="margin:0 0 12px"><span class="mut">Total hours</span><div class="big-cd" id="rs"></div><div class="mut" id="rn"></div></div><p class="mut" style="margin:0 0 8px">Finished shifts only. Hours are after unpaid breaks. Amount is before tax. For a single day, set From and To to the same date.</p>`,'Download PDF',async()=>{
+  const f=$('#rf').value,t=$('#rt').value;if(!document.querySelector('.rjc:checked'))return'Select at least one job';if(!f||!t)return'Pick both dates';if(f>t)return'The From date must be on or before the To date';
+  const G=rGroups();if(!G.length)return'No finished shifts in this range';
+  const a=document.createElement('a');a.href=URL.createObjectURL(pdfBuild(rptLines(G,f,t),226));a.download='shiftclock-'+(G.length>1?'multiple-jobs':G[0].j.name.replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()||'job')+'-'+f+'-to-'+t+'.pdf';a.click()});
+ document.querySelectorAll('.rjc').forEach(x=>x.onchange=rUpd);['rf','rt'].forEach(id=>{$('#'+id).oninput=rUpd;$('#'+id).onchange=rUpd});rUpd()}
+
 const T=()=>{const t=new Date();t.setHours(0,0,0,0);return t};
 const sumH=(L)=>L.reduce((a,x)=>a+hr(x),0);
 const sumT=L=>L.reduce((a,x)=>a+(+x.tip||0),0),payOf=(j,L)=>sumH(L)*j.rate+sumT(L),ep=(j,x)=>hr(x)*j.rate+(+x.tip||0);
@@ -91,7 +139,7 @@ function acctView(){const hrs=sumH(E.filter(x=>x.end)),earn=jobs.reduce((t,j)=>t
  $('#main').innerHTML=`<div class="prof"><div class="pav">${esc(nm[0].toUpperCase())}</div><h1>${esc(nm)}</h1><span class="mut">${esc(usr?.email||'')}</span>${since?`<span class="pill">Member since ${since}</span>`:''}</div><div class="grid3"><div class="stat"><span class="mut">Jobs</span><b>${jobs.length}</b></div><div class="stat"><span class="mut">Hours</span><b>${fh(hrs)}</b></div><div class="stat"><span class="mut">Earned</span><b>${m$(earn)}</b></div></div>
 <h4 class="sh">Profile</h4><div class="card"><label>Name</label><input id="an" value="${esc(prof.name||'')}"><label>Weekly income goal ($, optional)</label><input id="ag" type="number" inputmode="decimal" min="0" placeholder="Leave empty for no goal" value="${prof.goal||''}"><button class="pri big" data-a="sn">Save changes</button></div>
 <h4 class="sh">Appearance</h4><div class="card"><div class="seg" style="margin:0 0 14px">${[['','System'],['light','Light'],['dark','Dark']].map(([v,l])=>`<button class="${ls('th')===v?'pri':''}" data-a="sth" data-i="${v}">${l}</button>`).join('')}</div><div class="sw">${['','#3ddc97','#60a5fa','#a78bfa','#f472b6','#fb923c'].map(c=>`<button class="swb ${ls('ac')===c?'sel':''}" style="background:${c||'linear-gradient(135deg,#0f7a55,#3ddc97)'}" data-a="sac" data-i="${c}" aria-label="Accent color"></button>`).join('')}</div></div>
-<h4 class="sh">Account</h4><div class="lg">${row('','Tax rate',(prof.tax||0)+'% default','tax')}${row('','Reminders',rem?'On':'Off','rem')}${std?'':row('','Install app','Add to your home screen','inst')}${row('','Reset password','Email me a reset link','pwr')}${row('','Sign out','','so')}</div><p class="mut" style="text-align:center;margin:18px 0">ShiftClock · Made by Kedar</p>`}
+<h4 class="sh">Account</h4><div class="lg">${row('','Hours report','Pick dates, download a PDF','rpt')}${row('','Tax rate',(prof.tax||0)+'% default','tax')}${row('','Reminders',rem?'On':'Off','rem')}${std?'':row('','Install app','Add to your home screen','inst')}${row('','Reset password','Email me a reset link','pwr')}${row('','Sign out','','so')}</div><p class="mut" style="text-align:center;margin:18px 0">ShiftClock · Made by Kedar</p>`}
 // ---------- live ring, next shift, payday ----------
 const CIRC=2*Math.PI*54;
 const fhs=h=>{const t=Math.max(0,Math.floor(h*3600));return Math.floor(t/3600)+':'+String(Math.floor(t%3600/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -138,7 +186,7 @@ function wkView(){
  else for(const x=new Date(I.a);x<I.b;x.setDate(x.getDate()+1)){const a=new Date(x),b=new Date(x);b.setDate(b.getDate()+1);subs.push([a,b,k==='w'?a.toLocaleDateString([],{weekday:'short'}):(a.getDate()%5===0||a.getDate()===1?String(a.getDate()):'')])}
  const sv=subs.map(([a,b,l])=>{let v=0;for(const x of E){if(x.start<a||x.start>=b)continue;const j=jobs.find(y=>y.id===x.job);if(j)v+=net(j,ep(j,x))}return{v,l}});
  const jobsHtml=I.by.filter(b=>b.en.length||k==='w').map(b=>`<div class="card"><div class="row" data-a="oj" data-i="${b.j.id}|hours" style="cursor:pointer"><b style="font-size:17px">${dot(b.j)}${esc(b.j.name)}</b><b>${m$(b.n)} ›</b></div><div class="mut">${fh(b.h)} at ${m$(b.j.rate)}/hr${tx(b.j)?' · '+tx(b.j)+'% tax taken out':''}</div>${k==='y'?'':b.en.slice().sort((p,q)=>p.start-q.start).map(x=>`<div class="item row"><div><b>${fd(x.start)}</b><div class="mut">${ft(x.start)} - ${x.end?ft(x.end):'now'}${+x.brk?' · '+x.brk+'m break':''}${+x.tip?' · tip '+m$(x.tip):''}</div></div><div style="text-align:right"><b>${fh(hr(x))}</b><div class="mut">${m$(net(b.j,ep(b.j,x)))}</div></div></div>`).join('')||'<p class="mut" style="margin:8px 0 0">Nothing logged.</p>'}</div>`).join('');
- $('#main').innerHTML=`<div class="row"><button class="sm" data-a="dash">← Home</button><button class="sm" data-a="csvall" data-i="${k}|${sel}">Export CSV</button></div><div class="hello" style="margin-top:12px"><h1>${pName(k,sel)}</h1><span class="mut">${pLabel(I)}</span></div>${kinds(k,'wkd')}
+ $('#main').innerHTML=`<div class="row"><button class="sm" data-a="dash">← Home</button><span><button class="sm" data-a="rpt">PDF report</button> <button class="sm" data-a="csvall" data-i="${k}|${sel}">Export CSV</button></span></div><div class="hello" style="margin-top:12px"><h1>${pName(k,sel)}</h1><span class="mut">${pLabel(I)}</span></div>${kinds(k,'wkd')}
  <div class="nav"><button class="sm" data-a="wkd" data-i="${k}|${sel-1}">‹</button><b>${pLabel(I)}</b><button class="sm" data-a="wkd" data-i="${k}|${Math.min(0,sel+1)}" ${sel>=0?'disabled':''}>›</button><button class="sm" data-a="wkd" data-i="${k}|0">This ${KU[k]}</button></div>
  <div class="grid"><div class="stat hl"><span class="mut">Earned${jobs.some(tx)?' (after tax)':''}</span><b>${m$(I.v)}</b></div><div class="stat"><span class="mut">Hours</span><b>${fh(I.h)}</b></div><div class="stat"><span class="mut">Avg per hour</span><b>${m$(rate)}</b></div><div class="stat"><span class="mut">vs previous ${KU[k]}</span><b style="color:${d>=0?'var(--ac)':'var(--bad)'}">${d>=0?'+':'-'}${m$(Math.abs(d))}</b></div>${I.tp>0?`<div class="stat"><span class="mut">Tips / bonus</span><b>${m$(I.tp)}</b></div>`:''}</div>
  <div class="card"><b>Last ${NB[k]} ${KU[k]}s</b>${bars(list,sel)}</div>
@@ -168,7 +216,7 @@ function jobPage(j){
  const stats=`<div class="grid"><div class="stat hl" data-a="tab" data-i="hours"><span class="mut">${tx(j)?'Take-home this period ('+tx(j)+'% tax)':'Expected pay this period'}</span><b>${m$(net(j,payOf(j,en)))}</b></div><div class="stat" data-a="tab" data-i="hours"><span class="mut">Hours worked</span><b>${fh(hrs)}</b><div class="bar"><i style="width:${sch?Math.min(100,hrs/sch*100):0}%"></i></div><span class="mut">of ${fh(sch)} planned</span></div><div class="stat" data-a="tab" data-i="pay"><span class="mut">Balance owed to you</span><b>${m$(bal)}</b><span class="mut">Earned ${m$(earned)} · Paid ${m$(paid)}</span></div></div>`;
  let v='';
  if(tab==='over')v=nav+`<div class="card row"><div>${act&&act.job===j.id?`<span class="pill on">Clocked in ${ft(act.start)}</span><div class="run" id="run"></div><div class="mut" id="earn"></div>`:act?'<span class="pill">Clocked in at another job</span>':'<span class="pill">Clocked out</span>'}</div>${act&&act.job!==j.id?'':`<button class="big ${act?'stop':'pri'}" style="width:auto;min-width:160px" data-a="clock">${act?'Clock out':'Clock in'}</button>`}</div>`+stats;
- if(tab==='hours')v=nav+`<div class="row" style="margin-bottom:8px"><b>Time entries</b><span><button class="sm" data-a="csv">Export CSV</button> <button class="sm pri" data-a="ne">+ Manual</button></span></div><div class="card">${en.map(x=>`<div class="item row"><div><b>${fd(x.start)}</b><div class="mut">${ft(x.start)} - ${x.end?ft(x.end):'now'}${x.note?' · '+esc(x.note):''}${+x.brk?' · '+x.brk+'m break':''}${+x.tip?' · tip '+m$(x.tip):''}</div></div><div style="text-align:right"><b>${fh(hr(x))}</b> <span class="mut">${m$(ep(j,x))}</span><div><button class="sm" data-a="ee" data-i="${x.id}">Edit</button> <button class="sm" data-a="de" data-i="${x.id}">✕</button></div></div></div>`).join('')||'<p class="mut">No time logged in this period.</p>'}</div>`;
+ if(tab==='hours')v=nav+`<div class="row" style="margin-bottom:8px"><b>Time entries</b><span><button class="sm" data-a="rpt">PDF report</button> <button class="sm" data-a="csv">Export CSV</button> <button class="sm pri" data-a="ne">+ Manual</button></span></div><div class="card">${en.map(x=>`<div class="item row"><div><b>${fd(x.start)}</b><div class="mut">${ft(x.start)} - ${x.end?ft(x.end):'now'}${x.note?' · '+esc(x.note):''}${+x.brk?' · '+x.brk+'m break':''}${+x.tip?' · tip '+m$(x.tip):''}</div></div><div style="text-align:right"><b>${fh(hr(x))}</b> <span class="mut">${m$(ep(j,x))}</span><div><button class="sm" data-a="ee" data-i="${x.id}">Edit</button> <button class="sm" data-a="de" data-i="${x.id}">✕</button></div></div></div>`).join('')||'<p class="mut">No time logged in this period.</p>'}</div>`;
  if(tab==='sched'){let days='';for(const d=new Date(s);d<e;d.setDate(d.getDate()+1)){const k=ymd(d);days+=`<div class="item row"><div><b>${fd(+d)}</b>${sh.filter(x=>x.date===k).map(x=>`<div><span class="pill on">${rg(x)}</span> <button class="sm" data-a="es" data-i="${x.id}">Edit</button> <button class="sm" data-a="ds" data-i="${x.id}">✕</button></div>`).join('')}</div><button class="sm" data-a="ns" data-i="${k}">+ Shift</button></div>`}
   v=nav+`<div class="row" style="margin-bottom:8px"><b>Planned: ${fh(sch)}</b><button class="sm" data-a="cp">Copy previous period</button></div><div class="card">${days}</div>`}
  if(tab==='pay')v=nav+stats+`<div class="row" style="margin:6px 0 8px"><b>Payments received</b><button class="sm pri" data-a="np" data-i="${bal}">+ Record payment</button></div><div class="card">${Y.filter(x=>x.job===j.id).sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<div class="item row"><div><b>${m$(x.amount)}</b><div class="mut">${fd(+pd(x.date))}${x.note?' · '+esc(x.note):''}</div></div><button class="sm" data-a="dy" data-i="${x.id}">✕</button></div>`).join('')||'<p class="mut">No payments recorded yet.</p>'}</div>`;
@@ -229,7 +277,7 @@ document.addEventListener('click',async ev=>{const b=ev.target.closest('[data-a]
  else if(a==='clock')await toggleClock(cur);
  else if(a==='ne')entDlg();else if(a==='ee')entDlg(E.find(x=>x.id===i));else if(a==='de')ask('Delete this entry?','','Delete',()=>delU('entries',E,i));
  else if(a==='ns')shDlg(null,i);else if(a==='es')shDlg(S.find(x=>x.id===i));else if(a==='ds')ask('Delete this shift?','','Delete',()=>delU('shifts',S,i));
- else if(a==='cp')copyPrev(j);else if(a==='np')payDlg(+i);else if(a==='dy')ask('Delete this payment?','','Delete',()=>deleteDoc(dc('payments',i)));else if(a==='csv')csv(j);
+ else if(a==='cp')copyPrev(j);else if(a==='np')payDlg(+i);else if(a==='dy')ask('Delete this payment?','','Delete',()=>deleteDoc(dc('payments',i)));else if(a==='csv')csv(j);else if(a==='rpt')rptDlg(cur);else if(a==='rp')rptPreset(i);else if(a==='rall'){const c=[...document.querySelectorAll('.rjc')],on=c.some(x=>!x.checked);c.forEach(x=>x.checked=on);rUpd()}
  }catch(x){alert(x.message)}});
 setMode('in');
 if(cfg.apiKey.startsWith('YOUR_'))$('#msg').textContent='Add your Firebase config to firebase-config.js first (see README).';
